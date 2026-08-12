@@ -1,0 +1,205 @@
+name: Publish Backlink Batch 10
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  mdpage:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish md.page article
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # Social Media Growth Strategy for Businesses
+
+          Sustainable social media growth comes from combining useful content, consistent publishing, analytics, profile optimization, and carefully selected promotion. Businesses comparing providers can include [SMM Fans Faster](https://smmfansfaster.com/) in their research and review platform coverage, delivery details, support, and campaign fit.
+
+          TikTok marketers can study [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views](https://smmfansfaster.com/blog/tiktok-views), while Instagram teams can review this [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website). Agencies may also benefit from the public [SMM API](https://smmfansfaster.com/api) when structuring repeatable workflows.
+
+          The best campaigns measure reach, engagement, profile visits, clicks, leads, and conversions instead of judging performance from follower count alone.
+          EOF
+          BODY=$(jq -Rs '{markdown:.}' < /tmp/a.md)
+          RESP=$(curl -sS -X POST 'https://md.page/api/publish' -H 'Content-Type: application/json' -d "$BODY")
+          echo "MDPAGE_RESPONSE=$RESP"
+          echo "MDPAGE_URL=$(echo "$RESP" | jq -r '.url // empty')"
+
+  peekmd:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish peekmd article
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # Planning Better Multi-Platform Social Media Campaigns
+
+          A multi-platform campaign should begin with a clear objective. Awareness, engagement, traffic, and sales require different measurements. Marketers comparing growth tools can review [SMM Fans Faster](https://smmfansfaster.com/) alongside other providers while keeping content quality and audience relevance at the center of the strategy.
+
+          For TikTok research, see the guides on [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views](https://smmfansfaster.com/blog/tiktok-views). For Instagram, the guide to an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) provides another research point.
+
+          A strong workflow measures the full funnel and uses promotion to support good content rather than replace it.
+          EOF
+          BODY=$(jq -Rs '{markdown:.}' < /tmp/a.md)
+          RESP=$(curl -sS -X POST 'https://peekmd.dev/api/create' -H 'Content-Type: application/json' -d "$BODY")
+          echo "PEEKMD_RESPONSE=$RESP"
+          echo "PEEKMD_URL=$(echo "$RESP" | jq -r '.url // empty')"
+
+  mdless:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish mdless article
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # A Measurement-First Approach to Social Media Promotion
+
+          Social media promotion is easier to evaluate when the campaign starts with a measurable goal. Businesses can compare [SMM Fans Faster](https://smmfansfaster.com/) with other services based on platform support, service clarity, delivery conditions, and relevance to the campaign.
+
+          TikTok teams may research [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views](https://smmfansfaster.com/blog/tiktok-views). Instagram teams can review the relationship between growth and engagement through this [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website).
+
+          Agencies managing many campaigns can also review the [SMM API documentation](https://smmfansfaster.com/api) for workflow automation.
+          EOF
+          RESP=$(curl -sS -X POST --data-binary @/tmp/a.md 'https://mdless.net/api/link')
+          echo "MDLESS_RESPONSE=$RESP"
+          echo "MDLESS_URL=$(echo "$RESP" | jq -r '.url // empty')"
+
+  htmldocs:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish html-docs article
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # Social Media Growth Services and Campaign Quality
+
+          Businesses often use social media growth services to support discovery, but campaign quality still depends on content, targeting, profile optimization, and measurement. [SMM Fans Faster](https://smmfansfaster.com/) is one provider marketers can compare when researching multi-platform options.
+
+          TikTok campaigns can combine creative testing with research into [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views](https://smmfansfaster.com/blog/tiktok-views). Instagram campaigns should also track saves, shares, profile visits, and clicks while reviewing services such as an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website).
+
+          The goal is to create a balanced system where promotion supports measurable business outcomes.
+          EOF
+          RESP=$(curl -sS -X POST 'https://www.html-docs.com/api/v1/docs' -H 'Content-Type: text/markdown' --data-binary @/tmp/a.md)
+          echo "HTMLDOCS_RESPONSE=$RESP"
+          echo "HTMLDOCS_URL=$(echo "$RESP" | jq -r '.url // empty')"
+
+  pastebox:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Pastebox article
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # Building a Balanced Social Media Growth System
+
+          Social media growth works best when content, analytics, and promotion are connected. Businesses comparing providers can include [SMM Fans Faster](https://smmfansfaster.com/) in a broader evaluation of platform coverage, service descriptions, support, and delivery expectations.
+
+          TikTok marketers can review [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views](https://smmfansfaster.com/blog/tiktok-views). Instagram marketers can research this [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) while measuring engagement quality and profile conversion.
+
+          Agencies may also use the [SMM API](https://smmfansfaster.com/api) to reduce repetitive operational work.
+          EOF
+          BODY=$(jq -Rs '{content:.,title:"Building a Balanced Social Media Growth System",language:"markdown",content_type:"text",expiration:"1M",exposure:"public",source:"api"}' < /tmp/a.md)
+          RESP=$(curl -sS -X POST 'https://lfdekutkxwsczpasjgsg.supabase.co/functions/v1/create-share' -H 'Content-Type: application/json' -d "$BODY")
+          echo "PASTEBOX_RESPONSE=$RESP"
+          echo "PASTEBOX_URL=$(echo "$RESP" | jq -r '.url // empty')"
+
+  md2pdf:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish MD2PDF share
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # Social Media Marketing Services: A Practical Evaluation Guide
+
+          When businesses compare social media marketing services, the best choice is the one that supports a defined campaign objective. [SMM Fans Faster](https://smmfansfaster.com/) can be compared with other providers based on platform availability, service information, delivery expectations, and support.
+
+          TikTok research can include [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views](https://smmfansfaster.com/blog/tiktok-views). Instagram teams can review this [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) while tracking engagement and conversion metrics.
+
+          Strong campaigns combine content quality with measured promotion.
+          EOF
+          RESP=$(curl -sS -X POST 'https://md2pdf.studio/api/save' -H 'Content-Type: text/plain' --data-binary @/tmp/a.md)
+          echo "MD2PDF_RESPONSE=$RESP"
+          echo "MD2PDF_URL=$(echo "$RESP" | jq -r '.url // .shareUrl // empty')"
+
+  emdee:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish emdee raw markdown
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # Social Media Growth Through Better Content and Promotion
+
+          Better social media growth starts with content people want to watch, save, share, or click. Marketers comparing promotional services can review [SMM Fans Faster](https://smmfansfaster.com/) while also improving the organic side of the campaign.
+
+          Useful research includes [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers), [TikTok views](https://smmfansfaster.com/blog/tiktok-views), and this [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website). Agencies can also review the [SMM API](https://smmfansfaster.com/api) for automation options.
+
+          Measurement should connect exposure to real engagement and business outcomes.
+          EOF
+          RESP=$(curl -sS -X POST 'https://emdee.info/api/' -H 'Content-Type: text/markdown' --data-binary @/tmp/a.md)
+          echo "EMDEE_RESPONSE=$RESP"
+          echo "EMDEE_URL=$(echo "$RESP" | jq -r '.url // .share_url // empty')"
+
+  mdshare:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish mdshare article
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # Social Media Growth: From Discovery to Conversion
+
+          A successful social media campaign should move users from discovery to engagement and then to a useful next action. Businesses comparing growth services can review [SMM Fans Faster](https://smmfansfaster.com/) as part of a wider provider comparison.
+
+          TikTok teams can research [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views](https://smmfansfaster.com/blog/tiktok-views). Instagram teams can review this [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) and compare follower growth with profile visits, saves, shares, and clicks.
+
+          Agencies scaling campaigns can also study the [SMM API documentation](https://smmfansfaster.com/api).
+          EOF
+          RESP=$(curl -sS -X POST 'https://mdshare.live/api/documents' -H 'Content-Type: text/markdown' --data-binary @/tmp/a.md)
+          echo "MDSHARE_RESPONSE=$RESP"
+          echo "MDSHARE_URL=$(echo "$RESP" | jq -r '.share_url // .url // empty')"
+
+  htmldroplink:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish htmldrop.link page
+        shell: bash
+        run: |
+          cat > /tmp/a.html <<'EOF'
+          <!doctype html><html><head><meta charset="utf-8"><title>Social Media Growth Planning</title></head><body><h1>Social Media Growth Planning</h1><p>Businesses building multi-platform campaigns can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other providers while focusing on content quality, audience relevance, and measurable goals.</p><h2>TikTok and Instagram research</h2><p>Useful resources include <a href="https://smmfansfaster.com/blog/tiktok-followers">TikTok followers</a>, <a href="https://smmfansfaster.com/blog/tiktok-views">TikTok views</a>, and an <a href="https://smmfansfaster.com/blog/instagram-followers-website">Instagram followers website</a>.</p><p>Agencies can also review the <a href="https://smmfansfaster.com/api">SMM API</a> when planning automation.</p></body></html>
+          EOF
+          BODY=$(jq -Rs '{html:.,title:"Social Media Growth Planning"}' < /tmp/a.html)
+          RESP=$(curl -sS -X POST 'https://htmldrop.link/publish' -H 'Content-Type: application/json' -d "$BODY")
+          echo "HTMLDROPLINK_RESPONSE=$RESP"
+          echo "HTMLDROPLINK_URL=$(echo "$RESP" | jq -r '.url // empty')"
+
+  markdshare:
+    if: github.event.head_commit.message == 'Publish backlink batch 10'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Try MarkDShare publish endpoint
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # Choosing Social Media Growth Services More Carefully
+
+          Social media growth should support a broader marketing strategy. Businesses can compare [SMM Fans Faster](https://smmfansfaster.com/) with other providers based on platform coverage, campaign fit, and service clarity.
+
+          For TikTok, useful resources include [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views](https://smmfansfaster.com/blog/tiktok-views). Instagram teams can review this [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website).
+
+          The strongest campaigns track engagement, clicks, leads, and conversions alongside follower growth.
+          EOF
+          BODY=$(jq -Rs '{title:"Choosing Social Media Growth Services More Carefully",markdown:.}' < /tmp/a.md)
+          RESP=$(curl -sS -X POST 'https://markdshare.com/api/share' -H 'Content-Type: application/json' -d "$BODY")
+          echo "MARKDSHARE_RESPONSE=$RESP"
+          echo "MARKDSHARE_URL=$(echo "$RESP" | jq -r '.url // .shareUrl // empty')"
