@@ -1,0 +1,25 @@
+name: Retry New Unique Domains 1004
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    if: github.event.head_commit.message == 'Retry new unique domains 1004'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install parser and retry compliant publishers
+        shell: bash
+        run: |
+          python -m pip install -q beautifulsoup4
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/test-new-unique-domains-1002.yml' -o /tmp/src.yml
+          python - <<'PY'
+          import textwrap
+          src=open('/tmp/src.yml',encoding='utf-8').read()
+          start=src.index("cat > /tmp/test.py <<'PY'")+len("cat > /tmp/test.py <<'PY'")
+          end=src.index("\n          PY\n          python /tmp/test.py",start)
+          code=textwrap.dedent(src[start:end].lstrip('\n'))
+          open('/tmp/test.py','w',encoding='utf-8').write(code)
+          PY
+          python /tmp/test.py
