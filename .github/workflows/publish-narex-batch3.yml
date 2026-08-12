@@ -1,0 +1,172 @@
+name: Publish NAREX anonymous backlinks batch 3
+
+on:
+  push:
+    branches:
+      - narex-publish-batch3-20260812
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Publish batch 3 through anonymous APIs
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.error, csv, time, html, re
+          HOME='https://narexx.com/'
+          PRODUCT='https://narexx.com/ar/easy-wash/p754364761'
+          WHY='https://narexx.com/en/%D9%84%D9%85%D8%A7%D8%B0%D8%A7-%D8%AA%D8%B3%D8%AA%D8%AE%D8%AF%D9%85-%D8%A7%D9%84%D9%85%D9%86%D8%AA%D8%AC/page-833898435'
+          WHOLESALE='https://narexx.com/en/%D8%B7%D9%84%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AC%D9%85%D9%84%D9%87/page-768158116'
+          COMPLAINTS='https://narexx.com/%D9%84%D9%84%D8%B4%D9%83%D8%A7%D9%88%D9%89-%D9%88-%D8%A7%D9%84%D8%A7%D9%82%D8%AA%D8%B1%D8%A7%D8%AD%D8%A7%D8%AA/page-50408011'
+          RETURNS='https://narexx.com/ar/%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%A8%D8%AF%D8%A7%D9%84-%D9%88%D8%A7%D9%84%D8%A5%D8%B3%D8%AA%D8%B1%D8%AC%D8%A7%D8%B9/page-1592231750'
+          EN='https://narexx.com/en/'
+          topics=[
+            'مناديل حماية الألوان للغسالة في السعودية',
+            'أفضل طريقة لمنع انتقال لون الملابس أثناء الغسيل',
+            'ورق امتصاص الصبغات للملابس الملونة',
+            'حماية الملابس البيضاء من انتقال الألوان',
+            'منتج لتقليل اختلاط الألوان داخل الغسالة',
+            'كيفية غسل الملابس الملونة مع الحفاظ على اللون',
+            'حل انتقال الصبغات بين الملابس في الغسالة',
+            'مناديل الغسيل لالتقاط الألوان الزائدة',
+            'طريقة حماية الملابس الجديدة من نزيف اللون',
+            'أفضل روتين لغسل الملابس متعددة الألوان',
+            'حل عملي لمنع تداخل الألوان في الملابس',
+            'Easy Wash لحماية ألوان الملابس في السعودية'
+          ]
+          refs=[('Easy Wash من NAREX',PRODUCT),('متجر NAREX',HOME),('لماذا تستخدم المنتج',WHY),('صفحة Easy Wash',PRODUCT),('NAREX السعودية',HOME),('سياسة الاستبدال والاسترجاع',RETURNS),('الشكاوى والاقتراحات',COMPLAINTS),('طلبات الجملة',WHOLESALE),('NAREX English',EN),('منتج منع انتقال الألوان',PRODUCT),('الموقع الرسمي NAREX',HOME),('Easy Wash الرسمي',PRODUCT),('متجر NAREX السعودية',HOME),('خدمة العملاء',COMPLAINTS)]
+          def make_article(title):
+              paras=[
+                f'{title} من الموضوعات المهمة للعناية اليومية بالملابس، لأن انتقال الصبغات قد يحدث عند غسل قطع جديدة أو ألوان قوية معًا. التعامل الصحيح يبدأ بفهم طبيعة الأقمشة واختيار برنامج مناسب وعدم تحميل الغسالة فوق طاقتها.',
+                'من أكثر الخطوات العملية استخدام مناديل مخصصة لالتقاط الصبغات المتسربة داخل ماء الغسيل. هذه المناديل لا تلغي قواعد الفرز تمامًا، لكنها تضيف طبقة مساعدة يمكن أن تجعل الغسيل أكثر مرونة خاصة مع الملابس المتقاربة في الألوان.',
+                'يقدم Easy Wash من NAREX هذا النوع من الحلول للاستخدام المنزلي. توضع الورقة مع الملابس داخل الغسالة وتعمل أثناء الدورة على التقاط جزء من الصبغات الزائدة، ثم يتم التخلص منها بعد انتهاء الغسيل وفق تعليمات المنتج.',
+                'للحفاظ على الملابس لفترة أطول يفضل كذلك قلب بعض القطع من الداخل للخارج، تجنب الحرارة العالية عندما لا تكون مطلوبة، وعدم ترك الملابس المبللة بعد نهاية الدورة. كما يجب مراعاة القطع الحساسة أو المعروفة بأنها تطلق لونًا قويًا في أولى مرات الغسيل.',
+                'من المهم قبل الشراء الاطلاع على معلومات المنتج وسياسات المتجر وقنوات التواصل. وجود هذه الصفحات يساعد المستخدم في السعودية على معرفة طريقة الاستخدام وخيارات التواصل وطلبات الجملة وسياسة الاستبدال والاسترجاع قبل اتخاذ قرار الشراء.',
+                'الخلاصة أن حماية الألوان تعتمد على مجموعة خطوات متكاملة: فرز ذكي، اختيار البرنامج المناسب، كمية منظف صحيحة، واستخدام حل مساعد لالتقاط الصبغات عند الحاجة. هذا الروتين يقلل احتمالية انتقال اللون ويساعد على المحافظة على مظهر الملابس.'
+              ]
+              out=[f'<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title></head><body><article><h1>{html.escape(title)}</h1>']
+              ri=0
+              for p in paras:
+                  a,b=refs[ri%len(refs)],refs[(ri+1)%len(refs)]; ri+=2
+                  out.append(f'<p>{html.escape(p)} للمزيد راجع <a href="{a[1]}">{html.escape(a[0])}</a> و<a href="{b[1]}">{html.escape(b[0])}</a>.</p>')
+              out.append(f'<p>مصادر إضافية: <a href="{PRODUCT}">Easy Wash</a> — <a href="{HOME}">NAREX</a>.</p></article></body></html>')
+              return ''.join(out)
+          def post(url,payload,ctype='application/json'):
+              raw=json.dumps(payload,ensure_ascii=False).encode() if not isinstance(payload,(bytes,bytearray,str)) else (payload.encode() if isinstance(payload,str) else payload)
+              req=urllib.request.Request(url,data=raw,method='POST')
+              req.add_header('Content-Type',ctype); req.add_header('Accept','application/json'); req.add_header('User-Agent','Mozilla/5.0 NAREXPublisher/3.0')
+              with urllib.request.urlopen(req,timeout=60) as r: return r.status,dict(r.headers),r.read().decode('utf-8','replace')
+          def extract(body,headers,site):
+              try: d=json.loads(body)
+              except: d={}
+              c=[]
+              def walk(x):
+                  if isinstance(x,dict):
+                      for k,v in x.items():
+                          if isinstance(v,str) and v.startswith('http') and any(t in k.lower() for t in ['url','link','preview','share']): c.append(v)
+                          else: walk(v)
+                  elif isinstance(x,list):
+                      for v in x: walk(v)
+              walk(d)
+              if not c:
+                  c += re.findall(r'https?://[^\s"<>]+',body)
+              if headers.get('Location'): c.append(headers['Location'])
+              return next((u.rstrip('.,') for u in c if site.split('.')[0] in u or u.startswith('http')), '')
+          direct=[
+            ('pagedrop.dev','https://pagedrop.dev/api/v1/sites',lambda h,t:{'html':h,'title':t}),
+            ('freekit.dev','https://freekit.dev/api/v1/sites',lambda h,t:{'html':h,'title':t}),
+            ('pastepile.com','https://pastepile.com/api/public/pastes',lambda h,t:{'title':t,'content':h,'language':'html','expiry':'1mo','visibility':'public'}),
+            ('ht-ml.app','https://api.ht-ml.app/v1/sites',lambda h,t:{'html_content':h}),
+            ('pitchey.app','https://pitchey.app/api/pages',lambda h,t:{'html':h,'ttl':'7d'}),
+            ('aired.sh','https://aired.sh/api/publish',lambda h,t:{'html':h}),
+            ('shippage.ai','https://shippage.ai/v1/publish',lambda h,t:{'html':h})
+          ]
+          results=[]
+          for i,(site,url,builder) in enumerate(direct):
+              title=topics[i]; h=make_article(title); count=h.count('https://narexx.com')
+              try:
+                  st,hd,b=post(url,builder(h,title)); u=extract(b,hd,site)
+                  results.append([site,u,st,title,count,'published' if u else 'no_url'])
+                  print(f'PUBLISHED|{site}|{u}|links={count}')
+              except Exception as e:
+                  results.append([site,'','',title,count,f'FAILED: {e}']); print(f'FAILED|{site}|{e}')
+              time.sleep(2)
+          with open('narex-batch3-api.csv','w',newline='',encoding='utf-8-sig') as f:
+              w=csv.writer(f); w.writerow(['platform','published_url','http_status','title','narex_links','status']); w.writerows(results)
+          print('API_SUCCESS_COUNT='+str(len([r for r in results if r[1]])))
+          PY
+
+      - name: Publish through no-signup browser forms
+        shell: bash
+        run: |
+          python3 -m pip -q install selenium
+          python3 - <<'PY'
+          from selenium import webdriver
+          from selenium.webdriver.common.by import By
+          from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.support.ui import WebDriverWait
+          import time,csv,html,re
+          HOME='https://narexx.com/'; PRODUCT='https://narexx.com/ar/easy-wash/p754364761'
+          titles=['HTMLPUT NAREX دليل حماية الملابس من انتقال الألوان','dochost NAREX مناديل التقاط ألوان الغسيل','paste.page NAREX حل اختلاط ألوان الملابس','ShareText NAREX حماية ألوان الملابس','htmlhost NAREX مناديل منع انتقال الألوان']
+          sites=[('htmlput.com','https://www.htmlput.com/?lang=en'),('dochost.io','https://dochost.io/'),('paste.page','https://paste.page/free-html-hosting'),('sharetext.io','https://sharetext.io/'),('htmlhost.co','https://htmlhost.co/')]
+          def article(title):
+              links=[PRODUCT,HOME,PRODUCT,HOME,PRODUCT,HOME,PRODUCT,HOME,PRODUCT,HOME]
+              ps=['انتقال الألوان أثناء الغسيل من المشكلات الشائعة مع الملابس الجديدة والدرجات القوية. يمكن تقليل المشكلة من خلال الفرز الذكي واختيار برنامج مناسب واستخدام حل مساعد لالتقاط الصبغات.','Easy Wash من NAREX مصمم للمساعدة على التقاط الصبغات الزائدة أثناء دورة الغسيل. يوضع المنديل داخل الغسالة مع الملابس ثم يتم التخلص منه بعد انتهاء الدورة وفق تعليمات الاستخدام.','العناية الصحيحة تشمل كذلك تجنب الحرارة غير الضرورية وعدم ترك الملابس المبللة داخل الغسالة لفترة طويلة والتعامل بحذر مع القطع الحساسة أو التي تنزف لونًا بشكل واضح.','بالنسبة للمستخدم في السعودية، من المفيد مراجعة صفحة المنتج والمتجر قبل الشراء لمعرفة المعلومات الحالية والتوفر وسياسات الخدمة.','الجمع بين المنتج المناسب وروتين غسيل منظم يساعد على تقليل انتقال الصبغات والمحافظة على مظهر الملابس الملونة لفترة أطول.']
+              out=[f'<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>{html.escape(title)}</title></head><body><h1>{html.escape(title)}</h1>']
+              j=0
+              for p in ps:
+                  out.append(f'<p>{p} <a href="{links[j]}">Easy Wash من NAREX</a> و<a href="{links[j+1]}">متجر NAREX</a>.</p>'); j+=2
+              out.append('</body></html>'); return ''.join(out)
+          opt=Options(); opt.add_argument('--headless=new'); opt.add_argument('--no-sandbox'); opt.add_argument('--disable-dev-shm-usage'); opt.add_argument('--window-size=1400,1000')
+          driver=webdriver.Chrome(options=opt); rows=[]
+          for idx,((site,url),title) in enumerate(zip(sites,titles)):
+              try:
+                  driver.get(url); time.sleep(3); start=driver.current_url; content=article(title)
+                  fields=driver.find_elements(By.CSS_SELECTOR,'textarea')
+                  if not fields:
+                      fields=driver.find_elements(By.CSS_SELECTOR,'[contenteditable="true"]')
+                  if not fields: raise Exception('no editor field')
+                  field=max(fields,key=lambda x: x.size.get('width',0)*x.size.get('height',0))
+                  driver.execute_script("arguments[0].scrollIntoView({block:'center'});",field)
+                  try: field.clear(); field.send_keys(content)
+                  except:
+                      driver.execute_script("arguments[0].value=arguments[1];arguments[0].dispatchEvent(new Event('input',{bubbles:true}));",field,content)
+                  # fill obvious title input when present
+                  for inp in driver.find_elements(By.CSS_SELECTOR,'input[type="text"]')[:8]:
+                      ph=((inp.get_attribute('placeholder') or '')+' '+(inp.get_attribute('name') or '')).lower()
+                      if 'title' in ph or 'page title' in ph:
+                          try: inp.send_keys(title)
+                          except: pass
+                  btns=driver.find_elements(By.CSS_SELECTOR,'button,input[type="submit"]')
+                  keys=['publish','host now','get my link','create share','share','deploy','air it','create','host','نشر']
+                  btn=next((b for b in btns if any(k in ((b.text or b.get_attribute('value') or '').strip().lower()) for k in keys) and b.is_displayed() and b.is_enabled()),None)
+                  if not btn: raise Exception('no publish button')
+                  driver.execute_script('arguments[0].click();',btn); time.sleep(8)
+                  candidates=[]
+                  if driver.current_url!=start: candidates.append(driver.current_url)
+                  for a in driver.find_elements(By.CSS_SELECTOR,'a[href]'):
+                      href=a.get_attribute('href') or ''
+                      if href.startswith('http') and site.split('.')[0] in href and href not in [url,start]: candidates.append(href)
+                  body=driver.page_source
+                  candidates += re.findall(r'https?://[^\s"<>]+',body)
+                  u=next((x for x in candidates if site.split('.')[0] in x and x not in [url,start]),'')
+                  rows.append([site,u,title,content.count('https://narexx.com'),'published' if u else 'no_url'])
+                  print(f'BROWSER|{site}|{u}|links={content.count("https://narexx.com")}')
+              except Exception as e:
+                  rows.append([site,'',title,10,'FAILED: '+str(e)]); print(f'FAILED_BROWSER|{site}|{e}')
+          driver.quit()
+          with open('narex-batch3-browser.csv','w',newline='',encoding='utf-8-sig') as f:
+              w=csv.writer(f);w.writerow(['platform','published_url','title','narex_links','status']);w.writerows(rows)
+          print('BROWSER_SUCCESS_COUNT='+str(len([r for r in rows if r[1]])))
+          PY
+
+      - name: Upload batch 3 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: narex-batch3-results
+          path: |
+            narex-batch3-api.csv
+            narex-batch3-browser.csv
