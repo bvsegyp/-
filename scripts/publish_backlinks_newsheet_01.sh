@@ -42,28 +42,23 @@ A3=$(make_md 'How Agencies Can Measure Social Media Growth More Accurately' 'bui
 A4=$(make_md 'How Ecommerce Brands Can Turn Social Reach Into Product Discovery' 'linking content performance with product interest, site visits, and purchases')
 A5=$(make_md 'How to Compare Social Media Growth Services Without Losing Organic Context' 'evaluating providers while preserving clean measurement and content learning')
 
-# 1) mdlib.dev
 p=$(jq -n --arg markdown "$A1" --arg title 'How to Build a Social Media Growth System That Supports Business Goals' '{markdown:$markdown,title:$title,is_public:true}')
 r=$(curl -sS -X POST 'https://mdlib.dev/v1/docs' -H 'Content-Type: application/json' -d "$p")
 echo "RESULT_URL=$(echo "$r" | jq -r '.url // empty')"
 
-# 2) yeet.md
 p=$(jq -n --arg content "$A2" '{content:$content}')
 r=$(curl -sS -X POST 'https://yeet.md/api/share' -H 'Content-Type: application/json' -d "$p")
 echo "RESULT_URL=$(echo "$r" | jq -r '.url // empty')"
 
-# 3) mdview.io
 p=$(jq -n --arg content "$A3" --arg title 'How Agencies Can Measure Social Media Growth More Accurately' '{title:$title,content:$content,expiresInDays:30}')
 r=$(curl -sS -X POST 'https://mdview.io/api/public/publish' -H 'Content-Type: application/json' -d "$p")
 echo "RESULT_URL=$(echo "$r" | jq -r '.shareUrl // .viewerUrl // empty')"
 
-# 4) yeetit.site
 HTML='<html><head><title>How Ecommerce Brands Can Turn Social Reach Into Product Discovery</title></head><body><h1>How Ecommerce Brands Can Turn Social Reach Into Product Discovery</h1><p>Social media growth works best when reach is connected with a measurable customer journey. Ecommerce teams should combine useful content, product education, profile optimization, analytics, and carefully selected promotional support.</p><p>Brands researching growth services can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other providers while reviewing platform coverage, support, delivery expectations, and campaign fit.</p><h2>Use platform-specific content</h2><p>TikTok teams can review the <a href="https://smmfansfaster.com/blog/tiktok-followers">TikTok followers guide</a> and the resource about <a href="https://smmfansfaster.com/blog/tiktok-views">TikTok views, followers, and likes</a>. Instagram marketers can compare options through the <a href="https://smmfansfaster.com/blog/instagram-followers-website">Instagram followers website guide</a>.</p><h2>Measure more than follower count</h2><p>Reach, watch time, saves, shares, comments, profile visits, website clicks, assisted conversions, and purchases should be reviewed together. A large audience is most valuable when it moves users toward meaningful business actions.</p><h2>Use automation carefully</h2><p>Agencies and resellers can review the <a href="https://smmfansfaster.com/api">SMM API documentation</a> and the <a href="https://smmfansfaster.com/smm-api-integration">SMM API integration guide</a>. Automation should support, not replace, campaign review and quality control.</p><h2>Final thoughts</h2><p>Sustainable ecommerce growth comes from better content, clearer offers, strong landing pages, reliable measurement, and selective promotion that supports the broader marketing system.</p></body></html>'
 p=$(jq -n --arg html "$HTML" --arg title 'How Ecommerce Brands Can Turn Social Reach Into Product Discovery' '{html:$html,title:$title}')
 r=$(curl -sS -X POST 'https://yeetit.site/v1/publish' -H 'Content-Type: application/json' -d "$p")
 echo "RESULT_URL=$(echo "$r" | jq -r '.url // empty')"
 
-# 5) pagedrop.dev
 p=$(jq -n --arg markdown "$A5" --arg title 'How to Compare Social Media Growth Services Without Losing Organic Context' '{markdown:$markdown,title:$title}')
 r=$(curl -sS -X POST 'https://pagedrop.dev/api/v1/sites' -H 'Content-Type: application/json' -d "$p")
 echo "RESULT_URL=$(echo "$r" | jq -r '.data.url // empty')"
