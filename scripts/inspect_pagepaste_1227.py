@@ -1,10 +1,18 @@
 import requests,re
-from bs4 import BeautifulSoup
 u='https://pagepaste.com/'
 r=requests.get(u,timeout=30)
 print('HOME_STATUS',r.status_code,'LEN',len(r.text))
-s=BeautifulSoup(r.text,'html.parser')
-for i,f in enumerate(s.find_all('form'),1):
-    print('FORM',i,'action=',f.get('action'),'method=',f.get('method'),'id=',f.get('id'),'enctype=',f.get('enctype'))
-    for el in f.find_all(['input','textarea','button']):
-        print(' FIELD',el.name,'name=',el.get('name'),'type=',el.get('type'),'value=',el.get('value'),'id=',el.get('id'))
+html=r.text
+forms=re.findall(r'<form\b([^>]*)>(.*?)</form>',html,re.I|re.S)
+print('FORM_COUNT',len(forms))
+for i,(attrs,body) in enumerate(forms,1):
+    def attr(name):
+        m=re.search(r'\b'+re.escape(name)+r'\s*=\s*["\']([^"\']*)',attrs,re.I)
+        return m.group(1) if m else ''
+    print('FORM',i,'action=',attr('action'),'method=',attr('method'),'id=',attr('id'),'enctype=',attr('enctype'))
+    for m in re.finditer(r'<(input|textarea|button)\b([^>]*)>',body,re.I|re.S):
+        tag=m.group(1).lower(); a=m.group(2)
+        def aval(name):
+            x=re.search(r'\b'+re.escape(name)+r'\s*=\s*["\']([^"\']*)',a,re.I)
+            return x.group(1) if x else ''
+        print(' FIELD',tag,'name=',aval('name'),'type=',aval('type'),'value=',aval('value'),'id=',aval('id'))
