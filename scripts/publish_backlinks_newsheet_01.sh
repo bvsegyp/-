@@ -37,17 +37,13 @@ Agencies and resellers managing multiple accounts can review the public [SMM API
 
 The strongest social media growth systems connect content quality, audience understanding, profile optimization, analytics, promotion, and conversion. External promotional services can support distribution, but they are most valuable when they are treated as one measurable component of a broader marketing strategy.
 EOF
-
-# Unique domain 1: freekit.dev
 payload=$(jq -Rs --arg title 'How to Build a Sustainable Social Media Growth Strategy' '{markdown:.,title:$title}' < /tmp/article.md)
 r=$(curl -sS -X POST 'https://freekit.dev/api/v1/sites' -H 'Content-Type: application/json' -d "$payload")
 echo "RESULT_URL=$(echo "$r" | jq -r '.data.url // empty')"
-
-# Unique domain 2: shipsite.co
 python3 - <<'PY'
 from pathlib import Path
 md=Path('/tmp/article.md').read_text()
-html='<!doctype html><html><head><meta charset="utf-8"><title>Social Media Growth Strategy</title></head><body>'+md.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('\n\n','</p><p>').replace('\n','<br>')+'</body></html>'
+html='<!doctype html><html><head><meta charset="utf-8"><title>Social Media Growth Strategy</title></head><body><pre>'+md.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')+'</pre></body></html>'
 Path('/tmp/index.html').write_text(html)
 PY
 size=$(wc -c < /tmp/index.html | tr -d ' ')
