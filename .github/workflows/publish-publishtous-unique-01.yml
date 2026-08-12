@@ -8,5 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: pip install -q requests beautifulsoup4
       - run: python3 scripts/publish_publishtous_unique.py | tee publish.log
       - run: grep '^RESULT_URL=https://' publish.log || true
