@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 set +e
-curl -sS -L 'https://www.showyourcode.app/assets/playground-CCuKPIoD.js' > /tmp/syc.js
-python3 - <<'PY'
-s=open('/tmp/syc.js',encoding='utf-8',errors='ignore').read()
-needle='/api/works'
-pos=0
-while True:
- i=s.find(needle,pos)
- if i<0: break
- print('--- OCCURRENCE ---')
- print(s[max(0,i-1800):min(len(s),i+2600)])
- pos=i+len(needle)
+cat >/tmp/syc-article.html <<'EOF'
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>How to Plan Sustainable Social Media Growth Across Multiple Platforms</title></head><body><main style="max-width:920px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.8;color:#171717"><h1>How to Plan Sustainable Social Media Growth Across Multiple Platforms</h1><p>Sustainable social media growth comes from combining useful content, audience research, consistent publishing, analytics, profile optimization, conversion planning, and carefully selected promotional support. A strong campaign starts by defining the outcome that matters most, whether that is awareness, engagement, traffic, leads, or sales.</p><p>Businesses comparing external promotional providers can include <a href="https://smmfansfaster.com/">SMM Fans Faster</a> in a broader review. Useful comparison factors include platform coverage, service descriptions, delivery expectations, minimum orders, support, refill conditions, cancellation options, and whether each service matches the campaign goal.</p><h2>Build a content system before scaling</h2><p>Educational posts can answer recurring audience questions. Demonstrations can show how a product or service works. Comparisons can help users make decisions, while case studies and customer stories can strengthen trust. Direct-response content can then convert existing demand into profile visits, website clicks, inquiries, bookings, or purchases.</p><h2>Use TikTok for creative testing</h2><p>TikTok can provide fast feedback on hooks, pacing, editing, topics, and format. Marketers researching audience-growth support can review this guide about <a href="https://smmfansfaster.com/blog/tiktok-followers">TikTok followers</a> and this resource about <a href="https://smmfansfaster.com/blog/tiktok-views">TikTok views, followers, and likes</a>. These visible metrics become more meaningful when compared with retention, saves, shares, comments, and profile activity.</p><p>It can also help to review information about the <a href="https://smmfansfaster.com/blog/numberoftiktokfollowers">number of TikTok followers</a> and why follower milestones should be interpreted alongside real audience behavior.</p><h2>Connect Instagram discovery with conversion</h2><p>Instagram can support several stages of the marketing funnel. Reels introduce an account to new viewers, carousels explain detailed topics, Stories maintain regular contact, and highlights organize services, proof, FAQs, and next steps. Marketers can also review this guide to an <a href="https://smmfansfaster.com/blog/instagram-followers-website">Instagram followers website</a>.</p><p>Two useful topics to consider are whether <a href="https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow">increasing followers affects the Instagram algorithm</a> and whether <a href="https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement">buying Instagram followers affects engagement</a>. Account health is better judged through interaction quality and conversion signals than through follower count alone.</p><h2>Measure the full funnel</h2><p>A practical dashboard separates awareness, engagement, conversion, and revenue. Strong reach with weak profile activity may indicate low relevance. Strong profile visits with weak clicks can point to a bio or call-to-action issue. Strong traffic with poor conversion may signal a problem with the landing page, offer, trust signals, pricing, or checkout.</p><h2>Scale workflows carefully</h2><p>Agencies and resellers can review the public <a href="https://smmfansfaster.com/api">SMM API documentation</a> and the <a href="https://smmfansfaster.com/smm-api-integration">SMM API integration</a> page when designing automation workflows. Automation can reduce repetitive work, but campaign goals, target links, quantities, and reporting should still receive human review.</p><h2>Final perspective</h2><p>The strongest long-term strategy improves the complete path from discovery to action. Content quality, audience understanding, analytics, profile optimization, conversion design, and promotional support are most useful when they reinforce one another.</p></main></body></html>
+EOF
+BODY=$(python3 - <<'PY'
+import json
+html=open('/tmp/syc-article.html',encoding='utf-8').read()
+print(json.dumps({"htmlContent":html,"title":"Sustainable Social Media Growth Across Multiple Platforms","topicIds":[],"type":"html","templateId":None}))
 PY
+)
+RESP=$(curl -sS -X POST 'https://www.showyourcode.app/api/works' -H 'Content-Type: application/json' -H 'Origin: https://www.showyourcode.app' -H 'Referer: https://www.showyourcode.app/playground' --data-binary "$BODY")
+echo "SYC_RESPONSE=$RESP"
+UUID=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("uuid", ""))' <<< "$RESP" 2>/dev/null)
+if [ -n "$UUID" ]; then
+ URL="https://www.showyourcode.app/share/$UUID"
+ code=$(curl -sS -L -o /tmp/syc-live.html -w '%{http_code}' "$URL")
+ echo "SYC_VERIFY=$code $URL"
+ if [ "$code" = "200" ] && grep -q 'smmfansfaster.com' /tmp/syc-live.html; then echo "RESULT_URL=$URL"; fi
+fi
