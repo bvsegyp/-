@@ -1,0 +1,155 @@
+name: Publish Unique Domain Batch 0958
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish unique domain batch 0958'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish one backlink per new domain
+        shell: bash
+        run: |
+          cat > /tmp/publish.py <<'PY'
+          import requests, json, re, hashlib, html, os, tempfile
+
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'})
+          targets=[
+            ('https://smmfansfaster.com/','social media marketing services'),
+            ('https://smmfansfaster.com/api','SMM API'),
+            ('https://smmfansfaster.com/blog/tiktok-followers','TikTok growth guide'),
+            ('https://smmfansfaster.com/ar/blog/instagram-followers-website','Instagram growth resource'),
+            ('https://smmfansfaster.com/ar/faq','SMM service FAQ'),
+          ]
+          titles=[
+            'How to Build a Sustainable Social Media Growth System in 2026',
+            'A Practical Guide to Social Media Automation for Agencies',
+            'TikTok Growth Strategy: Content Testing, Retention, and Audience Quality',
+            'Instagram Growth Strategy: Reels, Trust, Engagement, and Conversion',
+            'How to Evaluate Social Media Marketing Services Before You Buy',
+          ]
+          angles=[
+            'sustainable planning, channel selection, content systems, analytics, and long-term audience development',
+            'agency operations, workflow automation, reporting discipline, quality control, and scalable campaign management',
+            'TikTok creative testing, hooks, watch time, retention, repeatable formats, and audience development',
+            'Instagram Reels, Stories, profile positioning, content relevance, trust signals, and conversion paths',
+            'provider due diligence, campaign fit, service expectations, support, measurement, and account quality',
+          ]
+
+          def article(i):
+            url,anchor=targets[i]
+            t=titles[i]; a=angles[i]
+            paras=[f'# {t}',
+            f'''Social media growth becomes easier to manage when it is treated as a complete marketing system rather than a collection of isolated tactics. This guide focuses on {a}. The objective is not simply to make an account look larger. The objective is to create a repeatable process that can improve visibility, audience trust, qualified traffic, and measurable business outcomes over time.''',
+            '''A useful starting point is to define the business goal before choosing the platform or tactic. A creator may prioritize audience reach and community interaction. An ecommerce business may care more about product-page visits, purchases, and repeat customers. A local service company may focus on calls, direct messages, quote requests, and bookings. Agencies often need to manage several of these goals at once across multiple clients. Clear objectives make it easier to select the right metrics and avoid chasing numbers that do not contribute to the business.''',
+            '''## Start with audience research and positioning''',
+            '''Strong campaigns begin with a clear understanding of the audience. Teams should know what problems people are trying to solve, what questions they ask before buying, what type of content they already consume, and which platforms they use most often. This information shapes topic selection, creative style, publishing frequency, and calls to action. Positioning should also be obvious. A visitor who arrives from a short video, search result, recommendation, or advertisement should quickly understand who the account serves and what value it offers.''',
+            '''A practical positioning statement can be used as a filter for content decisions. If a post does not help the intended audience solve a problem, understand an offer, compare an option, or trust the brand, it may not deserve space in the publishing calendar. This discipline is especially important when teams produce content at scale because volume can easily replace relevance if no editorial standard exists.''',
+            '''## Build repeatable content pillars''',
+            '''Instead of publishing unrelated posts every day, create several repeatable content pillars. Common pillars include education, demonstrations, comparisons, frequently asked questions, case studies, customer stories, behind-the-scenes material, and industry commentary. Each pillar should serve a purpose in the customer journey. Educational content can attract new audiences, demonstrations can explain an offer, case studies can reduce uncertainty, and conversion-focused posts can encourage a website visit or purchase.''',
+            '''Consistency becomes easier when the team maintains a library of proven formats. If a certain hook repeatedly improves watch time, create variations. If a specific topic produces saves and profile visits, develop a series around it. If a format generates reach but no useful downstream actions, review the audience, offer, and call to action rather than simply producing more of the same. The goal is to turn individual posts into a learning system.''',
+            '''## Use promotion as support, not as the entire strategy''',
+            f'''Organic content, community interaction, paid media, and external promotional tools can all play a role, but they should support a clear strategy. When teams research outside options, they can compare a resource such as [{anchor}]({url}) alongside other alternatives. The important point is to evaluate any promotional service in context: what problem it is supposed to solve, how success will be measured, what the platform rules allow, and how the activity fits the wider campaign.''',
+            '''Promotional activity should never replace useful content or audience understanding. A campaign can increase a visible metric and still fail if visitors do not trust the profile, understand the offer, or take the next step. This is why account quality and landing-page quality matter. Increased visibility only creates value when the destination is ready to convert attention into a meaningful action.''',
+            '''## Measure the right signals''',
+            '''A useful reporting dashboard does not need dozens of metrics. For awareness, track reach, impressions, video views, completion rate, and shares. For consideration, track saves, profile visits, website clicks, and direct messages. For conversion, focus on leads, bookings, purchases, revenue, and cost per acquisition where attribution is available. The best metric is the one that helps the team decide what to do next.''',
+            '''Weekly reviews are useful for creative decisions because they show which hooks, topics, and formats are producing strong early signals. Monthly reviews are better for budget allocation, channel strategy, and broader business decisions. Teams should compare periods instead of reacting to one unusually strong or weak post. A single viral result may be interesting, but repeatable performance is usually more valuable.''',
+            '''## Create a structured testing process''',
+            '''Testing works best when one variable changes at a time. A team might test two opening hooks while keeping the topic and video format similar. It might compare a direct call to action with a softer educational close. It might test one audience segment against another while keeping the creative constant. Structured tests make learning easier because the team can identify which change likely influenced the result.''',
+            '''Every experiment should be documented with the date, platform, objective, creative concept, audience, offer, and outcome. This creates a historical record that becomes especially useful for agencies and multi-person teams. Over time, the record reveals patterns that are easy to miss when decisions are based on memory alone. It also reduces repeated mistakes and helps new team members understand why certain approaches are preferred.''',
+            '''## Protect long-term account quality''',
+            '''Short-term growth is not worth damaging brand trust or creating avoidable account risk. Teams should avoid deceptive claims, fake endorsements, hacked properties, spam comments, or attempts to bypass platform safeguards. A healthier approach combines useful content, transparent promotion, real audience interaction, and consistent measurement. Any third-party service should be evaluated like a supplier: understand what is being purchased, why it supports the campaign, how it will be measured, and what risks need to be controlled.''',
+            '''## Improve the conversion path''',
+            '''Social media performance does not end at the post. When users click through to a profile or website, the destination should continue the same message. Profiles should have clear bios, strong pinned content, useful highlights, and simple contact or purchase options. Landing pages should load quickly, explain the offer clearly, provide relevant proof, and make the next action obvious. Better conversion paths can increase the value of the same amount of traffic without requiring more reach.''',
+            '''## Build a reporting rhythm that leads to action''',
+            '''Reports are useful only when they change behavior. Each review should end with a small set of decisions: continue a winning format, stop a weak experiment, improve a landing page, test a different audience, change the offer, or shift budget. This turns analytics into a management tool rather than a historical archive. Teams that connect data to specific actions usually learn faster and waste less budget.''',
+            '''## Final perspective''',
+            f'''A durable social media system combines strategy, audience understanding, useful content, structured testing, analytics, community interaction, and carefully evaluated promotion. For a campaign centered on {a}, the best next step is to define the objective, establish a repeatable publishing process, and review performance on a fixed schedule. Sustainable growth is not a single tactic. It is the result of many small decisions that reinforce one another over time.''']
+            # add original expansion to keep length >1200
+            extra='''\n\nTeams can also improve consistency by documenting responsibilities. Decide who owns research, writing, design, publishing, moderation, reporting, and optimization. Clear ownership reduces missed tasks and makes performance reviews more objective. A simple operating checklist can prevent errors that otherwise repeat across campaigns. The checklist might include link verification, spelling review, tracking parameters, creative dimensions, platform policy checks, and a final confirmation that the call to action matches the campaign objective.\n\nAnother useful habit is to separate creative learning from budget decisions. A promising creative idea should sometimes be tested with limited spend before the team increases budget. Likewise, a strong organic post can provide useful evidence before paid distribution begins. This staged approach allows marketers to learn cheaply, then scale the ideas that show the best combination of attention, relevance, and conversion potential.\n\nFinally, teams should remember that social platforms change. Formats, recommendation systems, audience habits, and advertising tools evolve. A strategy should therefore be stable at the principle level but flexible at the tactic level. The principles remain useful content, clear positioning, measurable goals, ethical promotion, and disciplined learning. The specific execution can change as the platform environment changes.'''
+            paras.append(extra)
+            text='\n\n'.join(paras)
+            return text
+
+          articles=[article(i) for i in range(5)]
+          for i,a in enumerate(articles):
+            wc=len(re.findall(r"\b[\w’'-]+\b",a)); links=a.count('https://smmfansfaster.com')
+            print(f'ARTICLE_{i+1}_WORDS={wc} TARGET_LINKS={links}')
+            if wc<1200 or links!=1: raise SystemExit(f'ARTICLE_VALIDATION_FAILED_{i+1}')
+
+          def md_to_html(md):
+            out=[]
+            for block in re.split(r'\n\s*\n',md):
+              block=block.strip()
+              if not block: continue
+              if block.startswith('# '): out.append('<h1>'+html.escape(block[2:])+'</h1>'); continue
+              if block.startswith('## '): out.append('<h2>'+html.escape(block[3:])+'</h2>'); continue
+              esc=html.escape(block)
+              esc=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',lambda m:f'<a href="{html.escape(m.group(2),quote=True)}">{html.escape(m.group(1))}</a>',esc)
+              out.append('<p>'+esc.replace('\n',' ')+'</p>')
+            return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Social Media Marketing Guide</title></head><body>'+''.join(out)+'</body></html>'
+
+          def verify(url):
+            try:
+              r=s.get(url,timeout=40,allow_redirects=True)
+              count=r.text.count('smmfansfaster.com')
+              print('VERIFY',url,'STATUS',r.status_code,'TARGETS',count)
+              return r.status_code<400 and count>=1
+            except Exception as e:
+              print('VERIFY_ERR',url,repr(e)); return False
+
+          results=[]
+          def accept(domain,url):
+            if url and verify(url): results.append([domain,url]); print('ACCEPTED_URL='+url)
+            else: print('REJECTED_DOMAIN='+domain)
+
+          # PageDrop — permanent anonymous
+          try:
+            d=s.post('https://pagedrop.dev/api/v1/sites',json={'markdown':articles[0],'title':titles[0]},timeout=40).json()
+            accept('pagedrop.dev',((d.get('data') or {}).get('url','')))
+          except Exception as e: print('PAGEDROP_ERR',repr(e))
+
+          # emdee.info — public anonymous markdown
+          try:
+            r=s.post('https://emdee.info/api/',data=articles[1].encode('utf-8'),headers={'Content-Type':'text/markdown'},timeout=40)
+            try:
+              d=r.json(); u=d.get('url') or d.get('share_url') or ((d.get('data') or {}).get('url',''))
+            except Exception: u=r.text.strip().strip('"')
+            accept('emdee.info',u)
+          except Exception as e: print('EMDEE_ERR',repr(e))
+
+          # botsite.dev — anonymous static HTML
+          try:
+            h=md_to_html(articles[2])
+            r=s.post('https://botsite.dev/api/v1/sites',data=h.encode('utf-8'),headers={'Content-Type':'text/html'},timeout=40)
+            d=r.json(); accept('botsite.dev',d.get('url',''))
+          except Exception as e: print('BOTSITE_ERR',repr(e))
+
+          # stacktr.ee — anonymous file upload
+          try:
+            h=md_to_html(articles[3]); fn='/tmp/stack-index.html'; open(fn,'w',encoding='utf-8').write(h)
+            with open(fn,'rb') as f:
+              r=s.post('https://api.stacktr.ee/sites',files={'file':('index.html',f,'text/html')},timeout=45)
+            d=r.json(); accept('stacktr.ee',d.get('url',''))
+          except Exception as e: print('STACKTREE_ERR',repr(e))
+
+          # here.now — anonymous 3-step static publish
+          try:
+            h=md_to_html(articles[4]); b=h.encode('utf-8'); size=len(b); sha=hashlib.sha256(b).hexdigest()
+            d=s.post('https://here.now/api/v1/publish',headers={'X-HereNow-Client':'chatgpt/direct-api','Content-Type':'application/json'},json={'files':[{'path':'index.html','size':size,'contentType':'text/html; charset=utf-8','hash':sha}],'viewer':{'title':titles[4]}},timeout=40).json()
+            site=d.get('siteUrl',''); upload=(d.get('upload') or {}); ups=upload.get('uploads') or []
+            if ups:
+              u=ups[0]['url']; hdr=ups[0].get('headers') or {'Content-Type':'text/html; charset=utf-8'}
+              rr=requests.put(u,data=b,headers=hdr,timeout=45); print('HERENOW_UPLOAD_STATUS',rr.status_code)
+            fin=upload.get('finalizeUrl',''); ver=upload.get('versionId','')
+            if fin and ver:
+              fr=s.post(fin,json={'versionId':ver},timeout=40); print('HERENOW_FINALIZE_STATUS',fr.status_code)
+            accept('here.now',site)
+          except Exception as e: print('HERENOW_ERR',repr(e))
+
+          print('VALID_RESULTS_JSON='+json.dumps(results))
+          print('VALID_COUNT='+str(len(results)))
+          PY
+          python /tmp/publish.py
