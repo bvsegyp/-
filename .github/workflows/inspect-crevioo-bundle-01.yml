@@ -1,0 +1,11 @@
+name: Inspect Crevioo Bundle
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Run Crevioo bundle inspection'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/inspect_crevioo_bundle_01.sh
