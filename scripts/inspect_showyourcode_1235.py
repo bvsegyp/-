@@ -3,20 +3,26 @@ from urllib.parse import urljoin
 u='https://www.showyourcode.app/'
 r=requests.get(u,timeout=30)
 print('HOME',r.status_code,len(r.text),r.url)
-scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',r.text,re.I)
-for s in scripts:
-    su=urljoin(r.url,s)
+main=urljoin(r.url,re.findall(r'<script[^>]+src=["\']([^"\']+)',r.text,re.I)[0])
+t=requests.get(main,timeout=30).text
+chunks=sorted(set(re.findall(r'assets/[A-Za-z0-9_.-]+\.js',t)))
+print('CHUNKS',len(chunks))
+for c in chunks:
+    if not any(x in c.lower() for x in ['route','work','editor','home','index']):
+        continue
+    cu=urljoin(r.url,c)
     try:
-        t=requests.get(su,timeout=30).text
-        print('SCRIPT',su,'LEN',len(t))
-        for pat in [r'["\'](/api/works[^"\']*)["\']',r'\b(?:Pt|St)\(`(/api/works[^`]*)`([^)]{0,900})\)',r'\b(?:Pt|St)\(["\'](/api/works[^"\']*)["\']([^)]{0,900})\)']:
-            vals=re.findall(pat,t,re.I|re.S)
-            print('PAT',pat,'COUNT',len(vals))
-            for v in vals[:50]: print('MATCH',v)
-        low=t.lower(); start=0
-        while True:
-            i=low.find('/api/works',start)
-            if i<0: break
-            print('CTX',t[max(0,i-700):min(len(t),i+1400)].replace('\n',' '))
-            start=i+10
-    except Exception as e: print('ERR',su,repr(e))
+        z=requests.get(cu,timeout=30).text
+        hits=[]
+        for needle in ['/api/works','syc_anon_works','localStorage.setItem','uuid','html']:
+            if needle.lower() in z.lower(): hits.append(needle)
+        if not hits: continue
+        print('\nCHUNK',cu,'LEN',len(z),'HITS',hits)
+        for needle in ['/api/works','syc_anon_works']:
+            low=z.lower(); k=needle.lower(); start=0; shown=0
+            while shown<20:
+                i=low.find(k,start)
+                if i<0: break
+                print('CTX',needle,z[max(0,i-900):min(len(z),i+1800)].replace('\n',' '))
+                start=i+len(k); shown+=1
+    except Exception as e: print('ERR',cu,repr(e))
