@@ -1,147 +1,64 @@
 #!/usr/bin/env bash
 set +e
-post_mdpage(){ p=$(jq -n --arg markdown "$1" '{markdown:$markdown}'); r=$(curl -sS -X POST 'https://md.page/api/publish' -H 'Content-Type: application/json' -d "$p"); echo "RESULT_URL=$(echo "$r"|jq -r '.url // empty')"; }
-post_pastebox(){ p=$(jq -n --arg content "$1" '{content:$content,title:"Advanced Social Media Growth Guide",language:"markdown",content_type:"text",expiration:"1M",exposure:"public",source:"api"}'); r=$(curl -sS -X POST 'https://lfdekutkxwsczpasjgsg.supabase.co/functions/v1/create-share' -H 'Content-Type: application/json' -d "$p"); echo "RESULT_URL=$(echo "$r"|jq -r '.url // empty')"; }
-post_leafmill(){ p=$(jq -n --arg body "$1" '{title:"Advanced Social Media Growth Guide",body:$body}'); r=$(curl -sS -X POST 'https://leafmill.net/api/v1/publish' -H 'Content-Type: application/json' -d "$p"); echo "RESULT_URL=$(echo "$r"|jq -r '.url // empty')"; }
-post_htmldocs(){ r=$(curl -sS -X POST 'https://www.html-docs.com/api/v1/docs' -H 'Content-Type: text/markdown' --data-binary "$1"); echo "RESULT_URL=$(echo "$r"|jq -r '.url // empty')"; }
+cat > /tmp/article.md <<'EOF'
+# How to Build a Sustainable Social Media Growth Strategy
 
-make_article(){
-  topic="$1"; context="$2"; angle="$3"
-  cat <<EOF
-# $topic for $context
+Sustainable social media growth is rarely the result of one tactic. The strongest campaigns combine audience research, useful content, consistent publishing, platform-specific creative execution, profile optimization, analytics, and carefully selected promotional support. The goal is not simply to increase a visible number. It is to attract relevant users, build trust, and create a measurable path from discovery to engagement and conversion.
 
-Social media growth becomes more reliable when it is treated as a structured marketing process rather than a race for vanity metrics. A strong system connects audience research, content planning, creative production, profile optimization, community management, analytics, conversion design, and carefully selected promotional support. The objective is not simply to make follower or view counts larger. The objective is to attract relevant people, hold their attention, build trust, and encourage actions that support measurable business outcomes.
+Businesses researching external growth providers can include [SMM Fans Faster](https://smmfansfaster.com/) in a broader comparison process. Useful criteria include platform coverage, service descriptions, delivery expectations, support, refill policies, cancellation options, technical integrations, and whether a service is appropriate for the campaign objective.
 
-This guide focuses on $angle for $context. Teams researching external growth services can include [SMM Fans Faster](https://smmfansfaster.com/) in a broader comparison while evaluating platform coverage, service descriptions, delivery expectations, support responsiveness, order limits, refill policies, cancellation conditions, and how well a service fits the campaign objective.
+## Start with a measurable objective
 
-## Define the objective before scaling
+Before increasing content volume or promotional activity, define the outcome the campaign is designed to produce. Awareness campaigns may focus on reach, impressions, unique viewers, and video views. Engagement campaigns can prioritize watch time, completion rate, comments, shares, saves, and returning viewers. Conversion campaigns should connect social activity with profile visits, website clicks, inquiries, leads, bookings, purchases, and revenue.
 
-Every social media campaign should define success before increasing content volume or promotional activity. Awareness campaigns may prioritize reach, impressions, unique viewers, and video views. Engagement campaigns may focus on watch time, completion rate, comments, saves, shares, and returning viewers. Conversion campaigns should connect social activity with profile visits, link clicks, direct messages, inquiries, leads, bookings, purchases, and revenue.
+A baseline makes later analysis more useful. Record current follower count, average reach, average views, engagement, profile actions, traffic, and conversions before changing the campaign. Reviewing the same metrics afterward helps separate real improvement from normal fluctuations.
 
-A baseline should be captured before the campaign begins. Useful baseline metrics include follower count, average reach, average views, engagement rate, profile visits, website clicks, conversion rate, lead volume, and revenue attributed to social traffic. Reviewing the same measurements later makes it easier to determine whether the campaign produced meaningful improvement or simply normal account fluctuation.
+## Use TikTok as a creative testing environment
 
-## Understand audience intent
+TikTok provides fast feedback on hooks, pacing, topics, formats, and calls to action. Teams researching additional TikTok support can review this guide about [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and this resource covering [TikTok views, followers, and likes](https://smmfansfaster.com/blog/tiktok-views). These metrics are more meaningful when considered alongside watch time, retention, comments, shares, saves, and profile visits.
 
-Not every user who sees a post is at the same stage. Some users are discovering a brand for the first time. Others are comparing solutions, looking for proof, or trying to understand the details of an offer. A smaller group may already be ready to take action. Content should reflect these different levels of intent.
+A repeatable testing process can compare several openings around the same topic, identify which version earns stronger retention, and then expand the winning idea into a series. This makes growth more systematic and reduces dependence on random viral performance.
 
-Discovery content can introduce useful ideas, trends, problems, and questions. Consideration content can include tutorials, demonstrations, comparisons, case studies, and frequently asked questions. Conversion content should reduce friction and make the next step obvious, whether that step is visiting a website, sending a message, booking an appointment, requesting a quote, or completing a purchase.
+## Improve Instagram conversion after discovery
 
-## Build repeatable content pillars
+Instagram supports several roles at the same time. Reels can generate discovery, carousels can explain detailed ideas, Stories can maintain regular contact with followers, and highlights can organize important information for new profile visitors. The profile itself should quickly explain who the account serves, what it offers, and what the visitor should do next.
 
-A sustainable publishing system usually relies on a small number of repeatable themes. Educational posts can answer common questions. Demonstrations can show how a product or service works. Comparison content can help audiences evaluate options. Case studies and customer stories can build credibility. Industry insights can position the brand as knowledgeable. Offers and calls to action can support direct response when the audience is ready.
-
-Content pillars make planning easier while still allowing variation. Teams can test different hooks, examples, formats, visuals, lengths, and calls to action within the same pillar. This creates a useful testing environment because similar pieces of content can be compared more fairly than completely unrelated posts.
-
-## Improve TikTok through creative testing
-
-TikTok provides fast feedback about whether a creative idea earns attention. The first few seconds of a video strongly influence whether viewers continue watching. Effective hooks can introduce a surprising result, expose a mistake, answer a specific question, create curiosity, or promise a clear benefit. Strong pacing and concise editing help maintain interest after the opening.
-
-Teams researching TikTok growth support can review the guide about [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers). Another useful resource covers [TikTok views, followers, and likes](https://smmfansfaster.com/blog/tiktok-views), which helps marketers evaluate several performance signals instead of treating follower count as the only measure of success.
-
-It can also be useful to review information about the [number of TikTok followers](https://smmfansfaster.com/blog/numberoftiktokfollowers). Follower milestones may matter for credibility, but they should be considered together with average views, watch time, completion rate, shares, comments, and profile visits.
-
-## Improve Instagram discovery and conversion together
-
-Instagram combines discovery, education, community, and direct response. Reels can introduce an account to new users. Carousels can explain more detailed ideas. Stories can maintain daily contact and support reminders, proof, FAQs, and offers. Highlights and pinned posts can help new profile visitors quickly understand what the brand offers and what they should do next.
-
-Businesses comparing follower-focused options can review this guide to an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website). It is also useful to understand whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow), because distribution depends on relevance and engagement signals in addition to account size.
-
-Marketers should also consider whether [buying Instagram followers affects engagement](https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement). Account quality should be reviewed through comments, saves, shares, Story interactions, profile visits, website clicks, messages, leads, and conversions.
+Marketers comparing follower-focused options can review this guide to an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website). It is also useful to understand whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) and whether [buying Instagram followers affects engagement](https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement).
 
 ## Measure the complete funnel
 
-A useful reporting framework separates awareness, engagement, conversion, and revenue. Awareness explains how much exposure the content receives. Engagement shows whether users cared enough to interact. Conversion shows whether attention produced profile activity, clicks, messages, inquiries, or purchases. Revenue connects those outcomes to actual commercial performance.
+Awareness, engagement, conversion, and revenue should be separated in reporting. Strong reach with weak profile activity can signal a relevance problem. Strong profile visits with weak website clicks may indicate that the bio or call to action needs improvement. Strong traffic with poor conversion can point to the landing page, offer, pricing, or checkout experience.
 
-This structure helps diagnose weak points. If reach grows but profile visits remain flat, the content may not be relevant enough to the offer. If profile visits rise but website clicks do not, the bio or call to action may need improvement. If traffic increases but conversions stay weak, the problem may be the landing page, offer, pricing, form, checkout experience, or follow-up process.
+## Scale operations carefully
 
-## Document promotional experiments
-
-External promotion should be treated like a measurable experiment. Record the provider, platform, service type, quantity, target URL, start date, delivery period, and account performance before and after the order. Over time, these records create internal evidence that makes future decisions more reliable.
-
-Agencies and resellers managing multiple accounts can review the public [SMM API documentation](https://smmfansfaster.com/api), which describes operations related to service listings, orders, status checks, refills, cancellations, and account balance.
-
-Teams using WordPress or ecommerce systems can also review the [SMM API integration](https://smmfansfaster.com/smm-api-integration) page. Automation can reduce repetitive work, but human review should remain part of target selection, quantity checks, campaign objectives, quality control, and reporting.
-
-## Compare providers beyond price
-
-A consistent provider comparison should include platform coverage, service clarity, support responsiveness, delivery expectations, minimum and maximum quantities, refill conditions, cancellation options, and technical integration capabilities. Price matters, but the cheapest service is not automatically the best fit for every campaign.
-
-The account itself should also be ready for increased exposure. Strong recent content, a clear value proposition, useful profile information, recognizable positioning, effective calls to action, and a relevant landing page can all increase the value generated by additional distribution.
+Agencies and resellers managing multiple accounts can review the public [SMM API documentation](https://smmfansfaster.com/api) and the [SMM API integration](https://smmfansfaster.com/smm-api-integration) page. Automation can reduce repetitive work, but target selection, quantities, campaign objectives, delivery results, and reporting still need quality control.
 
 ## Final thoughts
 
-Sustainable social media growth is built through audience understanding, creative quality, repeatable content systems, profile optimization, useful analytics, and carefully selected promotion. Strong teams improve the entire path from discovery to engagement and conversion instead of chasing one visible number. They use each campaign as a source of data, learn from the result, and continuously refine the next round of content and distribution.
+The strongest social media growth systems connect content quality, audience understanding, profile optimization, analytics, promotion, and conversion. External promotional services can support distribution, but they are most valuable when they are treated as one measurable component of a broader marketing strategy.
 EOF
-}
 
-topics=(
-'How to Build a Full-Funnel Social Media Growth System'
-'How to Improve Social Media Content Quality With Better Research'
-'How to Increase TikTok Retention and Profile Activity'
-'How to Improve Instagram Reach Without Losing Conversion Focus'
-'How to Build Better Social Media Reporting for Decision Makers'
-'How to Connect Social Media Engagement With Revenue'
-'How to Evaluate SMM Providers Before Increasing Campaign Volume'
-'How to Separate Organic Performance From Promotional Distribution'
-'How to Improve Social Media Lead Generation Quality'
-'How to Build a Cross-Platform Content Repurposing Workflow'
-'How to Use Social Analytics to Improve Creative Strategy'
-'How to Build Trust and Social Proof Without Chasing Vanity Metrics'
-'How to Improve TikTok Hooks With Structured Experiments'
-'How to Optimize Instagram Profiles for More Actions'
-'How to Scale Social Media Operations With Better Processes'
-'How to Use Educational Content to Reduce Buyer Friction'
-'How to Compare Social Growth Services With Consistent Criteria'
-'How to Improve Social Traffic Quality and Conversion'
-'How to Build a Continuous Social Media Testing Roadmap'
-'How to Coordinate TikTok Instagram and YouTube Around Shared Goals'
-)
-contexts=(
-'Local Service Businesses'
-'Ecommerce Brands'
-'Marketing Agencies'
-'New Social Media Accounts'
-'Established Consumer Brands'
-'B2B Companies'
-'Professional Service Firms'
-'Online Stores'
-'Creators and Personal Brands'
-'Multi-Location Businesses'
-)
-angles=(
-'connecting awareness, engagement, conversion, and revenue in one measurement model'
-'using audience questions, search intent, and performance data to create stronger content'
-'using hooks, pacing, watch time, and profile optimization to turn attention into account growth'
-'balancing discovery formats with profile clarity, trust, and direct-response goals'
-'creating reporting that highlights useful business signals instead of reporting noise'
-'linking social activity with product demand, lead quality, purchases, and customer value'
-'reviewing service clarity, support, delivery, policies, and campaign fit before scaling'
-'using separate baselines and reporting views to preserve useful organic insights'
-'improving targeting, messaging, qualification, calls to action, and follow-up'
-'adapting one research idea into platform-specific assets without publishing identical content'
-'using retention, engagement, profile activity, and conversion patterns to guide creative decisions'
-'balancing visible credibility with authentic engagement and measurable audience behavior'
-'building repeatable creative tests and learning from retention patterns'
-'using bios, pinned posts, highlights, proof, and links to improve profile conversion'
-'using templates, automation, quality controls, ownership, and review checkpoints'
-'answering questions, objections, comparisons, and use cases before asking for conversion'
-'comparing providers using platform coverage, service quality, support, policies, and risk'
-'improving intent alignment between content, profiles, destination pages, and offers'
-'planning recurring experiments across creative, profiles, distribution, landing pages, and offers'
-'giving each platform a clear role while maintaining consistent positioning and measurement'
-)
+# Unique domain 1: freekit.dev
+payload=$(jq -Rs --arg title 'How to Build a Sustainable Social Media Growth Strategy' '{markdown:.,title:$title}' < /tmp/article.md)
+r=$(curl -sS -X POST 'https://freekit.dev/api/v1/sites' -H 'Content-Type: application/json' -d "$payload")
+echo "RESULT_URL=$(echo "$r" | jq -r '.data.url // empty')"
 
-count=0
-for ti in "${!topics[@]}"; do
-  for ci in "${!contexts[@]}"; do
-    idx=$((count % 20))
-    doc=$(make_article "${topics[$ti]}" "${contexts[$ci]}" "${angles[$idx]}")
-    slot=$((count % 10))
-    if [ "$slot" -le 2 ]; then post_mdpage "$doc";
-    elif [ "$slot" -le 4 ]; then post_pastebox "$doc";
-    elif [ "$slot" -le 7 ]; then post_leafmill "$doc";
-    else post_htmldocs "$doc"; fi
-    count=$((count+1))
-    if [ $((count % 10)) -eq 0 ]; then echo "BATCH_COMPLETE=$((count/10)) COUNT=$count"; sleep 2; fi
-  done
-done
+# Unique domain 2: shipsite.co
+python3 - <<'PY'
+from pathlib import Path
+md=Path('/tmp/article.md').read_text()
+html='<!doctype html><html><head><meta charset="utf-8"><title>Social Media Growth Strategy</title></head><body>'+md.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('\n\n','</p><p>').replace('\n','<br>')+'</body></html>'
+Path('/tmp/index.html').write_text(html)
+PY
+size=$(wc -c < /tmp/index.html | tr -d ' ')
+create=$(curl -sS -X POST 'https://shipsite.co/api/v1/publish' -H 'Content-Type: application/json' -d "{\"files\":[{\"path\":\"index.html\",\"size\":$size,\"contentType\":\"text/html\"}],\"viewer\":{\"title\":\"Social Media Growth Strategy\"}}")
+site=$(echo "$create" | jq -r '.siteUrl // empty')
+up=$(echo "$create" | jq -r '.upload.uploads[0].url // empty')
+final=$(echo "$create" | jq -r '.upload.finalizeUrl // empty')
+version=$(echo "$create" | jq -r '.upload.versionId // empty')
+claim=$(echo "$create" | jq -r '.claimToken // empty')
+if [ -n "$up" ] && [ -n "$final" ]; then
+  curl -sS -X PUT "$up" -H 'Content-Type: text/html' --data-binary @/tmp/index.html >/dev/null
+  curl -sS -X POST "$final" -H 'Content-Type: application/json' -d "{\"versionId\":\"$version\",\"claimToken\":\"$claim\"}" >/dev/null
+fi
+echo "RESULT_URL=$site"
