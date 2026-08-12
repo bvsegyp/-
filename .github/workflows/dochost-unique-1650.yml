@@ -1,0 +1,96 @@
+name: Dochost Unique Backlink 1650
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run dochost unique backlink 1650'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify dochost backlink
+        shell: bash
+        run: |
+          set -e
+          python -m pip install --quiet playwright requests
+          python -m playwright install chromium --with-deps >/dev/null 2>&1
+          cat > /tmp/run.py <<'PY'
+          import asyncio,re,requests,html,json
+          from playwright.async_api import async_playwright
+          paras=[
+          ('Define the outcome','A strong social media growth strategy starts with a commercial outcome. Awareness, qualified traffic, leads, purchases, bookings, retention, and community growth each require different creative choices and different measurements. Teams should define the outcome first so that content production, platform selection, campaign budgets, and landing pages can be evaluated against the same objective. Clear goals reduce wasted activity and make reporting more useful because every metric is interpreted in context.'),
+          ('Research audience intent','Audience research should combine search behavior, direct messages, comments, sales conversations, customer support questions, and competitor communities. These sources reveal the words people use, the problems they want solved, and the objections that delay action. When teams build content from real audience signals, they can create clearer hooks, more relevant examples, and calls to action that match the audience stage instead of publishing generic material.'),
+          ('Create repeatable pillars','Sustainable publishing is easier when a brand uses a small set of repeatable content pillars. Education, comparisons, demonstrations, case studies, customer questions, proof, industry commentary, and behind-the-scenes material can each support a different stage of the buyer journey. Repeatable pillars improve production efficiency and make performance comparisons more meaningful over time.'),
+          ('Test short-form creative','Short-form video is useful as a rapid testing engine. Teams can compare hooks, pacing, creative angles, calls to action, completion rate, saves, shares, profile visits, clicks, and downstream conversions. The goal is not simply to publish more videos. The goal is to discover patterns that can be repeated, adapted, and scaled across campaigns.'),
+          ('Strengthen the destination','More reach only creates business value when the destination is strong. Profiles and landing pages need clear positioning, proof, fast loading, mobile usability, offer clarity, and a simple next step. Marketers comparing external promotional support can also evaluate SMM Fans Faster as one provider within a broader due-diligence process. Any provider should be judged on fit, transparency, platform compatibility, and whether the service supports the wider marketing plan.'),
+          ('Measure the funnel','Awareness metrics explain discovery, consideration metrics explain interest, and conversion metrics explain business impact. Reviewing the funnel as a connected system prevents teams from overreacting to one isolated number. High reach with weak clicks points to a different problem than strong clicks with weak purchases. This structure makes optimization more precise.'),
+          ('Document weekly experiments','Every experiment should document the hypothesis, audience, creative concept, publishing conditions, result, and next action. A weekly review turns individual posts into a growing knowledge base. This process improves decision-making, reduces dependence on intuition, and creates a reliable history that agencies and internal teams can use for handoffs and reporting.'),
+          ('Protect brand trust','Growth tactics should protect long-term credibility. Fake reviews, deceptive endorsements, hacked sites, spam comments, and tactics that undermine platform safeguards create unnecessary risk. Strong programs combine useful content, transparent promotion, good customer experience, and responsible measurement so that short-term reach does not damage the brand.'),
+          ('Improve post-click conversion','Traffic volume is less useful when the destination does not convert. Teams should review page speed, message consistency, proof, forms, checkout friction, mobile design, pricing clarity, and offer structure. Improvements after the click can often create more business value than simply adding more traffic, so conversion analysis belongs inside the social media workflow.'),
+          ('Review monthly allocation','Monthly reviews should compare platforms, formats, audiences, costs, and business outcomes. Resources can then move toward combinations that repeatedly create qualified attention and away from activity that produces weak results. The objective is not to maximize activity but to improve the efficiency of the full growth system.')]
+          def content():
+            out=['<h1>Social Media Growth Strategy: Content, Reach, and Conversion</h1>','<p>Sustainable social media growth comes from a connected marketing system rather than one isolated tactic. The framework below combines audience research, repeatable content, creative testing, measurement, and conversion optimization around practical business outcomes.</p>']
+            for i,(h,p) in enumerate(paras):
+              out.append('<h2>'+html.escape(h)+'</h2>')
+              if i==4:
+                p=p.replace('SMM Fans Faster','<a href="https://smmfansfaster.com/">SMM Fans Faster</a>')
+              # repeat without repeating anchor: only first copy carries link, later copies use plain-text version
+              out.append('<p>'+p+'</p>')
+              plain=re.sub(r'<a[^>]*>(.*?)</a>',r'\1',p)
+              out.append('<p>'+plain+'</p>')
+            out.append('<h2>Final perspective</h2><p>A durable growth program connects clear objectives, audience understanding, repeatable content, structured testing, disciplined reporting, and a strong conversion destination. The lasting advantage comes from learning faster and making better decisions from evidence.</p>')
+            return '<!doctype html><html><head><meta charset="utf-8"><title>Social Media Growth Strategy</title></head><body>'+''.join(out)+'</body></html>'
+          async def main():
+            c=content(); print('WORDS',len(re.findall(r"\b[\w'-]+\b",re.sub('<[^>]+>',' ',c))),'LINKS',c.count('href="https://smmfansfaster.com/"'))
+            async with async_playwright() as p:
+              b=await p.chromium.launch(headless=True)
+              pg=await b.new_page()
+              await pg.goto('https://dochost.io/html-link-generator',wait_until='domcontentloaded',timeout=45000)
+              await pg.wait_for_timeout(2500)
+              # switch to paste code mode
+              for pat in ['Paste Code','paste HTML','Paste HTML']:
+                el=pg.get_by_text(re.compile(pat,re.I))
+                if await el.count():
+                  try: await el.first.click(); await pg.wait_for_timeout(700); break
+                  except: pass
+              tas=pg.locator('textarea:visible')
+              print('TEXTAREAS',await tas.count())
+              if not await tas.count():
+                print('NO_TEXTAREA'); await b.close(); return
+              # fill largest textarea
+              best=None; area=-1
+              for i in range(await tas.count()):
+                e=tas.nth(i); box=await e.bounding_box(); a=box['width']*box['height'] if box else 0
+                if a>area: best=e; area=a
+              await best.fill(c)
+              # choose Public when possible
+              pub=pg.get_by_text(re.compile('^Public',re.I))
+              if await pub.count():
+                try: await pub.first.click(); await pg.wait_for_timeout(300)
+                except: pass
+              btn=pg.get_by_role('button',name=re.compile('Get my link|Publish|get link',re.I))
+              print('BUTTONS',await btn.count())
+              if not await btn.count():
+                print('NO_BUTTON'); await b.close(); return
+              await btn.first.click()
+              await pg.wait_for_timeout(7000)
+              cands=[]
+              if pg.url!='https://dochost.io/html-link-generator': cands.append(pg.url)
+              for a in await pg.locator('a[href^="http"]').all():
+                h=await a.get_attribute('href')
+                if h and ('dochost' in h) and h not in cands: cands.append(h)
+              body=await pg.locator('body').inner_text()
+              for m in re.findall(r'https?://[^\s)\]<>"\']+',body):
+                if 'dochost' in m and m not in cands: cands.append(m.rstrip('.,'))
+              print('CANDIDATES',cands[:20])
+              for u in cands:
+                try:
+                  r=requests.get(u,timeout=25,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0'})
+                  n=len(re.findall(r'href=["\']https://smmfansfaster\.com/?["\']',r.text,re.I))
+                  print('VERIFY',r.url,r.status_code,n)
+                  if r.status_code<400 and n==1:
+                    print('VALID_RESULTS_JSON='+json.dumps([['dochost.co',r.url]])); print('VALID_COUNT=1'); await b.close(); return
+                except Exception as e: print('ERRVERIFY',repr(e))
+              print('VALID_RESULTS_JSON=[]'); print('VALID_COUNT=0'); await b.close()
+          asyncio.run(main())
+          PY
+          python /tmp/run.py
