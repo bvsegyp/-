@@ -1,0 +1,133 @@
+name: Publish NAREX anonymous backlinks batch 2
+
+on:
+  push:
+    branches:
+      - narex-publish-batch2-20260812
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Publish batch 2
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.error, csv, time, html
+
+          HOME='https://narexx.com/'
+          PRODUCT='https://narexx.com/ar/easy-wash/p754364761'
+          WHY='https://narexx.com/en/%D9%84%D9%85%D8%A7%D8%B0%D8%A7-%D8%AA%D8%B3%D8%AA%D8%AE%D8%AF%D9%85-%D8%A7%D9%84%D9%85%D9%86%D8%AA%D8%AC/page-833898435'
+          WHOLESALE='https://narexx.com/en/%D8%B7%D9%84%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AC%D9%85%D9%84%D9%87/page-768158116'
+          COMPLAINTS='https://narexx.com/%D9%84%D9%84%D8%B4%D9%83%D8%A7%D9%88%D9%89-%D9%88-%D8%A7%D9%84%D8%A7%D9%82%D8%AA%D8%B1%D8%A7%D8%AD%D8%A7%D8%AA/page-50408011'
+          RETURNS='https://narexx.com/ar/%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%A8%D8%AF%D8%A7%D9%84-%D9%88%D8%A7%D9%84%D8%A5%D8%B3%D8%AA%D8%B1%D8%AC%D8%A7%D8%B9/page-1592231750'
+          EN='https://narexx.com/en/'
+
+          topics=[
+            'أفضل مناديل لمنع اختلاط ألوان الملابس في السعودية',
+            'كيفية حماية الملابس من انتقال الألوان في الغسالة',
+            'مناديل التقاط الصبغات للغسيل الملون',
+            'حل عملي لتداخل ألوان الملابس أثناء الغسيل',
+            'طريقة غسل الملابس الملونة وتقليل انتقال الصبغة',
+            'منتج يساعد على منع نزيف ألوان الملابس',
+            'حماية ألوان الملابس مع Easy Wash من NAREX'
+          ]
+
+          links=[
+            ('Easy Wash من NAREX',PRODUCT),('متجر NAREX',HOME),('لماذا تستخدم المنتج',WHY),
+            ('صفحة Easy Wash الرسمية',PRODUCT),('NAREX السعودية',HOME),('سياسة الاستبدال والاسترجاع',RETURNS),
+            ('الشكاوى والاقتراحات',COMPLAINTS),('طلبات الجملة',WHOLESALE),('NAREX English',EN),
+            ('منتج منع انتقال الألوان',PRODUCT),('موقع NAREX',HOME)
+          ]
+
+          def paragraphs(title):
+            return [
+              f'{title} من الموضوعات التي تهم الأسر التي تغسل الملابس الملونة بصورة متكررة. انتقال الصبغات قد يحدث عندما تطلق بعض الأقمشة لونًا زائدًا داخل الماء، خصوصًا في القطع الجديدة أو الألوان القوية، وقد يترسب هذا اللون على ملابس أخرى. لذلك من المهم الجمع بين الفرز الذكي واختيار برنامج مناسب واستخدام حلول مساعدة لالتقاط الصبغات الزائدة.',
+              'تبدأ العناية الصحيحة بقراءة تعليمات الغسيل الموجودة على كل قطعة وعدم استخدام حرارة أعلى من اللازم. الملابس الداكنة الجديدة قد تحتاج إلى معاملة أكثر حذرًا في المرات الأولى. كذلك فإن عدم تحميل الغسالة فوق طاقتها يساعد الماء والمنظف على الحركة بصورة أفضل ويقلل احتكاك الملابس بصورة غير ضرورية.',
+              'من الحلول العملية استخدام مناديل أو أوراق مصممة لالتقاط الصبغات أثناء دورة الغسيل. توضع الورقة مع الملابس وتعمل داخل الماء على جذب جزء من اللون المتسرب قبل أن ينتقل إلى قطع أخرى. هذا النوع من الحلول لا يلغي الفرز تمامًا، لكنه قد يساعد في جعل الغسيل اليومي أكثر مرونة وتنظيمًا.',
+              'Easy Wash من NAREX يقدم هذا المفهوم للاستخدام المنزلي. وفق معلومات المنتج، يمكن استخدام منديل أو أكثر بحسب كمية الملابس وطبيعة الألوان. بعد انتهاء الدورة يتم التخلص من المنديل. من الأفضل دائمًا مراجعة التعليمات الحالية للمنتج قبل الاستخدام، خاصة عند التعامل مع أقمشة حساسة أو قطع معروفة بأنها تنزف لونًا بقوة.',
+              'الهدف من روتين الغسيل الجيد ليس فقط تنظيف الملابس، بل الحفاظ على مظهرها لأطول فترة ممكنة. قلب بعض القطع من الداخل للخارج، اختيار دورة مناسبة، عدم ترك الملابس المبللة داخل الغسالة لفترة طويلة، واستخدام كمية مناسبة من المنظف كلها خطوات بسيطة يمكن أن تحدث فرقًا مع الوقت.',
+              'بالنسبة للمستخدم في السعودية، وجود متجر متخصص ومعلومات واضحة عن المنتج وسياسات الشراء يساعد على اتخاذ قرار أفضل. من المفيد مراجعة صفحة المنتج وسياسة الاستبدال والاسترجاع وقنوات التواصل قبل الطلب، كما يمكن لأصحاب المتاجر أو الأعمال الاطلاع على خيارات الجملة إذا كانوا يحتاجون إلى كميات أكبر.',
+              'في النهاية، التعامل مع انتقال الألوان يحتاج إلى أكثر من خطوة واحدة. أفضل نهج هو الجمع بين الوعي بطبيعة القماش والفرز المنطقي واختيار درجة الحرارة المناسبة واستخدام منتج مساعد لالتقاط الصبغات عند الحاجة. بهذه الطريقة يصبح الغسيل الملون أكثر تنظيمًا وتقل احتمالية انتقال اللون بين القطع.'
+            ]
+
+          def md_article(title):
+            ps=paragraphs(title)
+            out=[f'# {title}',ps[0],f'يمكن البدء بالتعرف على [{links[0][0]}]({links[0][1]}) وزيارة [{links[1][0]}]({links[1][1]}) لمعرفة الحلول المتاحة.']
+            for i,p in enumerate(ps[1:], start=1):
+              a1=links[min(i+1,len(links)-1)]
+              a2=links[min(i+5,len(links)-1)]
+              out += [f'## {['فهم انتقال الألوان','روتين الغسيل','استخدام المنتج','العناية بالأقمشة','التسوق والتواصل','الخلاصة'][i-1]}', p+f' للمزيد راجع [{a1[0]}]({a1[1]}) و[{a2[0]}]({a2[1]}).']
+            return '\n\n'.join(out)
+
+          def html_article(title):
+            md=md_article(title)
+            # render a clean HTML article directly to preserve every link
+            ps=paragraphs(title)
+            chunks=[f'<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>{html.escape(title)}</title></head><body>',f'<h1>{html.escape(title)}</h1>',f'<p>{html.escape(ps[0])}</p>']
+            chunks.append(f'<p>يمكن البدء بالتعرف على <a href="{PRODUCT}">Easy Wash من NAREX</a> وزيارة <a href="{HOME}">متجر NAREX</a> لمعرفة الحلول المتاحة.</p>')
+            heads=['فهم انتقال الألوان','روتين الغسيل','استخدام المنتج','العناية بالأقمشة','التسوق والتواصل','الخلاصة']
+            for i,p in enumerate(ps[1:]):
+              a1=links[min(i+2,len(links)-1)]; a2=links[min(i+6,len(links)-1)]
+              chunks += [f'<h2>{heads[i]}</h2>',f'<p>{html.escape(p)} للمزيد راجع <a href="{a1[1]}">{html.escape(a1[0])}</a> و<a href="{a2[1]}">{html.escape(a2[0])}</a>.</p>']
+            chunks.append(f'<p>مصدر إضافي: <a href="{PRODUCT}">منتج منع انتقال الألوان</a> — <a href="{HOME}">موقع NAREX</a>.</p></body></html>')
+            return ''.join(chunks)
+
+          def post(url, data, ctype='application/json'):
+            if isinstance(data,(dict,list)):
+              raw=json.dumps(data,ensure_ascii=False).encode('utf-8')
+            elif isinstance(data,str): raw=data.encode('utf-8')
+            else: raw=data
+            req=urllib.request.Request(url,data=raw,method='POST')
+            req.add_header('Content-Type',ctype)
+            req.add_header('Accept','application/json')
+            req.add_header('User-Agent','Mozilla/5.0 NAREXPublisher/2.0')
+            with urllib.request.urlopen(req,timeout=50) as r:
+              return r.status,dict(r.headers),r.read().decode('utf-8','replace')
+
+          def extract(site,body,headers):
+            try: d=json.loads(body)
+            except: d={}
+            candidates=[d.get('url'),d.get('link'),d.get('share_url'),d.get('shareUrl'),d.get('viewerUrl'),d.get('previewUrl'),d.get('admin_url')]
+            if site=='brewpage.app' and d.get('id'): candidates.append('https://brewpage.app/public/'+str(d['id']))
+            if site=='leafmill.net' and d.get('slug'): candidates.append('https://leafmill.net/'+str(d['slug']))
+            return next((x for x in candidates if isinstance(x,str) and x.startswith('http')),headers.get('Location',''))
+
+          publishers=[
+            ('thethings.ai',lambda t,m,h: post('https://thethings.ai/api/scratch/publish',{'content':h,'content_type':'text/html','title':t,'summary':'NAREX color catcher guide'})),
+            ('mdshare.live',lambda t,m,h: post('https://mdshare.live/api/documents',m,'text/markdown')),
+            ('unmarkdown.com',lambda t,m,h: post('https://api.unmarkdown.com/v1/demo/publish',{'title':t,'content':m,'template_id':'github'})),
+            ('leafmill.net',lambda t,m,h: post('https://leafmill.net/api/v1/publish',{'title':t,'body':m})),
+            ('htmldrop.link',lambda t,m,h: post('https://htmldrop.link/publish',{'html':h,'title':t})),
+            ('mdview.io',lambda t,m,h: post('https://mdview.io/api/public/publish',{'title':t,'content':m,'expiresInDays':30})),
+            ('brewpage.app',lambda t,m,h: post('https://brewpage.app/api/html?ns=public&ttl=30',{'content':h,'ttl':30})),
+          ]
+
+          results=[]
+          for title,(site,pub) in zip(topics,publishers):
+            m=md_article(title); h=html_article(title)
+            count=m.count('https://narexx.com')
+            try:
+              status,headers,body=pub(title,m,h)
+              url=extract(site,body,headers)
+              results.append([site,url,status,title,count,'published' if url else 'no_url'])
+              print(f'PUBLISHED|{site}|{url}|links={count}')
+            except Exception as e:
+              results.append([site,'','',title,count,f'FAILED: {e}'])
+              print(f'FAILED|{site}|{e}')
+            time.sleep(2)
+
+          with open('narex-batch2.csv','w',newline='',encoding='utf-8-sig') as f:
+            w=csv.writer(f);w.writerow(['platform','published_url','http_status','title','narex_links','status']);w.writerows(results)
+          ok=[r for r in results if r[1]]
+          print('SUCCESS_COUNT='+str(len(ok)))
+          if not ok: raise SystemExit('No publication succeeded')
+          PY
+
+      - name: Upload batch 2 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: narex-batch2-results
+          path: narex-batch2.csv
