@@ -1,0 +1,11 @@
+name: Inspect PagePaste 1227
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Run PagePaste inspection 1227'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/inspect_pagepaste_1227.py
