@@ -2,12 +2,10 @@
 set +e
 curl -sS 'https://yourtext.host/' > /tmp/yourtext.html
 python3 - <<'PY'
-from html.parser import HTMLParser
-class P(HTMLParser):
-    def handle_starttag(self, tag, attrs):
-        d=dict(attrs)
-        if tag=='form': print('FORM',d)
-        if tag in ('input','textarea','button','select'):
-            print('FIELD',tag,d)
-P().feed(open('/tmp/yourtext.html',encoding='utf-8',errors='ignore').read())
+import re
+s=open('/tmp/yourtext.html',encoding='utf-8',errors='ignore').read()
+for pat in [r'function\s+formSubmit\s*\([^)]*\)\s*\{.*?\}',r'check[^;\n]{0,300}',r'publish[^;\n]{0,300}']:
+    print('PATTERN',pat)
+    for m in re.findall(pat,s,re.S|re.I)[:20]: print(m[:2000])
+for src in re.findall(r'<script[^>]+src=["\']([^"\']+)',s,re.I): print('SCRIPT_SRC',src)
 PY
