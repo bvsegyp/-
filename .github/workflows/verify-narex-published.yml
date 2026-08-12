@@ -1,0 +1,43 @@
+name: Verify previously published NAREX pages
+on:
+  push:
+    branches: [narex-verify-published-20260812]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Browser verify public pages
+        shell: bash
+        run: |
+          python3 -m pip -q install playwright
+          python3 -m playwright install chromium --with-deps >/dev/null 2>&1
+          python3 - <<'PY'
+          import asyncio,csv,re
+          from playwright.async_api import async_playwright
+          pages=[
+            ('artidrop.ai','https://artidrop.ai/a/iFn1E5JJ88','طريقة حماية الملابس البيضاء من الألوان',20),
+            ('sshgrid.com','https://keen-kite-1338.sshgrid.com','مناديل الغسيل لحماية الألوان',20),
+            ('botsite.dev','https://avrax83mrqap.botsite.dev','ورق التقاط الصبغات للملابس الملونة',20),
+          ]
+          async def main():
+            rows=[]
+            async with async_playwright() as p:
+              b=await p.chromium.launch(headless=True)
+              for site,u,title,expected in pages:
+                ok=False;count=0;note=''
+                try:
+                  pg=await b.new_page();await pg.goto(u,wait_until='domcontentloaded',timeout=45000);await pg.wait_for_timeout(5000)
+                  src=(await pg.content()).lower();count=src.count('narexx.com')
+                  hrefs=await pg.locator('a[href*="narexx.com"]').count()
+                  count=max(count,hrefs);ok=count>=7;note='browser_count='+str(count);await pg.close()
+                except Exception as e:note=repr(e)
+                rows.append([site,u if ok else '',title,expected,'published' if ok else 'FAILED '+note])
+                print('RESULT|'+site+'|'+(u if ok else '')+'|count='+str(count)+'|'+rows[-1][-1],flush=True)
+              await b.close()
+            with open('narex-browser-verify.csv','w',newline='',encoding='utf-8-sig') as f:csv.writer(f).writerows([['platform','published_url','title','narex_links','status']]+rows)
+          asyncio.run(main())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: narex-browser-verify
+          path: narex-browser-verify.csv
