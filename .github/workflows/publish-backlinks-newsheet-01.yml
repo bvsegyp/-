@@ -26,4 +26,4 @@ jobs:
           name: backlink-urls-${{ github.run_id }}
           path: backlink_urls.txt
           retention-days: 7
-# verify-shareduo-pagepaste
+# corrected-draftlet-publish
