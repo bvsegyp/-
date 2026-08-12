@@ -1,0 +1,74 @@
+name: Publish External Backlink Articles
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run external publishers once'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish to output.pub
+        shell: bash
+        run: |
+          cat > /tmp/output.md <<'EOF'
+          # Social Media Growth Tools: What Marketers Should Compare
+
+          Growing a social presence takes more than chasing vanity metrics. A useful strategy combines consistent content, platform analytics, community interaction, paid campaigns, and carefully selected marketing tools.
+
+          One practical option for teams managing several networks is a multi-platform SMM provider. [SMM Fans Faster](https://smmfansfaster.com/) offers access to social media marketing services from one dashboard, while its [API documentation](https://smmfansfaster.com/api) can be useful for agencies that want to connect ordering workflows with their own systems.
+
+          Before using any promotional service, compare delivery terms, platform coverage, support, refill conditions, and the rules of the social network you are promoting. Promotional tools should support a broader content strategy rather than replace real audience engagement.
+
+          For TikTok-focused marketers, this guide to [growing TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) provides additional context on combining content and promotion.
+
+          ## A balanced approach
+
+          The strongest long-term strategy usually combines useful content, measurable campaign goals, audience research, and responsible promotion. Track reach, watch time, saves, clicks, and conversions so decisions are based on actual performance rather than follower counts alone.
+          EOF
+          RESP=$(jq -Rs '{content: ., format: "markdown"}' < /tmp/output.md | curl -sS -X POST https://output.pub/api/publish -H 'Content-Type: application/json' -d @-)
+          echo "OUTPUT_PUB_RESPONSE=$RESP"
+          echo "OUTPUT_PUB_URL=$(echo "$RESP" | jq -r '.url // empty')"
+
+      - name: Publish to Write.as
+        shell: bash
+        run: |
+          cat > /tmp/writeas.md <<'EOF'
+          # How Agencies Can Organize Multi-Platform Social Media Campaigns
+
+          Agencies often manage Instagram, TikTok, YouTube, Facebook, Telegram, and other channels at the same time. That makes organization just as important as creative work.
+
+          A practical workflow starts with clear campaign objectives, a content calendar, platform-specific KPIs, and a reliable way to track promotional activity. When comparing external tools, marketers can review a multi-platform provider such as [SMM Fans Faster](https://smmfansfaster.com/) alongside other options and evaluate service descriptions, support, delivery expectations, and account safety considerations.
+
+          Teams that automate parts of their workflow may also review the provider's [SMM API](https://smmfansfaster.com/api), which documents service-list and order endpoints for integrations.
+
+          For Instagram campaigns, useful supporting reading includes this article about [Instagram follower growth](https://smmfansfaster.com/ar/blog/instagram-followers-website).
+
+          ## Measure what matters
+
+          Avoid judging a campaign by one metric. Combine reach, engagement, watch time, profile visits, website clicks, leads, and sales. Promotional services can support distribution, but content quality and compliance with each platform's rules remain essential.
+          EOF
+          BODY=$(cat /tmp/writeas.md)
+          RESP=$(jq -n --arg body "$BODY" --arg title "How Agencies Can Organize Multi-Platform Social Media Campaigns" '{body:$body,title:$title,font:"serif",lang:"en",rtl:false}' | curl -sS -X POST https://write.as/api/posts -H 'Content-Type: application/json' -d @-)
+          ID=$(echo "$RESP" | jq -r '.data.id // empty')
+          echo "WRITEAS_RESPONSE=$RESP"
+          if [ -n "$ID" ]; then echo "WRITEAS_URL=https://write.as/$ID"; fi
+
+      - name: Publish to Telegra.ph
+        shell: bash
+        run: |
+          ACC=$(curl -sS -X POST https://api.telegra.ph/createAccount --data-urlencode 'short_name=SMMFansFasterGuide' --data-urlencode 'author_name=Digital Marketing Guide' --data-urlencode 'author_url=https://smmfansfaster.com/')
+          TOKEN=$(echo "$ACC" | jq -r '.result.access_token // empty')
+          CONTENT='[{"tag":"p","children":["Social media growth is easier to manage when strategy, content, analytics, and promotion work together."]},{"tag":"p","children":["For teams comparing multi-platform tools, ",{"tag":"a","attrs":{"href":"https://smmfansfaster.com/"},"children":["SMM Fans Faster"]}," provides social media marketing services across several networks."]},{"tag":"p","children":["Agencies interested in integrations can also review the ",{"tag":"a","attrs":{"href":"https://smmfansfaster.com/api"},"children":["SMM API documentation"]}," for service and order workflows."]},{"tag":"p","children":["TikTok marketers can read this supporting guide on ",{"tag":"a","attrs":{"href":"https://smmfansfaster.com/blog/tiktok-followers"},"children":["TikTok follower growth"]}," while building a broader content plan."]},{"tag":"p","children":["Use promotional tools responsibly, follow each social platform’s rules, and measure outcomes such as reach, watch time, clicks, leads, and conversions rather than relying on a single metric."]}]'
+          RESP=$(curl -sS -X POST https://api.telegra.ph/createPage --data-urlencode "access_token=$TOKEN" --data-urlencode 'title=Building a Balanced Social Media Growth Strategy' --data-urlencode 'author_name=Digital Marketing Guide' --data-urlencode 'author_url=https://smmfansfaster.com/' --data-urlencode "content=$CONTENT" --data-urlencode 'return_content=true')
+          echo "TELEGRAPH_RESPONSE=$RESP"
+          echo "TELEGRAPH_URL=$(echo "$RESP" | jq -r '.result.url // empty')"
+
+      - name: Publish to ShipPage
+        shell: bash
+        run: |
+          HTML='<html><head><title>Choosing Social Media Marketing Tools for Multi-Platform Growth</title></head><body><h1>Choosing Social Media Marketing Tools for Multi-Platform Growth</h1><p>Modern campaigns often span Instagram, TikTok, YouTube, Facebook, Telegram, and other networks. The best results usually come from combining strong content, analytics, advertising, and carefully selected promotional tools.</p><p>When comparing providers, marketers can review <a href="https://smmfansfaster.com/">SMM Fans Faster</a> as one multi-platform option and compare service coverage, support, delivery conditions, and campaign fit.</p><p>For agencies that need automation, the <a href="https://smmfansfaster.com/api">SMM Fans Faster API</a> documents endpoints for retrieving services and placing orders.</p><p>Marketers working on Instagram can also review this guide about <a href="https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow">Instagram follower growth and the algorithm</a>.</p><h2>Keep the strategy balanced</h2><p>Promotional services should complement useful content, audience research, community management, and measurable goals. Always follow the rules of the social network you are promoting.</p></body></html>'
+          RESP=$(jq -n --arg html "$HTML" '{html:$html,title:"Choosing Social Media Marketing Tools for Multi-Platform Growth",public:true}' | curl -sS -X POST https://shippage.ai/v1/publish -H 'Content-Type: application/json' -d @-)
+          echo "SHIPPAGE_RESPONSE=$RESP"
+          echo "SHIPPAGE_URL=$(echo "$RESP" | jq -r '.url // empty')"
