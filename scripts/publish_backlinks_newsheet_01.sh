@@ -24,7 +24,6 @@ Agencies and resellers can review the public [SMM API documentation](https://smm
 The strongest social media systems connect visibility with engagement, qualified traffic, leads, purchases, and customer value. Promotional services can support distribution, but they work best when content quality and measurement remain the foundation.
 EOF
 
-# display.dev
 r=$(curl -sS -X POST 'https://api.display.dev/v1/public/artifacts' -F 'file=@/tmp/article.md;type=text/markdown' -F 'name=Social Media Growth Business Results')
 echo "RESULT_URL=$(echo "$r" | jq -r '.previewUrl // empty')"
 
