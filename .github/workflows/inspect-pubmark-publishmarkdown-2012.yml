@@ -1,0 +1,12 @@
+name: Inspect Pubmark PublishMarkdown 2012
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Run Pubmark PublishMarkdown Inspect 2012'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect public frontend endpoints
+        run: python3 scripts/inspect_pubmark_publishmarkdown_2012.py
