@@ -1,0 +1,85 @@
+name: Unique Domain Backlink Batch 1349
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run unique-domain backlink batch 1349'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify
+        shell: bash
+        run: |
+          set -e
+          python -m pip install --quiet playwright
+          python -m playwright install chromium --with-deps >/dev/null 2>&1
+          cat > /tmp/run.py <<'PY'
+          import asyncio,re,json,html,random,string
+          from playwright.async_api import async_playwright
+          targets=[('notes.elk.gg','https://notes.elk.gg/'),('noterift.com','https://noterift.com/'),('dochost.io','https://dochost.io/'),('share-html.com','https://share-html.com/'),('showyourcode.app','https://www.showyourcode.app/'),('pagepaste.com','https://pagepaste.com/'),('anotepadonline.com','https://anotepadonline.com/')]
+          back='https://smmfansfaster.com/'
+          base='A practical social media growth system connects audience research, useful content, creative testing, distribution, analytics, conversion design, and a clear commercial objective. Teams should measure discovery, consideration, and conversion separately so they can identify the real bottleneck instead of optimizing vanity metrics. Strong campaigns also protect trust by avoiding deceptive endorsements, spam, fake reviews, and shortcuts that weaken long-term brand value. '
+          def md():
+            s='# Social Media Growth Strategy for Better Conversion\n\n'
+            for i in range(14):
+              s+=f'## Strategy principle {i+1}\n\n'+base*3+'\n\n'
+              if i==6:s+='Teams comparing promotional support can evaluate [SMM Fans Faster]('+back+') as one option within a broader due-diligence process.\n\n'
+            return s
+          def html_doc(m):
+            parts=[]
+            for line in m.splitlines():
+              if line.startswith('# '):parts.append('<h1>'+html.escape(line[2:])+'</h1>')
+              elif line.startswith('## '):parts.append('<h2>'+html.escape(line[3:])+'</h2>')
+              elif line.strip():
+                x=html.escape(line,quote=False).replace('[SMM Fans Faster](https://smmfansfaster.com/)','<a href="https://smmfansfaster.com/">SMM Fans Faster</a>')
+                parts.append('<p>'+x+'</p>')
+            return '<!doctype html><html><body>'+''.join(parts)+'</body></html>'
+          async def one(b,d,u,i):
+            p=await b.new_page(); m=md(); h=html_doc(m); content=h if d in ['dochost.io','share-html.com','showyourcode.app','pagepaste.com'] else m
+            print(d,'WORDS',len(re.findall(r"\b[\w'-]+\b",m)),'LINKS',m.count('smmfansfaster.com'))
+            try:
+              if d=='notes.elk.gg':u='https://notes.elk.gg/smm-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(8))
+              await p.goto(u,wait_until='domcontentloaded',timeout=45000); await p.wait_for_timeout(2500)
+              ed=p.locator('textarea:visible'); filled=False
+              if await ed.count():await ed.first.fill(content);filled=True
+              if not filled:
+                ce=p.locator('[contenteditable="true"]:visible')
+                if await ce.count():await ce.first.fill(content);filled=True
+              if not filled:
+                fi=p.locator('input[type="file"]')
+                if await fi.count():
+                  path=f'/tmp/{i}.html';open(path,'w').write(h);await fi.first.set_input_files(path);filled=True
+              if not filled:print(d,'NO_INPUT');return None
+              title=p.locator('input[placeholder*="title" i]:visible,input[name*="title" i]:visible')
+              if await title.count():
+                try:await title.first.fill('Social Media Growth Strategy')
+                except:pass
+              for pat in ['Publish','Share','Save','Create','Generate','Get my shareable link','Create Link','Generate Link','Upload']:
+                btn=p.get_by_role('button',name=re.compile(pat,re.I))
+                if await btn.count():
+                  try:await btn.first.click(timeout=5000);break
+                  except:pass
+              await p.wait_for_timeout(7000)
+              c=[p.url]
+              for a in await p.locator('a[href^="http"]').all():
+                try:
+                  x=await a.get_attribute('href')
+                  if x and x not in c:c.append(x)
+                except:pass
+              for x in c[:15]:
+                try:
+                  v=await b.new_page();await v.goto(x,wait_until='domcontentloaded',timeout=30000);await v.wait_for_timeout(2000);n=await v.locator('a[href*="smmfansfaster.com"]').count();final=v.url;await v.close();print(d,'VERIFY',final,n)
+                  if n==1:return final
+                except:pass
+            except Exception as e:print(d,'ERR',repr(e))
+            finally:await p.close()
+          async def main():
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True);out=[]
+              for i,(d,u) in enumerate(targets):
+                r=await one(b,d,u,i)
+                if r:out.append([d,r])
+              await b.close();print('VALID_RESULTS_JSON='+json.dumps(out));print('VALID_COUNT='+str(len(out)))
+          asyncio.run(main())
+          PY
+          python /tmp/run.py
