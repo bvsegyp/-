@@ -1,0 +1,130 @@
+name: Publish NAREX anonymous backlinks batch 14
+on:
+  push:
+    branches: [narex-publish-batch14-20260812]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish browser-based anonymous pages
+        shell: bash
+        run: |
+          python3 -m pip -q install playwright
+          python3 -m playwright install chromium --with-deps >/dev/null 2>&1
+          python3 - <<'PY'
+          import asyncio,re,json,html,random,string,csv
+          from urllib.parse import urlparse
+          from playwright.async_api import async_playwright
+          HOME='https://narexx.com/';PRODUCT='https://narexx.com/ar/easy-wash/p754364761'
+          WHY='https://narexx.com/en/%D9%84%D9%85%D8%A7%D8%B0%D8%A7-%D8%AA%D8%B3%D8%AA%D8%AE%D8%AF%D9%85-%D8%A7%D9%84%D9%85%D9%86%D8%AA%D8%AC/page-833898435'
+          WHOLESALE='https://narexx.com/en/%D8%B7%D9%84%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AC%D9%85%D9%84%D9%87/page-768158116'
+          COMPLAINTS='https://narexx.com/%D9%84%D9%84%D8%B4%D9%83%D8%A7%D9%88%D9%89-%D9%88-%D8%A7%D9%84%D8%A7%D9%82%D8%AA%D8%B1%D8%A7%D8%AD%D8%A7%D8%AA/page-50408011'
+          RETURNS='https://narexx.com/ar/%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%A8%D8%AF%D8%A7%D9%84-%D9%88%D8%A7%D9%84%D8%A5%D8%B3%D8%AA%D8%B1%D8%AC%D8%A7%D8%B9/page-1592231750';EN='https://narexx.com/en/'
+          REFS=[('Easy Wash',PRODUCT),('NAREX السعودية',HOME),('لماذا تستخدم المنتج',WHY),('صفحة المنتج',PRODUCT),('متجر NAREX',HOME),('سياسة الاستبدال والاسترجاع',RETURNS),('الشكاوى والاقتراحات',COMPLAINTS),('طلبات الجملة',WHOLESALE),('النسخة الإنجليزية',EN),('مناديل Easy Wash',PRODUCT),('منتجات NAREX',HOME),('حل حماية الألوان',PRODUCT),('NAREX للعناية بالغسيل',HOME),('Easy Wash الرسمي',PRODUCT),('المتجر الرسمي',HOME),('خدمة العملاء',COMPLAINTS),('حلول الغسيل',HOME),('Easy Wash للملابس الملونة',PRODUCT),('NAREX',HOME),('منتج منع انتقال الألوان',PRODUCT)]
+          PARAS=['انتقال الألوان بين الملابس قد يحدث عندما تطلق بعض الأقمشة جزءًا من الصبغة أثناء دورة الغسيل، وخصوصًا مع القطع الجديدة أو الداكنة. لذلك يبدأ التعامل الصحيح مع المشكلة من قراءة تعليمات العناية، ومعرفة الملابس التي تحتاج إلى فصل في المرات الأولى، واختيار برنامج ودرجة حرارة يناسبان طبيعة الحمولة.','الفرز الذكي لا يعني تشغيل دورة مستقلة لكل لون. يمكن جمع الملابس المتقاربة عندما تكون تعليمات العناية متوافقة، مع فصل الأبيض شديد الحساسية والقطع المعروفة بنزيف اللون. هذا التوازن يقلل عدد الدورات غير الضرورية ويجعل الغسيل اليومي أكثر عملية وتنظيمًا.','مناديل التقاط الألوان تعمل داخل ماء الغسيل للمساعدة على جذب جزء من الصبغات الزائدة. توضع الورقة مع الملابس داخل الحلة وتتحرك خلال الدورة، ثم يتم التخلص منها بعد الانتهاء. عدد المناديل المناسب يعتمد على حجم الحمولة وقوة الألوان، لذلك يجب الرجوع إلى تعليمات المنتج الحالية.','Easy Wash من NAREX يقدم هذا النوع من الحلول كخطوة مساعدة ضمن روتين العناية بالملابس. الفكرة ليست إلغاء الفرز أو تجاهل القطع الحساسة، وإنما تقليل احتمالية انتقال الصبغات عندما يكون غسل مجموعة من الملابس المتقاربة مناسبًا.','برنامج الغسيل ودرجة الحرارة وحجم الحمولة تؤثر كلها في النتيجة. الحرارة العالية ليست مطلوبة لكل الأقمشة، كما أن تحميل الغسالة فوق طاقتها يقلل حركة الماء والمنظف. الأفضل هو ترك مساحة للحركة واستخدام كمية منظف مناسبة وبرنامج يتوافق مع نوع القماش.','الملابس الداكنة الجديدة تحتاج إلى اهتمام إضافي في المرات الأولى. إذا كان هناك شك في ثبات الصبغة يمكن غسل القطعة منفردة أول مرة، ثم إدخالها في روتين أكثر مرونة بعد معرفة سلوك القماش. كما يمكن قلب بعض القطع من الداخل إلى الخارج لتقليل الاحتكاك المباشر بسطحها الخارجي.','تنظيم روتين الغسيل يوفر وقتًا عندما يتم تحديد القطع التي تحتاج فعلًا إلى فصل بدل تقسيم كل حمولة بصورة مبالغ فيها. بعد معرفة الملابس الحساسة يمكن التعامل مع بقية القطع بمرونة أكبر، مع إضافة منتج مساعد لالتقاط الصبغات عندما يكون مناسبًا.','العناية لا تنتهي عند توقف الغسالة. يفضل إخراج الملابس بعد انتهاء الدورة وعدم تركها مبللة فترة طويلة، ثم تجفيفها بالطريقة المناسبة لنوع القماش. كما يساعد التعامل السريع مع البقع على تقليل الحاجة إلى غسيل قاسٍ متكرر.','قبل شراء أي منتج للعناية بالملابس عبر الإنترنت من المفيد مراجعة وصف المنتج وطريقة الاستخدام وسياسات المتجر وقنوات التواصل. للمستخدم في السعودية، معرفة الاستبدال والاسترجاع وخيارات التواصل والجملة تجعل قرار الشراء أكثر وضوحًا.','أفضل حماية للألوان تأتي من روتين متكامل يجمع بين الفرز المنطقي والبرنامج المناسب ودرجة الحرارة الملائمة والكمية الصحيحة من المنظف والعناية بالقطع الجديدة، مع استخدام مناديل التقاط الصبغات كخطوة مساعدة عند الحاجة.']
+          TOPICS=['مناديل حماية الملابس من انتقال الألوان','أفضل طريقة لغسل الملابس الملونة','حل اختلاط الألوان داخل الغسالة','منع نزيف لون الملابس الجديدة','ورق التقاط الألوان للغسيل','روتين العناية بالملابس مع NAREX']
+          def md(title):
+            out=['# '+title]
+            for i,p in enumerate(PARAS):
+              a,b=REFS[2*i],REFS[2*i+1];out += ['## نصيحة '+str(i+1),p+f' للمزيد راجع [{a[0]}]({a[1]}) و[{b[0]}]({b[1]}).']
+            return '\n\n'.join(out)
+          def hdoc(title):
+            m=md(title);parts=[]
+            for line in m.splitlines():
+              if line.startswith('# '):parts.append('<h1>'+html.escape(line[2:])+'</h1>')
+              elif line.startswith('## '):parts.append('<h2>'+html.escape(line[3:])+'</h2>')
+              elif line.strip():
+                e=html.escape(line);e=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',lambda x:f'<a href="{x.group(2)}">{html.escape(x.group(1))}</a>',e);parts.append('<p>'+e+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+html.escape(title)+'</title></head><body>'+''.join(parts)+'</body></html>'
+          def host(u):
+            try:return (urlparse(u).hostname or '').lower().lstrip('www.')
+            except:return ''
+          targets=[('notes.elk.gg','https://notes.elk.gg/','md'),('noterift.com','https://noterift.com/','md'),('share-html.com','https://share-html.com/','html'),('anotepadonline.com','https://anotepadonline.com/','md'),('pagegate.app','https://pagegate.app/','html'),('yapp.page','https://yapp.page/','html')]
+          async def verify(browser,url,domain):
+            if not url or not url.startswith('http'):return None
+            h=host(url)
+            if h=='narexx.com' or h.endswith('.narexx.com') or any(x in url.lower() for x in ['/edit/','admin','dashboard']):return None
+            if not (h==domain or h.endswith('.'+domain)):return None
+            p=await browser.new_page()
+            try:
+              await p.goto(url,wait_until='domcontentloaded',timeout=40000);await p.wait_for_timeout(2500);hrefs=await p.locator('a[href*="narexx.com"]').count();src=(await p.content()).lower();final=p.url
+              return final if max(hrefs,src.count('narexx.com'))>=7 else None
+            except:return None
+            finally:await p.close()
+          async def publish(browser,domain,url,fmt,title,idx):
+            p=await browser.new_page();content=hdoc(title) if fmt=='html' else md(title);count=content.count('https://narexx.com')
+            try:
+              if domain=='notes.elk.gg':url='https://notes.elk.gg/narex-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(8))
+              await p.goto(url,wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(2200);initial=p.url
+              # click likely creation/editor controls
+              for pat in ['New','Create','Paste HTML','Paste Code','HTML','Write','Add note']:
+                el=p.get_by_text(re.compile('^'+re.escape(pat)+'$',re.I))
+                if await el.count():
+                  try:await el.first.click(timeout=2000);await p.wait_for_timeout(500);break
+                  except:pass
+              # title/name
+              for i in range(await p.locator('input:visible').count()):
+                e=p.locator('input:visible').nth(i);meta=' '.join([(await e.get_attribute('placeholder') or ''),(await e.get_attribute('name') or '')]).lower()
+                if 'title' in meta or 'name' in meta:
+                  try:await e.fill(title)
+                  except:pass
+              filled=False
+              tas=p.locator('textarea:visible')
+              if await tas.count():
+                best=tas.first;area=-1
+                for i in range(await tas.count()):
+                  e=tas.nth(i);box=await e.bounding_box();a=box['width']*box['height'] if box else 0
+                  if a>area:best=e;area=a
+                await best.fill(content);filled=True
+              if not filled:
+                ces=p.locator('[contenteditable=true]:visible')
+                if await ces.count():await ces.first.fill(content);filled=True
+              if not filled:
+                fi=p.locator('input[type=file]')
+                if await fi.count():
+                  ext='.html' if fmt=='html' else '.md';path=f'/tmp/narex14-{idx}{ext}';open(path,'w',encoding='utf-8').write(content);await fi.first.set_input_files(path);filled=True
+              if not filled:return [domain,'',title,count,'FAILED no input']
+              clicked=False
+              for pat in ['Publish','Share','Save','Create','Generate','Get my shareable link','Create Link','Generate Link','Upload','Deploy','Deploy Page','Generate Live Page']:
+                btn=p.get_by_role('button',name=re.compile(pat,re.I))
+                if await btn.count():
+                  try:await btn.first.click(timeout=5000);clicked=True;break
+                  except:pass
+              if not clicked:
+                for pat in ['Publish','Share','Save','Create','Generate','Upload','Deploy']:
+                  el=p.get_by_text(re.compile('^'+pat+'$',re.I))
+                  if await el.count():
+                    try:await el.first.click(timeout=4000);clicked=True;break
+                    except:pass
+              if not clicked:return [domain,'',title,count,'FAILED no button']
+              await p.wait_for_timeout(7000);cands=[]
+              if p.url!=initial:cands.append(p.url)
+              for a in await p.locator('a[href^="http"]').all():
+                try:
+                  x=await a.get_attribute('href')
+                  if x and x not in cands:cands.append(x)
+                except:pass
+              try:
+                txt=await p.locator('body').inner_text();cands+=re.findall(r'https?://[^\s)\]<>"\']+',txt)
+              except:pass
+              for c in cands[:25]:
+                final=await verify(browser,c.rstrip('.,'),domain)
+                if final:return [domain,final,title,count,'published']
+              return [domain,'',title,count,'FAILED no verified URL']
+            except Exception as e:return [domain,'',title,count,'FAILED '+repr(e)]
+            finally:await p.close()
+          async def main():
+            rows=[]
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True)
+              for i,(d,u,f) in enumerate(targets):
+                r=await publish(b,d,u,f,TOPICS[i],i);rows.append(r);print('RESULT|'+'|'.join(map(str,r)),flush=True)
+              await b.close()
+            with open('narex-batch14.csv','w',newline='',encoding='utf-8-sig') as f:csv.writer(f).writerows([['platform','published_url','title','narex_links','status']]+rows)
+            print('SUCCESS_COUNT='+str(len([r for r in rows if r[1]])))
+          asyncio.run(main())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: narex-batch14-results
+          path: narex-batch14.csv
