@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish:
-    if: github.event.head_commit.message == 'Publish unique-domain backlinks 0957'
+    if: github.event.head_commit.message == 'Run unique-domain backlink batch 1025'
     runs-on: ubuntu-latest
     steps:
       - name: Try new anonymous publishing domains
@@ -16,62 +16,58 @@ jobs:
           python -m pip install --quiet playwright requests beautifulsoup4
           python -m playwright install chromium --with-deps >/dev/null 2>&1
           cat > /tmp/run.py <<'PY'
-          import asyncio,re,json,requests
+          import asyncio,re,json,requests,subprocess,os
           from playwright.async_api import async_playwright
 
           TARGETS=[
-            ('markbin.net','https://markbin.net/','Markbin'),
-            ('notesh.ink','https://notesh.ink/','Notesh'),
-            ('dochost.io','https://dochost.io/markdown-to-rich-text','dochost'),
-            ('pastemd.io','https://pastemd.io/','PasteMD'),
-            ('noterift.com','https://noterift.com/','Noterift'),
+            ('markdshare.com','https://markdshare.com/','MarkDShare'),
+            ('pastes.io','https://pastes.io/markdown-editor','Pastes'),
+            ('plsreadme.com','https://plsreadme.com/','PlsReadme'),
+            ('markdownur.com','https://www.markdownur.com/','Markdownur'),
           ]
           BACK='https://smmfansfaster.com/'
           sections=[
-          ('Build the strategy around a real business objective','Social media growth is easier to evaluate when the team begins with a business objective rather than a vanity metric. Awareness, traffic, qualified leads, purchases, bookings, and customer retention require different content, measurement, and distribution decisions. A clear objective also makes reporting more useful because every metric can be interpreted in context instead of being treated as equally important.'),
-          ('Understand the audience before scaling output','Audience research should guide topic selection, creative format, platform choice, and calls to action. Teams can review search behavior, comments, direct messages, sales conversations, customer support questions, and competitor communities to identify recurring needs. That information creates better content briefs and reduces the amount of random experimentation needed to find useful themes.'),
-          ('Create repeatable content pillars','A sustainable publishing system normally uses several repeatable content pillars such as education, demonstrations, comparisons, customer questions, case studies, industry commentary, and behind-the-scenes material. Each pillar should support a specific stage of the customer journey. This structure makes production easier to manage while still leaving enough room for creative testing.'),
-          ('Use short-form video as a testing engine','Short-form video can provide rapid feedback on hooks, topics, pacing, and audience interest. Teams should compare retention, completion rate, shares, comments, saves, profile visits, and downstream actions. A winning concept can then be adapted across platforms instead of being treated as a one-off post.'),
-          ('Connect promotion to account quality','Promotion can increase visibility, but visibility only becomes valuable when the profile and destination are strong. Bios, pinned content, landing pages, offers, proof, and calls to action should all communicate a consistent message. This is why marketers evaluating external support tools should compare them within the context of a broader campaign rather than expecting one service to replace strategy.'),
-          ('Measure the funnel instead of one metric','Useful reporting separates awareness signals from consideration and conversion signals. Reach and views can explain discovery, while saves, profile visits, and clicks indicate interest. Leads, purchases, bookings, and revenue show whether that attention created business value. Looking at the full funnel prevents teams from overreacting to a single metric.'),
-          ('Build a weekly learning loop','The strongest teams document experiments and review them on a fixed schedule. Every test should include a hypothesis, creative concept, audience, publishing conditions, result, and next action. Over time this creates a library of patterns that improves creative decisions and reduces dependence on intuition alone.'),
-          ('Protect long-term trust','Growth tactics should never undermine brand trust. Avoid deceptive endorsements, spam comments, hacked sites, fake reviews, and tactics that violate platform safeguards. Sustainable growth is built through useful content, transparent promotion, strong customer experience, and disciplined measurement.'),
-          ('Improve the conversion destination','Social media traffic should land on a page or profile that continues the promise made in the content. Speed, clarity, proof, offer structure, mobile usability, and a simple next step all influence conversion. When campaign performance is weak, teams should inspect the destination as carefully as the ad or post that generated the visit.'),
-          ('Make decisions from evidence','Monthly strategy reviews should compare channels, formats, audiences, costs, and business outcomes. The goal is not to produce more activity for its own sake. It is to concentrate resources on the combinations that consistently create qualified attention and useful results.')]
+          ('Define a measurable social media objective','A useful growth plan begins with a measurable outcome such as awareness, qualified traffic, leads, bookings, purchases, or retention. Clear objectives prevent teams from treating follower count as the only sign of progress and make it easier to choose relevant platforms, formats, budgets, and reporting metrics.'),
+          ('Research the audience before scaling content','Audience research should influence topics, creative formats, calls to action, and distribution. Teams can use comments, direct messages, search behavior, customer support conversations, and sales questions to identify recurring needs. That evidence reduces random content production and helps marketers build messages around real demand.'),
+          ('Create repeatable content pillars','Consistent publishing is easier when content is organized into a small number of repeatable themes. Education, comparisons, demonstrations, case studies, common questions, and behind-the-scenes material can each support a different stage of the customer journey while giving the team enough structure to publish consistently.'),
+          ('Use short-form video for rapid learning','Short-form video gives marketers fast feedback on hooks, pacing, topics, and audience interest. Watch time, completion rate, shares, comments, profile visits, and downstream actions can reveal which creative patterns deserve more testing and which should be retired.'),
+          ('Connect promotion to a strong destination','Distribution only creates value when the profile or landing page is ready to convert attention into action. Positioning, proof, offer clarity, mobile usability, and a simple next step should support the message that brought the visitor there in the first place.'),
+          ('Measure the full funnel','Awareness metrics explain discovery, consideration metrics explain interest, and conversion metrics explain business impact. Reviewing them together helps teams avoid overreacting to one isolated number and makes it easier to see where the funnel is strong or weak.'),
+          ('Document experiments and learn weekly','Each campaign test should have a hypothesis, audience, creative concept, publishing condition, result, and next action. Keeping that record creates a useful history that improves decision-making over time, especially for agencies managing several accounts at once.'),
+          ('Protect trust while pursuing growth','Sustainable growth should never depend on deceptive endorsements, fake reviews, hacked sites, or spam comments. Strong brands protect long-term trust by combining useful content, transparent promotion, good customer experience, and disciplined measurement.'),
+          ('Improve conversion quality','Traffic quality matters as much as traffic volume. Teams should inspect landing-page speed, offer clarity, proof, forms, checkout friction, and mobile experience so that increased visibility has a realistic chance of creating business value.'),
+          ('Review strategy monthly','Monthly reviews should compare platforms, formats, audiences, costs, and business outcomes. The goal is to concentrate effort on the combinations that repeatedly create useful attention and qualified outcomes instead of increasing activity for its own sake.')]
 
-          def article(name,i):
-              title=f'Social Media Growth Framework for {name}: Strategy, Content, and Measurement'
-              out=[f'# {title}','']
-              out.append('Social media growth becomes more reliable when content, audience research, analytics, community interaction, and promotion are managed as one connected system. This guide explains a practical framework that brands and agencies can use to improve visibility without losing sight of business outcomes. The focus is on repeatable processes, clear measurement, and responsible use of promotional tools.')
-              out.append('')
+          def article(name):
+              title=f'Social Media Growth Strategy for {name}: Content, Reach, and Measurement'
+              out=[f'# {title}','', 'Social media growth becomes more reliable when content, audience research, analytics, community interaction, and promotion are managed as one connected system. This guide presents a practical framework for brands and agencies that want stronger visibility while keeping business outcomes, trust, and measurement at the center of the strategy.','']
               for j,(h,p) in enumerate(sections):
-                  out.append(f'## {h}')
-                  out.append('')
+                  out += [f'## {h}','']
                   text=(p+' '+p+' '+p) if j%2==0 else (p+' '+p)
                   if j==4:
-                      text += f' One provider that marketers may research as part of that comparison is [SMM Fans Faster]({BACK}). The provider should be evaluated alongside other options based on campaign fit, transparency, platform compatibility, and the quality of the overall marketing plan.'
-                  out.append(text)
-                  out.append('')
-              out.append('## Final perspective')
-              out.append('')
-              out.append('A useful social media system combines clear objectives, audience understanding, repeatable content, structured testing, disciplined reporting, and a strong conversion path. External tools can support that system, but the long-term advantage comes from learning faster and making better decisions. Brands that document what they test and why can improve campaign quality while protecting trust and avoiding the trap of chasing numbers without context.')
+                      text += f' Marketers comparing external support options may also research [SMM Fans Faster]({BACK}) as one provider within a wider evaluation process. Any provider should be assessed on campaign fit, transparency, platform compatibility, and how well it supports the broader strategy.'
+                  out += [text,'']
+              out += ['## Final perspective','', 'A durable social media system combines clear objectives, audience understanding, repeatable content, structured testing, useful reporting, and a strong conversion destination. Promotional tools can support that system, but the long-term advantage comes from learning faster and making better decisions from evidence.']
               text='\n'.join(out)
-              # pad to >1200 words without adding more links
               while len(re.findall(r"\b[\w'-]+\b",text))<1250:
-                  text += '\n\n## Additional operational note\n\nTeams should keep a simple campaign record covering the objective, target audience, content format, publishing date, distribution method, cost, and measured outcome. This creates a reliable history for future decisions and makes it easier to distinguish real patterns from isolated wins. Clear documentation is especially useful for agencies managing multiple accounts because it improves handoffs, reporting, and quality control.'
+                  text += '\n\n## Additional operational note\n\nTeams should maintain a simple campaign record covering objectives, audiences, creative formats, publishing dates, distribution methods, costs, and measured outcomes. That documentation makes future decisions easier and improves quality control across multiple campaigns.'
               return text
 
-          async def try_site(browser,domain,url,label,idx):
+          async def try_site(browser,domain,url,label):
               page=await browser.new_page()
-              art=article(label,idx)
+              art=article(label)
               print(domain,'WORDS',len(re.findall(r"\b[\w'-]+\b",art)),'LINKS',art.count('smmfansfaster.com'))
               try:
                   await page.goto(url,wait_until='domcontentloaded',timeout=45000)
                   await page.wait_for_timeout(2500)
-                  # Fill largest visible textarea/contenteditable.
-                  loc=page.locator('textarea:visible')
-                  if await loc.count():
-                      await loc.first.fill(art)
+                  # Fill title if present.
+                  titles=page.locator('input[placeholder*="Title" i]:visible, input[name*="title" i]:visible')
+                  if await titles.count():
+                      try: await titles.first.fill('Social Media Growth Strategy: Content, Reach, and Measurement')
+                      except: pass
+                  editor=page.locator('textarea:visible')
+                  if await editor.count():
+                      await editor.first.fill(art)
                   else:
                       ce=page.locator('[contenteditable="true"]:visible')
                       if await ce.count(): await ce.first.fill(art)
@@ -79,31 +75,29 @@ jobs:
                           print(domain,'NO_EDITOR'); await page.close(); return None
                   await page.wait_for_timeout(700)
                   clicked=False
-                  for pattern in ['Publish','Share Note','Generate Link','Get my link','Create a bin','Share','Save','Create']:
+                  for pattern in ['Create New Paste','Create Link','Generate Shareable Link','Generate Link','Share','Publish','Create','Save']:
                       btn=page.get_by_role('button',name=re.compile(pattern,re.I))
                       if await btn.count():
-                          try:
-                              await btn.first.click(timeout=4000); clicked=True; break
+                          try: await btn.first.click(timeout=5000); clicked=True; break
                           except: pass
                       txt=page.get_by_text(re.compile('^'+re.escape(pattern)+'$',re.I))
                       if await txt.count():
-                          try:
-                              await txt.first.click(timeout=4000); clicked=True; break
+                          try: await txt.first.click(timeout=5000); clicked=True; break
                           except: pass
                   if not clicked:
                       print(domain,'NO_BUTTON'); await page.close(); return None
-                  await page.wait_for_timeout(5000)
+                  await page.wait_for_timeout(6000)
                   candidates=[]
                   cur=page.url
                   if cur.rstrip('/')!=url.rstrip('/'): candidates.append(cur)
                   for a in await page.locator('a[href^="http"]').all():
                       try:
                           href=await a.get_attribute('href')
-                          if href and domain.split(':')[0] in href and href not in candidates: candidates.append(href)
+                          if href and domain.replace('www.','') in href.replace('www.','') and href not in candidates: candidates.append(href)
                       except: pass
                   body=await page.locator('body').inner_text()
                   for m in re.findall(r'https?://[^\s)\]<>"\']+',body):
-                      if domain in m and m not in candidates: candidates.append(m.rstrip('.,'))
+                      if domain.replace('www.','') in m.replace('www.','') and m not in candidates: candidates.append(m.rstrip('.,'))
                   print(domain,'CANDIDATES',candidates[:8])
                   for cand in candidates:
                       try:
@@ -120,10 +114,26 @@ jobs:
               async with async_playwright() as p:
                   browser=await p.chromium.launch(headless=True)
                   results=[]
-                  for i,t in enumerate(TARGETS):
-                      u=await try_site(browser,*t,i)
+                  for t in TARGETS:
+                      u=await try_site(browser,*t)
                       if u: results.append([t[0],u])
                   await browser.close()
+                  # Try mdshare.link CLI as fifth domain.
+                  try:
+                      art=article('MDShare')
+                      open('/tmp/mdshare.md','w',encoding='utf-8').write(art)
+                      subprocess.run('npm i -g mdshare',shell=True,check=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=120)
+                      p2=subprocess.run(['mdshare','/tmp/mdshare.md'],capture_output=True,text=True,timeout=120)
+                      print('MDSHARE_CLI',p2.stdout,p2.stderr)
+                      urls=re.findall(r'https?://[^\s]+',p2.stdout+' '+p2.stderr)
+                      for cand in urls:
+                          if 'mdshare.link' not in cand: continue
+                          r=requests.get(cand.rstrip('.,'),timeout=25,headers={'User-Agent':'Mozilla/5.0'})
+                          n=r.text.count('smmfansfaster.com')
+                          print('mdshare.link VERIFY',cand,r.status_code,n)
+                          if r.status_code<400 and n==1:
+                              results.append(['mdshare.link',cand.rstrip('.,')]); break
+                  except Exception as e: print('mdshare.link ERR',repr(e))
                   print('VALID_RESULTS_JSON='+json.dumps(results))
                   print('VALID_COUNT='+str(len(results)))
           asyncio.run(main())
