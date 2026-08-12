@@ -1,34 +1,28 @@
 #!/usr/bin/env bash
 set +e
-
-make_html(){
-  title="$1"; intro="$2"
-  cat <<EOF
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body><main style="max-width:920px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.8;color:#171717"><h1>${title}</h1><p>${intro}</p><p>A strong social media growth system connects content quality, audience research, publishing consistency, profile optimization, analytics, conversion planning, and carefully selected promotional support. Instead of chasing one metric, businesses should measure how each activity contributes to discovery, engagement, traffic, leads, and revenue.</p><p>When comparing external providers, marketers can include <a href="https://smmfansfaster.com/">SMM Fans Faster</a> as one option in a broader review. Important comparison points include service coverage, order minimums, delivery expectations, support, refill terms, cancellation conditions, and whether the service aligns with the campaign objective.</p><h2>Build around content and audience intent</h2><p>Educational posts answer recurring questions, demonstrations show how products or services work, comparisons help users make decisions, and case studies build trust. Direct-response content can then turn attention into profile visits, website clicks, inquiries, bookings, or purchases.</p><h2>Use TikTok to test creative direction</h2><p>TikTok provides quick feedback on hooks, pacing, editing, topics, and format. Marketers researching audience-growth support can review this guide about <a href="https://smmfansfaster.com/blog/tiktok-followers">TikTok followers</a> and this resource about <a href="https://smmfansfaster.com/blog/tiktok-views">TikTok views, followers, and likes</a>. It is also useful to compare those visible metrics with retention, saves, shares, comments, and profile activity.</p><p>For more context, this article explains the <a href="https://smmfansfaster.com/blog/numberoftiktokfollowers">number of TikTok followers</a> and why follower milestones should be evaluated alongside real audience behavior.</p><h2>Connect Instagram discovery with conversion</h2><p>Instagram can support several stages of the funnel. Reels introduce accounts to new viewers, carousels explain more detailed topics, Stories maintain contact, and highlights organize proof, services, FAQs, and next steps. Marketers can also review this guide to an <a href="https://smmfansfaster.com/blog/instagram-followers-website">Instagram followers website</a>.</p><p>Two additional resources discuss whether <a href="https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow">increasing followers affects the Instagram algorithm</a> and whether <a href="https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement">buying Instagram followers affects engagement</a>. These questions reinforce why account health should be evaluated through interaction and conversion signals, not follower count alone.</p><h2>Measure the complete marketing funnel</h2><p>A useful dashboard separates awareness, engagement, conversion, and revenue. Strong reach with weak profile activity may indicate poor relevance. Strong profile visits with weak clicks can point to the bio or call to action. Strong traffic with low conversion may signal a problem with the landing page, trust signals, offer, pricing, or checkout.</p><h2>Scale carefully with automation</h2><p>Agencies and resellers can review the public <a href="https://smmfansfaster.com/api">SMM API documentation</a> and the <a href="https://smmfansfaster.com/smm-api-integration">SMM API integration</a> page. Automation can reduce repetitive work, but campaign goals, target links, quantities, and reporting should still receive human review.</p><h2>Final perspective</h2><p>Long-term growth works best when content, audience understanding, profile optimization, measurement, conversion design, and promotional support reinforce one another. The goal is to improve the complete path from discovery to action rather than maximizing a single visible number.</p></main></body></html>
-EOF
-}
-
-# 1) ht-ml.app — official anonymous agent API
-HT_HTML=$(make_html "A Strategic Guide to Multi-Platform Social Media Growth" "Multi-platform growth becomes easier to manage when every channel has a defined role and every campaign is measured against clear business outcomes.")
-HT_BODY=$(python3 -c 'import json,sys; print(json.dumps({"html_content":sys.stdin.read()}))' <<< "$HT_HTML")
-HT_RESP=$(curl -sS -X POST 'https://api.ht-ml.app/v1/sites' -H 'Content-Type: application/json' --data-binary "$HT_BODY")
-echo "HTMLAPP_RESPONSE=$HT_RESP"
-HT_URL=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("url", ""))' <<< "$HT_RESP" 2>/dev/null)
-if [[ "$HT_URL" == https://*.ht-ml.app/* ]]; then code=$(curl -sS -L -o /tmp/ht.html -w '%{http_code}' "$HT_URL"); [ "$code" = "200" ] && grep -q 'smmfansfaster.com' /tmp/ht.html && echo "RESULT_URL=$HT_URL"; fi
-
-# 2) shareyourhtml.com — official JSON API, no signup, never expiry
-SYH_SLUG="social-growth-$(date +%s)-$RANDOM"
-SYH_HTML=$(make_html "How to Build a Balanced Social Media Growth Strategy" "Balanced growth means combining discovery, engagement, conversion, and measurement instead of treating follower count as the only meaningful result.")
-SYH_BODY=$(SYH_SLUG="$SYH_SLUG" python3 -c 'import json,sys,os; print(json.dumps({"slug":os.environ["SYH_SLUG"],"html":sys.stdin.read(),"expiry":"never"}))' <<< "$SYH_HTML")
-SYH_RESP=$(curl -sS -X POST 'https://shareyourhtml.com/pages' -H 'Content-Type: application/json' --data-binary "$SYH_BODY")
-echo "SHAREYOURHTML_RESPONSE=$SYH_RESP"
-SYH_URL=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("url", ""))' <<< "$SYH_RESP" 2>/dev/null)
-if [[ "$SYH_URL" == https://*.shareyourhtml.com* ]]; then code=$(curl -sS -L -o /tmp/syh.html -w '%{http_code}' "$SYH_URL"); [ "$code" = "200" ] && grep -q 'smmfansfaster.com' /tmp/syh.html && echo "RESULT_URL=$SYH_URL"; fi
-
-# 3) pagedrop.dev — documented permanent anonymous API
-PD_HTML=$(make_html "A Practical Framework for Evaluating Social Media Marketing Growth" "A practical evaluation framework connects service comparisons with creative quality, engagement signals, funnel performance, and business outcomes.")
-PD_BODY=$(python3 -c 'import json,sys; print(json.dumps({"html":sys.stdin.read()}))' <<< "$PD_HTML")
-PD_RESP=$(curl -sS -X POST 'https://pagedrop.dev/api/v1/sites' -H 'Content-Type: application/json' --data-binary "$PD_BODY")
-echo "PAGEDROP_RESPONSE=$PD_RESP"
-PD_URL=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print((d.get("data") or {}).get("url", ""))' <<< "$PD_RESP" 2>/dev/null)
-if [[ "$PD_URL" == https://pagedrop.dev/* ]]; then code=$(curl -sS -L -o /tmp/pd.html -w '%{http_code}' "$PD_URL"); [ "$code" = "200" ] && grep -q 'smmfansfaster.com' /tmp/pd.html && echo "RESULT_URL=$PD_URL"; fi
+for host in 'https://www.showyourcode.app/playground' 'https://pagepaste.com/' 'https://oneclicklive.app/en' 'https://www.shareduo.com/'; do
+  echo "=== HOST $host ==="
+  base=$(echo "$host" | sed -E 's#(https?://[^/]+).*#\1#')
+  curl -sS -L "$host" > /tmp/site.html
+  python3 - <<'PY'
+from html.parser import HTMLParser
+import re
+s=open('/tmp/site.html',encoding='utf-8',errors='ignore').read()
+class P(HTMLParser):
+    def handle_starttag(self,tag,attrs):
+        d=dict(attrs)
+        if tag=='form': print('FORM',d)
+        if tag in ('input','textarea','button','select'): print('FIELD',tag,d)
+        if tag=='script' and d.get('src'): print('SCRIPT',d['src'])
+P().feed(s)
+for pat in [r'fetch\(([^\n]{0,500})',r'axios\.[a-z]+\(([^\n]{0,500})',r'/(?:api|v1)/[A-Za-z0-9_./?=&:-]+']:
+  for v in re.findall(pat,s,re.I)[:50]: print('HIT',pat,v[:700])
+PY
+  grep -Eo 'src="[^"]+\.js[^" ]*"' /tmp/site.html | sed 's/^src="//;s/"$//' | head -30 >/tmp/jslist
+  while read -r src; do
+    [ -z "$src" ] && continue
+    case "$src" in http*) u="$src";; //*) u="https:$src";; /*) u="$base$src";; *) u="$base/$src";; esac
+    echo "JSURL=$u"
+    curl -sS -L "$u" | grep -Eo '.{0,220}(fetch\(|axios\.|/api/|/v1/|share|publish|deploy|upload).{0,420}' | head -40 || true
+  done </tmp/jslist
+done
