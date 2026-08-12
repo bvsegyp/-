@@ -1,0 +1,42 @@
+name: Publish Dpaste Final 0907
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish dpaste final 0907'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish final long markdown article to dpaste
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-10-long-backlinks-now.yml' -o /tmp/base.yml
+          python - <<'PY'
+          import re,textwrap,requests,json
+          y=open('/tmp/base.yml',encoding='utf-8').read()
+          m=re.search(r"cat > /tmp/publish\.py <<'PY'\n(.*?)\n\s*PY\n\s*python /tmp/publish\.py",y,re.S)
+          code=textwrap.dedent(m.group(1)); gen=code.split('results=[]',1)[0]
+          gen=gen.replace('A Complete Social Media Growth Framework for Agencies and Brands','Social Media Campaign Quality: A Long-Form Guide to Sustainable Audience Growth')
+          gen=gen.replace('agency planning, client reporting, and multi-platform execution','campaign quality systems, audience research, creative operations, measurement, and sustainable multi-platform growth')
+          ns={}; exec(gen,ns); a=ns['articles'][0]
+          print('ARTICLE_WORDS='+str(len(re.findall(r"\b[\w’'-]+\b",a))))
+          print('ARTICLE_TARGET_LINKS='+str(a.count('https://smmfansfaster.com')))
+          s=requests.Session(); s.headers.update({'User-Agent':'SMMEditorial/1.0'})
+          r=s.post('https://dpaste.org/api/',data={'content':a,'lexer':'_markdown','format':'json','expires':'never'},timeout=35)
+          print('DPASTE_STATUS='+str(r.status_code))
+          print('DPASTE_RESPONSE_HEAD='+r.text[:300].replace('\n',' '))
+          if r.status_code>=400: raise SystemExit(2)
+          try:
+              d=r.json(); u=d.get('url','')
+          except Exception:
+              u=r.text.strip().strip('"')
+          print('DPASTE_URL='+u)
+          if not u.startswith('http'): raise SystemExit(3)
+          v=s.get(u,timeout=35,allow_redirects=True)
+          hrefs=len(re.findall(r'href=["\']https://smmfansfaster\.com[^"\']*["\']',v.text,re.I)); total=v.text.count('smmfansfaster.com')
+          print('VERIFY_STATUS='+str(v.status_code)); print('VERIFY_HREFS='+str(hrefs)); print('VERIFY_TOTAL='+str(total))
+          if v.status_code>=400 or (hrefs<6 and total<6): raise SystemExit(4)
+          PY
