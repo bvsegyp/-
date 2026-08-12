@@ -1,0 +1,191 @@
+name: Publish Immediate Backlink Batch 0920
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish immediate backlink batch 0920'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish verified long-form articles
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-10-long-backlinks-now.yml' -o /tmp/base.yml
+          python - <<'PY'
+          import re,textwrap,requests,json,html,secrets,os,tempfile
+
+          y=open('/tmp/base.yml',encoding='utf-8').read()
+          m=re.search(r"cat > /tmp/publish\.py <<'PY'\n(.*?)\n\s*PY\n\s*python /tmp/publish\.py",y,re.S)
+          if not m: raise SystemExit('BASE_SCRIPT_NOT_FOUND')
+          code=textwrap.dedent(m.group(1)); gen=code.split('results=[]',1)[0]
+          repl={
+            'A Complete Social Media Growth Framework for Agencies and Brands':'A Long-Form Social Media Growth Framework for Sustainable Reach and Qualified Traffic',
+            'How to Build a Sustainable TikTok Growth System in 2026':'TikTok Growth Strategy in 2026: Retention, Discovery, Audience Quality, and Conversion',
+            'Instagram Growth Strategy: From Reach to Real Conversions':'Instagram Growth Strategy: Reels, Stories, Trust Signals, and Conversion Paths',
+            'How to Evaluate an SMM Panel Without Losing Sight of Strategy':'How to Evaluate Social Media Growth Providers with Better Quality Controls',
+            'A Practical Social Media Analytics and Promotion Playbook':'Social Media Analytics and Promotion: A Measurement-First Playbook',
+            'Multi-Platform Campaign Operations for Modern Marketing Teams':'Multi-Platform Social Media Operations for Agencies and In-House Teams',
+            'Combining Organic Content, Paid Media, and SMM Support':'Balancing Organic Content, Paid Distribution, and External Social Media Support',
+            'How to Build a Social Media Funnel That Converts Attention':'Building a Social Media Funnel from Discovery to Qualified Conversion',
+            'A Content Testing Framework for Faster Social Media Learning':'Creative Testing Systems for Faster Social Media Learning',
+            'Agency Automation and the Role of an SMM API in Campaign Workflows':'Agency Automation with SMM APIs: Governance, Reporting, and Scalable Workflows',
+          }
+          for a,b in repl.items(): gen=gen.replace(a,b)
+          ns={}; exec(gen,ns)
+          arts=ns['articles']; titles=ns['titles']; md_to_html=ns['md_to_html']
+          for i,a in enumerate(arts):
+              wc=len(re.findall(r"\b[\w’'-]+\b",a)); lc=a.count('https://smmfansfaster.com')
+              print(f'ARTICLE_{i+1}_WORDS={wc}')
+              print(f'ARTICLE_{i+1}_TARGET_LINKS={lc}')
+              if wc<1200 or lc<6: raise SystemExit('ARTICLE_REQUIREMENTS_FAILED')
+
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'})
+          results=[]
+
+          def current_article():
+              i=min(len(results),len(arts)-1)
+              return arts[i], titles[i]
+
+          def verify(url):
+              try:
+                  r=s.get(url,timeout=35,allow_redirects=True)
+                  hrefs=len(re.findall(r'href=["\']https://smmfansfaster\.com[^"\']*["\']',r.text,re.I))
+                  total=r.text.count('smmfansfaster.com')
+                  print('VERIFY',url,'STATUS',r.status_code,'HREFS',hrefs,'TOTAL',total)
+                  return r.status_code<400 and (hrefs>=6 or total>=6)
+              except Exception as e:
+                  print('VERIFY_ERR',url,repr(e)); return False
+
+          def accept(domain,url):
+              if len(results)>=10: return
+              if url and verify(url):
+                  results.append([domain,url]); print('ACCEPTED_URL='+url)
+              else:
+                  print('REJECTED_DOMAIN='+domain)
+
+          # 1 Draftmark — rendered public Markdown
+          try:
+              a,t=current_article()
+              payload={'title':t,'content':a,'markdown':a,'visibility':'public','public':True}
+              r=s.post('https://draftmark.app/api/v1/docs',json=payload,timeout=35)
+              print('DRAFTMARK_STATUS',r.status_code)
+              d=r.json() if r.text else {}
+              u=d.get('url','')
+              if u and not u.startswith('http'): u='https://'+u.lstrip('/')
+              accept('draftmark.app',u)
+          except Exception as e: print('DRAFTMARK_ERR',repr(e))
+
+          # 2 Pitchey — anonymous HTML
+          try:
+              a,t=current_article(); body=md_to_html(a)
+              d=s.post('https://pitchey.app/api/pages',json={'html':body,'ttl':'30d'},timeout=35).json()
+              accept('pitchey.app',d.get('url',''))
+          except Exception as e: print('PITCHEY_ERR',repr(e))
+
+          # 3 Aired — anonymous HTML
+          try:
+              a,t=current_article(); body=md_to_html(a)
+              d=s.post('https://aired.sh/api/publish',json={'html':body,'ttl':'30d'},timeout=35).json()
+              accept('aired.sh',d.get('url',''))
+          except Exception as e: print('AIRED_ERR',repr(e))
+
+          # 4 Paster.sh — public markdown syntax
+          try:
+              a,t=current_article()
+              d=s.post('https://api.paster.sh/v1/create',json={'content':a,'title':t,'visibility':'public','syntax':'markdown','expiration':'never'},timeout=35).json()
+              accept('paster.sh',d.get('url',''))
+          except Exception as e: print('PASTER_ERR',repr(e))
+
+          # 5 PageDrop — permanent default
+          try:
+              a,t=current_article()
+              d=s.post('https://pagedrop.dev/api/v1/sites',json={'markdown':a,'title':t},timeout=35).json()
+              u=(d.get('data') or {}).get('url','') or d.get('url','')
+              accept('pagedrop.dev',u)
+          except Exception as e: print('PAGEDROP_ERR',repr(e))
+
+          # 6 FreeKit — permanent default
+          try:
+              a,t=current_article()
+              d=s.post('https://freekit.dev/api/v1/sites',json={'markdown':a,'title':t},timeout=35).json()
+              u=(d.get('data') or {}).get('url','') or d.get('url','')
+              accept('freekit.dev',u)
+          except Exception as e: print('FREEKIT_ERR',repr(e))
+
+          # 7 Display.dev — anonymous public artifact
+          try:
+              a,t=current_article()
+              files={'file':('social-media-guide.md',a.encode('utf-8'),'text/markdown')}
+              d=s.post('https://api.display.dev/v1/public/artifacts',files=files,data={'name':t},timeout=35).json()
+              accept('display.dev',d.get('previewUrl') or d.get('url',''))
+          except Exception as e: print('DISPLAY_ERR',repr(e))
+
+          # 8 mdlib — anonymous public markdown
+          try:
+              a,t=current_article()
+              r=s.post('https://mdlib.dev/v1/docs',json={'markdown':a,'title':t,'is_public':True},timeout=35)
+              print('MDLIB_STATUS',r.status_code)
+              d=r.json() if r.text else {}
+              accept('mdlib.dev',d.get('url',''))
+          except Exception as e: print('MDLIB_ERR',repr(e))
+
+          # 9 markdown.page — permanent public markdown
+          try:
+              a,t=current_article()
+              r=s.post('https://markdown.page/api/publish',data=a.encode('utf-8'),headers={'Accept':'application/json','Content-Type':'text/markdown'},timeout=35)
+              try: d=r.json(); u=d.get('url','')
+              except Exception: u=r.text.strip().strip('"')
+              accept('markdown.page',u)
+          except Exception as e: print('MARKDOWNPAGE_ERR',repr(e))
+
+          # 10 html-docs.com
+          try:
+              a,t=current_article()
+              r=s.post('https://www.html-docs.com/api/v1/docs',data=a.encode('utf-8'),headers={'Content-Type':'text/markdown'},timeout=35)
+              d=r.json() if r.text else {}
+              accept('html-docs.com',d.get('url',''))
+          except Exception as e: print('HTMLDOCS_ERR',repr(e))
+
+          # 11 htmldrop.link
+          try:
+              a,t=current_article(); body=md_to_html(a)
+              d=s.post('https://htmldrop.link/publish',json={'html':body,'title':t},timeout=35).json()
+              accept('htmldrop.link',d.get('url',''))
+          except Exception as e: print('HTMLDROP_ERR',repr(e))
+
+          # 12 output.pub
+          try:
+              a,t=current_article()
+              d=s.post('https://output.pub/api/publish',json={'content':a,'format':'markdown'},timeout=35).json()
+              accept('output.pub',d.get('url',''))
+          except Exception as e: print('OUTPUT_ERR',repr(e))
+
+          # 13 Rentry
+          try:
+              a,t=current_article(); s.get('https://rentry.co/',timeout=35)
+              csrf=s.cookies.get('csrftoken',''); edit=secrets.token_urlsafe(12)
+              d=s.post('https://rentry.co/api/new',data={'csrfmiddlewaretoken':csrf,'text':a,'edit_code':edit,'url':''},headers={'Referer':'https://rentry.co/'},timeout=35).json()
+              accept('rentry.co',d.get('url',''))
+          except Exception as e: print('RENTRY_ERR',repr(e))
+
+          # 14 paste.rs
+          try:
+              a,t=current_article()
+              r=s.post('https://paste.rs/',data=a.encode('utf-8'),headers={'Content-Type':'text/markdown'},timeout=35)
+              base=r.text.strip(); u=(base+'.md') if base.startswith('http') and not base.endswith('.md') else base
+              accept('paste.rs',u)
+          except Exception as e: print('PASTERS_ERR',repr(e))
+
+          # 15 md.page
+          try:
+              a,t=current_article()
+              d=s.post('https://md.page/api/publish',json={'markdown':a},timeout=35).json()
+              accept('md.page',d.get('url',''))
+          except Exception as e: print('MDPAGE_ERR',repr(e))
+
+          print('VALID_RESULTS_JSON='+json.dumps(results[:10]))
+          print('VALID_COUNT='+str(len(results[:10])))
+          PY
