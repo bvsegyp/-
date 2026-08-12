@@ -1,0 +1,20 @@
+name: Verify SSHGrid Backlink
+on:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Run SSHGrid verification'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/verify_sshgrid_spry_yak_6748.sh | tee verify.log
+      - name: Extract URL
+        if: always()
+        shell: bash
+        run: |
+          grep '^RESULT_URL=https://' verify.log || true
