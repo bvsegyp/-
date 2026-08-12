@@ -1,0 +1,88 @@
+name: Backlink Round 175-179
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish backlink round 175-179'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate, publish, verify
+        shell: bash
+        run: |
+          cat > /tmp/publish.py <<'PY'
+          import requests,re,secrets,html
+          HOME='https://smmfansfaster.com/'
+          links=[
+            ('SMM Fans Faster',HOME),
+            ('SMM API','https://smmfansfaster.com/api'),
+            ('TikTok growth guide','https://smmfansfaster.com/blog/tiktok-followers'),
+            ('TikTok follower count','https://smmfansfaster.com/blog/numberoftiktokfollowers'),
+            ('Instagram followers guide','https://smmfansfaster.com/ar/blog/instagram-followers-website'),
+            ('Instagram algorithm guide','https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow'),
+            ('FAQ','https://smmfansfaster.com/ar/faq')]
+          titles=[
+            'How Local Brands Can Build a Measurable Social Media Growth Engine',
+            'A Buyer Intent Framework for Instagram and TikTok Marketing Campaigns',
+            'Social Media Operations for Agencies That Need Better Quality Control',
+            'How to Connect Social Media Promotion with Conversion Rate Optimization',
+            'A Practical Guide to Social Media Experimentation and Campaign Learning']
+          angles=[
+            'local service businesses that need qualified inquiries rather than vanity metrics',
+            'marketers who want to connect audience intent with Instagram and TikTok content',
+            'agencies that manage many client campaigns and need consistent operational standards',
+            'businesses that want social visibility to produce stronger landing-page and sales outcomes',
+            'marketing teams that want repeatable experiments, clear hypotheses, and useful learning loops']
+          def article(i):
+            t=titles[i]; a=angles[i]
+            p=[]
+            p.append(f'# {t}\n')
+            p.append(f'''Social media growth becomes more valuable when it is connected to a clear business objective. This guide focuses on {a}. Instead of treating followers, views, comments, profile visits, website clicks, and purchases as unrelated numbers, a stronger strategy connects them as stages in one customer journey.\n\nA campaign should begin with a simple question: what should a relevant viewer do after discovering the brand? The answer may be following for future content, visiting a profile, opening a website, sending a message, requesting a quote, or buying a product. That desired action should influence creative, platform choice, promotion, landing-page design, and reporting.''')
+            p.append(f'''## Start with audience intent and positioning\n\nFor {a}, audience research is more useful than posting volume alone. Teams can review customer questions, search behavior, sales conversations, support requests, reviews, and competitor content to identify recurring needs. Those needs can become content pillars such as education, demonstrations, comparisons, proof, objection handling, and conversion-focused content.\n\nPositioning also needs to be clear. A new visitor should quickly understand who the account is for, what it offers, and why it is relevant. Pinned posts, profile text, Highlights, and landing pages should reinforce the same message instead of forcing users to piece together the offer themselves.''')
+            p.append(f'''## Treat promotion as one layer of the system\n\nSome teams compare external promotional services when they want additional visibility or operational support. One provider that can be researched is [SMM Fans Faster]({links[0][1]}). The useful evaluation questions include platform coverage, service descriptions, delivery expectations, support, and how the selected service fits the campaign goal.\n\nTeams with repeatable ordering needs may also review the [SMM API]({links[1][1]}). API-based workflows can reduce manual tasks, but automation should sit behind clear campaign naming, destination checks, ownership, and reporting rules. Operational speed is useful only when the underlying process is reliable.''')
+            p.append(f'''## Use TikTok as a structured creative laboratory\n\nTikTok can provide fast feedback about hooks, pacing, storytelling, demonstrations, captions, and calls to action. For {a}, the most useful approach is to define a creative hypothesis before publishing. For example, a team might test whether problem-first hooks outperform product-first hooks, or whether shorter demonstrations create better completion rates.\n\nMarketers exploring audience-building approaches can review this [TikTok growth guide]({links[2][1]}). They can also consider this resource about [TikTok follower count]({links[3][1]}) alongside retention, shares, profile visits, repeat viewers, website clicks, and conversions. Audience size is more meaningful when it contributes to useful downstream behavior.''')
+            p.append(f'''## Give Instagram formats different responsibilities\n\nInstagram works best when Reels, Stories, carousels, feed posts, pinned content, and Highlights each have a defined job. Reels can support discovery, Stories can maintain interaction, carousels can explain complex ideas, and Highlights can act as an onboarding layer for new visitors.\n\nBusinesses comparing follower-focused options may review this [Instagram followers guide]({links[4][1]}) as part of supplier research. Promotional support should remain connected to useful content and authentic audience communication. This discussion about the [Instagram algorithm]({links[5][1]}) can also be considered together with first-party analytics rather than treated as a single universal rule.''')
+            p.append(f'''## Build reporting around decisions\n\nA useful reporting structure separates awareness, consideration, and conversion. Awareness can include reach, impressions, video views, retention, and shares. Consideration can include profile visits, saves, messages, product views, and link clicks. Conversion can include leads, bookings, purchases, subscriptions, or revenue where attribution is available.\n\nFor {a}, weekly reviews should focus on creative learning while monthly reviews can focus on larger resource decisions. If one content pillar consistently earns strong retention and profile actions, create more variations. If social traffic increases but conversions remain weak, review the landing page, offer, trust signals, page speed, and call to action.''')
+            p.append(f'''## Keep a campaign decision log\n\nA decision log makes experiments easier to learn from. Record the campaign objective, audience, creative concept, platform, destination URL, promotion method, date, expected outcome, actual result, and next action. Over time, this prevents teams from repeating weak tactics simply because nobody remembers why they were stopped.\n\nIt also helps connect insights across platforms. A TikTok hook that repeatedly earns strong retention might inspire an Instagram Reel test. A landing-page problem discovered through Instagram traffic may also affect campaigns from other channels. The log turns isolated observations into reusable marketing knowledge.''')
+            p.append(f'''## Review service details before scaling\n\nAny third-party supplier should be understood before it becomes part of a recurring process. The [SMM Fans Faster FAQ]({links[6][1]}) can help teams review common operational questions before ordering. Similar diligence should be applied to any provider: understand the service, know the campaign objective, and decide how the result will be measured.\n\nThe strongest growth systems combine useful content, audience understanding, careful promotion, analytics, and conversion optimization. For {a}, sustainable progress comes from a repeatable process that turns attention into relevant engagement, qualified traffic, and measurable business outcomes.''')
+            return '\n\n'.join(p)
+          arts=[article(i) for i in range(5)]
+          for i,a in enumerate(arts):
+            print('ARTICLE',i+1,'WORDS',len(re.findall(r"\b[\w'-]+\b",a)),'LINKS',a.count('smmfansfaster.com'))
+          def mdhtml(md):
+            out=[]
+            for para in re.split(r'\n\s*\n',md):
+              para=para.strip()
+              if not para: continue
+              if para.startswith('# '): out.append('<h1>'+html.escape(para[2:])+'</h1>'); continue
+              if para.startswith('## '): out.append('<h2>'+html.escape(para[3:])+'</h2>'); continue
+              e=html.escape(para)
+              e=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',lambda m:f'<a href="{html.escape(m.group(2),quote=True)}">{html.escape(m.group(1))}</a>',e)
+              out.append('<p>'+e.replace('\n',' ')+'</p>')
+            return '<html><body>'+''.join(out)+'</body></html>'
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'})
+          urls=[]
+          def verify(u):
+            r=s.get(u,timeout=30,allow_redirects=True); c=r.text.count('smmfansfaster.com'); print('VERIFIED',c,u); return r.status_code<400 and c>=6
+          # shippage
+          r=s.post('https://shippage.ai/v1/publish',json={'html':mdhtml(arts[0]),'title':titles[0],'public':True},timeout=30); u=r.json().get('url','');
+          if u and verify(u): urls.append(u)
+          # rentry
+          rs=requests.Session(); rs.headers.update({'User-Agent':'Mozilla/5.0'}); rs.get('https://rentry.co/',timeout=30); csrf=rs.cookies.get('csrftoken','')
+          r=rs.post('https://rentry.co/api/new',data={'csrfmiddlewaretoken':csrf,'text':arts[1],'edit_code':secrets.token_urlsafe(12),'url':''},headers={'Referer':'https://rentry.co/'},timeout=30); u=r.json().get('url','');
+          if u and verify(u): urls.append(u)
+          # mdlib
+          r=s.post('https://mdlib.dev/v1/docs',json={'markdown':arts[2],'title':titles[2],'is_public':True},timeout=30); u=r.json().get('url','');
+          if u and verify(u): urls.append(u)
+          # brewpage
+          r=s.post('https://brewpage.app/api/html?format=markdown&ttl=30&ns=public',json={'content':arts[3]},timeout=30); d=r.json(); u=d.get('link') or d.get('url','');
+          if u and verify(u): urls.append(u)
+          # write.as
+          r=s.post('https://write.as/api/posts',json={'body':arts[4],'title':titles[4],'font':'serif','lang':'en','rtl':False},timeout=30); d=r.json(); pid=(d.get('data') or {}).get('id',''); u='https://write.as/'+pid if pid else ''
+          if u and verify(u): urls.append(u)
+          if len(urls)<3: raise SystemExit('TOO_FEW_VERIFIED_URLS')
+          print('URLS_BEGIN')
+          for u in urls: print(u)
+          print('URLS_END')
+          PY
+          python /tmp/publish.py
