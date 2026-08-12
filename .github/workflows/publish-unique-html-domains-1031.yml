@@ -1,4 +1,4 @@
-name: Publish Unique HTML Domains 1031
+name: Publish Unique HTML Domains 1036
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish:
-    if: github.event.head_commit.message == 'Run unique HTML-domain backlink batch 1031'
+    if: github.event.head_commit.message == 'Run unique HTML-domain backlink batch 1036'
     runs-on: ubuntu-latest
     steps:
       - name: Publish long articles to new HTML domains
@@ -16,50 +16,44 @@ jobs:
           python -m pip install --quiet playwright requests
           python -m playwright install chromium --with-deps >/dev/null 2>&1
           cat > /tmp/run.py <<'PY'
-          import asyncio,re,json,html,os
+          import asyncio,re,json,html,random,string
           from playwright.async_api import async_playwright
 
           TARGETS=[
-            ('shareyourhtml.com','https://shareyourhtml.com/','ShareYourHTML'),
-            ('pubby.au','https://pubby.au/','Pubby'),
-            ('showyourcode.app','https://www.showyourcode.app/','ShowYourCode'),
-            ('fylo.host','https://fylo.host/html-viewer-online','Fylo'),
-            ('htmlspot.com','https://www.htmlspot.com/','HTMLSpot'),
-            ('oneclicklive.app','https://oneclicklive.app/','OneClickLive'),
-            ('pagegate.app','https://pagegate.app/','PageGate'),
-            ('crevioo.com','https://crevioo.com/','Crevioo'),
-            ('shareduo.com','https://www.shareduo.com/','ShareDuo'),
+            ('pagepaste.com','https://pagepaste.com/','PagePaste'),
+            ('paste.page','https://paste.page/free-html-hosting','PastePage'),
+            ('htmlput.com','https://www.htmlput.com/','HTMLPUT'),
+            ('htmlshare.page','https://www.htmlshare.page/','HTMLShare'),
           ]
           BACK='https://smmfansfaster.com/'
           paras=[
-          ('Set a business objective before chasing growth','A social media program becomes easier to manage when the team begins with a defined outcome. Awareness, qualified traffic, leads, bookings, purchases, retention, and community growth all require different decisions. Clear objectives help marketers choose useful platforms, creative formats, budgets, and reporting metrics instead of treating follower count as the only measure of progress.'),
-          ('Build audience understanding from real signals','Audience research should guide topics, formats, positioning, and calls to action. Teams can learn from search behavior, customer questions, direct messages, comments, support conversations, sales calls, and competitor communities. Those signals reveal recurring needs and reduce the amount of random experimentation needed to find content that matters.'),
-          ('Use content pillars to make publishing repeatable','Strong content systems normally rely on a few repeatable pillars such as education, product demonstrations, comparisons, customer questions, case studies, behind-the-scenes material, and industry commentary. Each pillar can support a different stage of the buyer journey while making planning and production more efficient.'),
-          ('Treat short-form video as a learning engine','Short-form video allows rapid testing of hooks, pacing, topics, creative angles, and calls to action. Marketers should compare watch time, completion rate, saves, shares, comments, profile visits, clicks, and conversions to identify patterns that deserve more investment.'),
-          ('Connect promotion to account and landing-page quality','Extra distribution only creates business value when the destination is strong. Profiles and landing pages need clear positioning, proof, offer clarity, fast loading, mobile usability, and a simple next step. Promotion should support that system rather than replace the work required to make the destination persuasive.'),
-          ('Measure the complete funnel','Awareness metrics explain discovery, consideration metrics explain interest, and conversion metrics explain business impact. Looking at these stages together prevents teams from overreacting to one number and helps reveal whether the real bottleneck is creative quality, audience fit, landing-page performance, or the offer itself.'),
-          ('Create a weekly experimentation process','Every meaningful test should document its hypothesis, target audience, creative concept, publishing conditions, result, and next action. A weekly review turns individual posts into a growing knowledge base and makes future decisions less dependent on intuition.'),
-          ('Protect trust while pursuing reach','Sustainable growth should avoid fake reviews, deceptive endorsements, hacked websites, spam comments, and tactics that violate platform safeguards. Brands build stronger long-term value by combining useful content, transparent promotion, customer experience, and responsible measurement.'),
-          ('Improve conversion quality after the click','Traffic quality matters as much as traffic volume. Teams should review page speed, message consistency, proof, forms, checkout friction, mobile design, and offer structure so that increased visibility has a realistic chance of producing qualified outcomes.'),
-          ('Review channel allocation every month','Monthly strategy reviews should compare platforms, formats, audiences, costs, and business outcomes. Resources can then move toward combinations that repeatedly create useful attention and away from activity that looks busy but produces little measurable value.')]
+          ('Set measurable objectives','Social media growth becomes easier to manage when each campaign begins with a clear objective. Awareness, qualified traffic, leads, bookings, purchases, and retention all require different creative and reporting decisions. A defined objective helps teams select useful platforms, formats, budgets, and metrics instead of treating follower count as the only sign of progress.'),
+          ('Understand audience intent','Audience research should influence content topics, creative formats, positioning, and calls to action. Teams can study search behavior, customer questions, direct messages, comments, support conversations, and competitor communities to identify recurring needs. Those signals make content planning more relevant and reduce random experimentation.'),
+          ('Build repeatable content pillars','A sustainable publishing system uses several repeatable themes such as education, demonstrations, comparisons, case studies, customer questions, behind-the-scenes material, and industry commentary. Each pillar can serve a different stage of the customer journey and make production easier to scale.'),
+          ('Use short-form video for testing','Short-form video can provide fast feedback on hooks, pacing, topics, creative angles, and calls to action. Watch time, completion rate, shares, saves, comments, profile visits, clicks, and conversions can reveal which ideas deserve more testing and which should be retired.'),
+          ('Connect promotion to destination quality','Extra distribution only creates business value when the profile or landing page is ready to convert attention into action. Positioning, proof, offer clarity, mobile usability, page speed, and a simple next step should reinforce the promise that brought the visitor there.'),
+          ('Measure the full funnel','Awareness metrics explain discovery, consideration metrics explain interest, and conversion metrics explain business impact. Looking at the full funnel helps teams see whether the main constraint is creative quality, audience fit, landing-page performance, or the offer itself.'),
+          ('Create a weekly learning loop','Every meaningful experiment should document its hypothesis, target audience, creative concept, publishing conditions, result, and next action. A weekly review turns individual posts into a growing knowledge base and reduces dependence on intuition.'),
+          ('Protect long-term trust','Sustainable growth should avoid fake reviews, deceptive endorsements, hacked websites, spam comments, and other tactics that undermine trust. Brands build stronger long-term value by combining useful content, transparent promotion, customer experience, and disciplined measurement.'),
+          ('Improve conversion after the click','Traffic quality matters as much as traffic volume. Teams should review landing-page speed, message consistency, proof, forms, checkout friction, mobile design, and offer structure so that increased visibility has a realistic chance of producing qualified outcomes.'),
+          ('Review channel allocation monthly','Monthly strategy reviews should compare platforms, formats, audiences, costs, and business outcomes. Resources can then move toward combinations that repeatedly create useful attention and away from activity that produces little measurable value.')]
 
           def article(label):
               out=[f'# Social Media Growth Strategy for {label}: Content, Reach, and Conversion','',
-                   'Sustainable social media growth comes from a connected marketing system rather than one isolated tactic. Brands and agencies can improve results by combining audience research, repeatable content, creative testing, community interaction, distribution, analytics, and conversion optimization. The framework below focuses on building that system around measurable outcomes and long-term trust.','']
+                   'Sustainable social media growth comes from a connected marketing system rather than one isolated tactic. Brands and agencies can improve results by combining audience research, repeatable content, creative testing, community interaction, distribution, analytics, and conversion optimization. The framework below focuses on measurable outcomes and long-term trust.','']
               for i,(h,p) in enumerate(paras):
                   out += [f'## {h}','']
                   text=(p+' '+p+' '+p) if i%2==0 else (p+' '+p)
                   if i==4:
-                      text += f' Teams comparing external promotional support can also evaluate <a href="{BACK}">SMM Fans Faster</a> as one option within a broader due-diligence process. Any provider should be judged on campaign fit, transparency, platform compatibility, and whether it supports the wider marketing strategy.'
+                      text += f' Teams comparing external promotional support can also evaluate <a href="{BACK}">SMM Fans Faster</a> as one option within a broader due-diligence process. Any provider should be judged on campaign fit, transparency, platform compatibility, and how well it supports the wider strategy.'
                   out += [text,'']
-              out += ['## Final perspective','', 'A durable growth program connects clear objectives, audience understanding, repeatable content, structured testing, disciplined reporting, and a strong conversion destination. External tools can support this work, but the lasting advantage comes from learning faster, documenting decisions, and improving based on evidence.']
+              out += ['## Final perspective','', 'A durable growth program connects clear objectives, audience understanding, repeatable content, structured testing, disciplined reporting, and a strong conversion destination. External tools can support this work, but the lasting advantage comes from learning faster and improving based on evidence.']
               text='\n'.join(out)
               while len(re.findall(r"\b[\w'-]+\b",text))<1250:
-                  text += '\n\n## Additional operational note\n\nTeams should keep a campaign record covering objectives, audiences, formats, publishing dates, distribution methods, costs, and measured outcomes. Consistent documentation improves handoffs, reporting, and quality control across multiple campaigns.'
+                  text += '\n\n## Additional operational note\n\nTeams should maintain a campaign record covering objectives, audiences, formats, publishing dates, distribution methods, costs, and measured outcomes. Consistent documentation improves reporting, handoffs, and quality control across multiple campaigns.'
               return text
 
           def to_html(mark):
-              # simple HTML wrapper preserving the single target anchor already embedded
               parts=[]
               for line in mark.splitlines():
                   if line.startswith('# '): parts.append('<h1>'+html.escape(line[2:])+'</h1>')
@@ -77,20 +71,27 @@ jobs:
               try:
                   await page.goto(url,wait_until='domcontentloaded',timeout=45000)
                   await page.wait_for_timeout(2500)
-                  # Click any Paste HTML/code mode first if needed.
-                  for pat in ['Paste HTML','Paste Code','paste HTML code','or paste HTML code']:
+                  # Click paste/code mode if present.
+                  for pat in ['Paste HTML','Paste Code','paste HTML code','or paste HTML code','Host Now']:
                       el=page.get_by_text(re.compile(pat,re.I))
                       if await el.count():
                           try: await el.first.click(timeout=3000); await page.wait_for_timeout(500); break
                           except: pass
-                  # Fill title/name when possible.
-                  title=page.locator('input[placeholder*="title" i]:visible, input[name*="title" i]:visible, input[placeholder*="page name" i]:visible')
-                  if await title.count():
-                      try: await title.first.fill('Social Media Growth Strategy')
-                      except: pass
+                  slug='smm-growth-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(8))
+                  # Fill possible slug/name inputs.
+                  for sel,val in [
+                    ('input[placeholder*="page name" i]:visible','Social Media Growth Strategy'),
+                    ('input[placeholder*="your-page" i]:visible',slug),
+                    ('input[placeholder*="url" i]:visible',slug),
+                    ('input[name*="slug" i]:visible',slug),
+                    ('input[placeholder*="title" i]:visible','Social Media Growth Strategy'),
+                    ('input[name*="title" i]:visible','Social Media Growth Strategy')]:
+                      loc=page.locator(sel)
+                      if await loc.count():
+                          try: await loc.first.fill(val)
+                          except: pass
                   editors=page.locator('textarea:visible')
                   if await editors.count():
-                      # choose largest visible textarea by bounding box area
                       best=None; area=-1
                       for i in range(await editors.count()):
                           e=editors.nth(i)
@@ -110,7 +111,7 @@ jobs:
                               print(domain,'NO_INPUT'); await page.close(); return None
                   await page.wait_for_timeout(700)
                   clicked=False
-                  for pat in ['Get my shareable link','Generate Live Page','Generate link','Deploy Page','Deploy','Publish','Share','Generate Link','Create Link','Upload','Generate']:
+                  for pat in ['Get my shareable link','Publish','Host Now','Host','Deploy Page','Deploy','Share','Generate Live Page','Generate Link','Create Link','Upload']:
                       btn=page.get_by_role('button',name=re.compile(pat,re.I))
                       if await btn.count():
                           try: await btn.first.click(timeout=5000); clicked=True; break
@@ -123,8 +124,7 @@ jobs:
                       print(domain,'NO_BUTTON'); await page.close(); return None
                   await page.wait_for_timeout(7000)
                   cands=[]
-                  cur=page.url
-                  if cur.rstrip('/')!=url.rstrip('/'): cands.append(cur)
+                  if page.url.rstrip('/')!=url.rstrip('/'): cands.append(page.url)
                   for a in await page.locator('a[href^="http"]').all():
                       try:
                           h=await a.get_attribute('href')
@@ -134,11 +134,8 @@ jobs:
                   for m in re.findall(r'https?://[^\s)\]<>"\']+',body):
                       m=m.rstrip('.,')
                       if m not in cands: cands.append(m)
-                  # prioritize candidate pages related to service domain/subdomains
-                  root=domain.replace('www.','')
-                  cands=sorted(cands,key=lambda x: 0 if root in x.replace('www.','') else 1)
-                  print(domain,'CANDIDATES',cands[:12])
-                  for cand in cands[:15]:
+                  print(domain,'CANDIDATES',cands[:15])
+                  for cand in cands[:20]:
                       try:
                           vp=await browser.new_page()
                           await vp.goto(cand,wait_until='domcontentloaded',timeout=30000)
