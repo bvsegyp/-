@@ -1,0 +1,12 @@
+name: Verify PagePaste 0b75797b
+on:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Run PagePaste verify 0b75797b'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/verify_pagepaste_0b75797b.py | tee verify.log
+      - run: grep '^RESULT_URL=https://' verify.log || true
