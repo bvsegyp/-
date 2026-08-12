@@ -1,0 +1,122 @@
+name: Publish Yeet and PageDrop Backlinks
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish Yeet and PageDrop backlink articles'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish unique article to yeet.md
+        shell: bash
+        run: |
+          cat > /tmp/yeet.md <<'EOF'
+          # How to Plan Social Media Growth Across TikTok, Instagram, and YouTube
+
+          Social media growth becomes easier to manage when every platform has a clear role. TikTok can be used for fast discovery, Instagram can combine discovery with community building, and YouTube can support deeper education and long-term search visibility. The strongest strategy is not simply to post everywhere. It is to connect content, measurement, and promotion so each channel contributes to the same business objective.
+
+          ## Start with the goal, not the follower number
+
+          Before deciding how to grow an account, define the outcome you want. A local business may care about inquiries and appointments. An ecommerce brand may care about product-page visits and purchases. A creator may care about reach, watch time, and repeat viewers. Follower growth can support these goals, but it should not become the only measurement.
+
+          Teams comparing promotional options can review a multi-platform provider such as [SMM Fans Faster](https://smmfansfaster.com/) while also evaluating organic growth opportunities. A useful provider comparison should include platform coverage, service descriptions, order requirements, delivery expectations, support, and whether a service fits the campaign objective.
+
+          ## TikTok growth needs strong creative signals
+
+          TikTok rewards content that earns attention quickly. The first seconds of a video matter because they influence whether viewers continue watching. Strong hooks, short edits, clear captions, trend awareness, and repeatable formats can all improve content performance.
+
+          For marketers researching TikTok-specific growth, this guide about [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) can be reviewed alongside an organic content plan. It is also useful to look beyond followers and study [TikTok views, followers, and likes](https://smmfansfaster.com/blog/tiktok-views), because view quality and engagement can reveal more about whether a content format is working.
+
+          A practical TikTok workflow is to test several hooks around the same topic, measure completion rate and engagement, then turn the strongest concept into a repeatable series. Promotion can help distribution, but creative quality is what gives viewers a reason to stay.
+
+          ## Instagram should balance reach and trust
+
+          Instagram usually requires a broader mix of formats. Reels can support discovery, carousels can explain ideas in more detail, Stories can maintain daily contact, and profile highlights can make important information easier to find. The account should feel useful even to someone who lands on it for the first time.
+
+          Businesses evaluating follower-related services can read this overview of an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) as part of their research. It is equally important to understand how follower growth relates to distribution. The article on whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) is relevant when deciding which metrics deserve the most attention.
+
+          Engagement quality should remain part of the evaluation. A larger account is not automatically a stronger account. Marketers should compare growth with comments, saves, shares, profile visits, website clicks, and conversions. The discussion of whether [buying Instagram followers affects engagement](https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement) is useful context for that analysis.
+
+          ## YouTube benefits from compounding content
+
+          YouTube can create value for much longer than a short-lived social post. Searchable tutorials, comparisons, explainers, reviews, and educational videos may continue attracting viewers after publication. That makes title selection, thumbnail quality, audience retention, and topic research especially important.
+
+          A good multi-platform system can reuse one core idea in several ways. A detailed YouTube video can become short TikTok clips, Instagram Reels, a carousel, and a series of Stories. This reduces production pressure while keeping the message consistent.
+
+          ## Build a measurement dashboard
+
+          Track a small group of metrics that connect to the campaign objective. For awareness, monitor reach, impressions, video views, and completion rate. For engagement, track comments, shares, saves, and return viewers. For conversion, monitor profile visits, link clicks, leads, purchases, and cost per result.
+
+          When using outside promotional services, record the service, target link, quantity, delivery period, and the before-and-after performance of the account. This makes it possible to separate meaningful improvement from simple fluctuations.
+
+          Agencies that need to automate repetitive ordering or reporting tasks can also review the public [SMM API documentation](https://smmfansfaster.com/api). For WordPress and ecommerce workflows, the [SMM API integration](https://smmfansfaster.com/smm-api-integration) page provides additional implementation context.
+
+          ## Keep the system balanced
+
+          Social media growth works best when several elements reinforce each other. Content creates attention. Profile optimization converts curiosity into follows or clicks. Community management builds trust. Analytics identifies what deserves to be repeated. Promotion can increase distribution when it is used selectively and measured carefully.
+
+          The objective is not to chase one visible number. It is to build a system where more of the right people discover the brand, understand what it offers, and take the next useful action.
+          EOF
+          BODY=$(jq -Rs '{content: .}' < /tmp/yeet.md)
+          RESP=$(curl -sS -X POST 'https://yeet.md/api/share' -H 'Content-Type: application/json' -d "$BODY")
+          echo "YEET_RESPONSE=$RESP"
+          echo "YEET_URL=$(echo "$RESP" | jq -r '.url // empty')"
+
+      - name: Publish unique article to PageDrop
+        shell: bash
+        run: |
+          cat > /tmp/pagedrop.md <<'EOF'
+          # A Practical Framework for Choosing Social Media Marketing Services
+
+          Businesses often compare social media marketing services when they want to improve reach, strengthen social proof, accelerate campaign testing, or support an existing content strategy. The challenge is that not every service fits every campaign. A useful selection process should start with the business objective and then work backward to the platform, content format, and measurement plan.
+
+          ## Define the campaign outcome first
+
+          Start by deciding what the campaign needs to accomplish. Awareness campaigns may focus on reach and views. Community-building campaigns may focus on followers, saves, shares, and comments. Conversion campaigns should connect social activity to website visits, leads, bookings, or purchases.
+
+          This distinction matters because a service that looks attractive based on volume may not contribute to the actual business goal. The most useful question is not simply how many followers or views can be added. It is how the promotional activity fits into the wider content and conversion strategy.
+
+          Marketers comparing providers can include [SMM Fans Faster](https://smmfansfaster.com/) in their research and compare it with other options based on platform availability, service information, delivery conditions, minimum order values, support, and campaign fit.
+
+          ## Match the service to the platform
+
+          Every social platform behaves differently. TikTok is heavily driven by short-form creative performance and rapid testing. Instagram combines short-form video, visual branding, community interaction, and direct response. YouTube can generate both immediate discovery and long-term search traffic.
+
+          For TikTok campaigns, a useful starting point is the guide covering [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers). Marketers should combine any follower-growth tactic with content testing, strong hooks, and clear topic positioning. Another relevant resource explains ideas around [TikTok views, followers, and likes](https://smmfansfaster.com/blog/tiktok-views), which helps broaden the analysis beyond a single metric.
+
+          When evaluating follower targets, this article about the [number of TikTok followers](https://smmfansfaster.com/blog/numberoftiktokfollowers) can also provide context. The practical lesson is that follower milestones should be reviewed together with view quality and audience engagement.
+
+          ## Evaluate Instagram growth more carefully
+
+          Instagram performance is affected by multiple signals. Reels can generate discovery, while carousels and Stories can deepen engagement. A profile with a clear bio, consistent visual identity, useful highlights, and strong recent content is more likely to turn new exposure into meaningful actions.
+
+          Teams comparing growth providers can review this resource about an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website). They should also consider the relationship between followers and distribution. The article discussing whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) is useful when separating follower growth from algorithmic performance.
+
+          Engagement should be monitored at the same time. The guide on whether [buying Instagram followers affects engagement](https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement) reinforces why account evaluation should include comments, saves, shares, profile visits, and clicks rather than follower count alone.
+
+          ## Compare operational features, not only prices
+
+          Price is easy to compare, but operational details often determine whether a service is practical for a real campaign. Review minimum and maximum quantities, delivery descriptions, refill policies, cancellation conditions, support availability, and whether the provider clearly explains how orders are handled.
+
+          Agencies managing multiple accounts may also care about automation. SMM Fans Faster publishes [SMM API documentation](https://smmfansfaster.com/api) describing common actions such as listing services, creating orders, checking order status, requesting refills, cancelling eligible orders, and checking account balance.
+
+          WordPress and WooCommerce teams can additionally review the provider's [SMM API integration](https://smmfansfaster.com/smm-api-integration) page when planning automated storefront or reseller workflows. Automation is most useful when it reduces repetitive work without removing human checks from campaign setup.
+
+          ## Measure before and after every campaign
+
+          Before starting a campaign, capture the current baseline. Depending on the platform, that can include follower count, average reach, average views, engagement rate, profile visits, website clicks, and conversions. After the campaign, compare the same metrics over a reasonable period.
+
+          Avoid judging results from one number in isolation. A follower increase is more valuable when profile visits and engagement remain healthy. A view increase is more useful when it produces watch time, shares, profile discovery, or traffic. A well-measured campaign makes future decisions easier because the team can identify which activities deserve more budget and which should be changed.
+
+          ## Final selection checklist
+
+          A good social media marketing service should fit a specific goal, platform, and measurement plan. Compare the provider's service clarity, support, platform coverage, delivery information, API capabilities where relevant, and how the service complements the organic content strategy.
+
+          Promotional tools can support social media growth, but they work best as one part of a broader system that includes useful content, audience research, profile optimization, consistent publishing, and performance analysis.
+          EOF
+          BODY=$(jq -Rs '{markdown: .}' < /tmp/pagedrop.md)
+          RESP=$(curl -sS -X POST 'https://pagedrop.dev/api/v1/sites' -H 'Content-Type: application/json' -d "$BODY")
+          echo "PAGEDROP_RESPONSE=$RESP"
+          echo "PAGEDROP_URL=$(echo "$RESP" | jq -r '.url // .site.url // .data.url // empty')"
