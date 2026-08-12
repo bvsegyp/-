@@ -1,0 +1,12 @@
+name: Verify ShowYourCode 8kx6tcmspwgkol
+on:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Run ShowYourCode verify 8kx6tcmspwgkol'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/verify_showyourcode_8kx6tcmspwgkol.py | tee verify.log
+      - run: grep '^RESULT_URL=https://' verify.log || true
