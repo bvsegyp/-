@@ -1,0 +1,11 @@
+name: Inspect Fresh Publisher Forms
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Run fresh publisher form inspection'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/inspect_artifactdrop_crevioo_forms_01.sh
