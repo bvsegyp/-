@@ -1,0 +1,99 @@
+name: Publish Four Different Replacements 0902
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish four different replacements 0902'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish four verified long articles
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-10-long-backlinks-now.yml' -o /tmp/base.yml
+          python - <<'PY'
+          import re, textwrap, requests, json, html
+
+          y=open('/tmp/base.yml',encoding='utf-8').read()
+          m=re.search(r"cat > /tmp/publish\.py <<'PY'\n(.*?)\n\s*PY\n\s*python /tmp/publish\.py", y, re.S)
+          if not m: raise SystemExit('BASE_SCRIPT_NOT_FOUND')
+          code=textwrap.dedent(m.group(1))
+          gen=code.split('results=[]',1)[0]
+          replacements={
+            'A Complete Social Media Growth Framework for Agencies and Brands':'Social Media Growth Governance: A Detailed Framework for Quality, Reach, and Conversion',
+            'How to Build a Sustainable TikTok Growth System in 2026':'TikTok Audience Development in 2026: Retention, Creative Systems, and Measurement',
+            'Instagram Growth Strategy: From Reach to Real Conversions':'Instagram Marketing Operations: Content Systems, Audience Trust, and Conversion',
+            'How to Evaluate an SMM Panel Without Losing Sight of Strategy':'Evaluating Social Media Growth Providers: Due Diligence, Measurement, and Campaign Fit',
+            'agency planning, client reporting, and multi-platform execution':'social media governance, campaign quality, audience development, reporting standards, and conversion measurement',
+            'TikTok content experimentation, retention, reach, and audience development':'TikTok audience research, creative testing, retention analysis, distribution patterns, and measurable conversion',
+            'Instagram positioning, Reels, Stories, profile optimization, and conversion':'Instagram editorial systems, Reels discovery, Stories engagement, account trust, and conversion optimization',
+            'provider evaluation, service quality, campaign fit, and risk control':'provider due diligence, service transparency, campaign suitability, measurement standards, and risk control'
+          }
+          for a,b in replacements.items(): gen=gen.replace(a,b)
+          ns={}; exec(gen,ns)
+          arts=ns['articles']; titles=ns['titles']; md_to_html=ns['md_to_html']
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'})
+          results=[]
+
+          for i in range(4):
+              wc=len(re.findall(r"\b[\w’'-]+\b", arts[i]))
+              lc=arts[i].count('https://smmfansfaster.com')
+              print(f'ARTICLE_{i+1}_WORDS={wc}')
+              print(f'ARTICLE_{i+1}_TARGET_LINKS={lc}')
+
+          def verify(url):
+              try:
+                  r=s.get(url,timeout=35,allow_redirects=True)
+                  hrefs=len(re.findall(r'href=["\']https://smmfansfaster\.com[^"\']*["\']',r.text,re.I))
+                  total=r.text.count('smmfansfaster.com')
+                  print('VERIFY',url,'STATUS',r.status_code,'HREFS',hrefs,'TOTAL',total)
+                  return r.status_code < 400 and (hrefs >= 6 or total >= 6)
+              except Exception as e:
+                  print('VERIFY_ERR',url,repr(e)); return False
+
+          def accept(domain,url):
+              if url and verify(url):
+                  results.append([domain,url]); print('ACCEPTED_URL='+url)
+              else: print('REJECTED_DOMAIN='+domain)
+
+          # FreeKit — anonymous, permanent by default
+          try:
+              r=s.post('https://freekit.dev/api/v1/sites',json={'markdown':arts[0],'title':titles[0]},timeout=35)
+              print('FREEKIT_STATUS',r.status_code)
+              d=r.json(); u=(d.get('data') or {}).get('url','')
+              accept('freekit.dev',u)
+          except Exception as e: print('FREEKIT_ERR',repr(e))
+
+          # mdview.io — anonymous share up to 30 days
+          try:
+              r=s.post('https://mdview.io/api/public/publish',json={'title':titles[1],'content':arts[1],'expiresInDays':30},timeout=35)
+              print('MDVIEW_STATUS',r.status_code)
+              d=r.json(); u=d.get('shareUrl') or d.get('viewerUrl','')
+              accept('mdview.io',u)
+          except Exception as e: print('MDVIEW_ERR',repr(e))
+
+          # mdlib — anonymous 7-day document; never print edit key
+          try:
+              r=s.post('https://mdlib.dev/v1/docs',json={'markdown':arts[2],'title':titles[2],'is_public':True},timeout=35)
+              print('MDLIB_STATUS',r.status_code)
+              d=r.json(); u=d.get('url','')
+              accept('mdlib.dev',u)
+          except Exception as e: print('MDLIB_ERR',repr(e))
+
+          # BrewPage — send rendered HTML directly so anchors are visible
+          try:
+              body=md_to_html(arts[3])
+              r=s.post('https://brewpage.app/api/html?ttl=30&ns=public',data=body.encode('utf-8'),headers={'Content-Type':'text/html','User-Agent':'SMMEditorial/1.0'},timeout=35)
+              print('BREWPAGE_STATUS',r.status_code)
+              try: d=r.json(); u=d.get('link') or d.get('url','')
+              except Exception:
+                  t=r.text.strip(); u=t if t.startswith('http') else ''
+              accept('brewpage.app',u)
+          except Exception as e: print('BREWPAGE_ERR',repr(e))
+
+          print('VALID_RESULTS_JSON='+json.dumps(results))
+          print('VALID_COUNT='+str(len(results)))
+          PY
