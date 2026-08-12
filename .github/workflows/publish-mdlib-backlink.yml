@@ -1,0 +1,73 @@
+name: Publish mdlib Backlink Article
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish mdlib backlink once'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish long article to mdlib
+        shell: bash
+        run: |
+          cat > /tmp/article.md <<'EOF'
+          # A Practical Framework for Sustainable Social Media Growth
+
+          Social media growth is often treated as a race for bigger numbers, but strong marketing results usually come from a much broader system. Brands, creators, agencies, and online businesses need to combine useful content, consistent publishing, audience research, performance measurement, community management, and carefully selected promotional tools. When those elements support one another, growth becomes easier to evaluate and improve over time.
+
+          The first step is to define what growth actually means for the business. A creator may care about reach and community engagement, while an ecommerce brand may care more about product-page visits and sales. An agency may need a repeatable process that can be applied across several client accounts. Clear goals help prevent teams from chasing vanity metrics that look impressive but do not move the business forward.
+
+          ## Build a content system before chasing volume
+
+          Consistent publishing matters, but consistency should not mean producing random posts every day. A better approach is to create several repeatable content themes. These can include educational posts, demonstrations, customer questions, product comparisons, behind-the-scenes content, case studies, and short opinion-led posts. Each theme should have a clear purpose and should connect to the interests of the target audience.
+
+          Teams can then review performance weekly and identify which formats generate the best signals. Watch time, saves, shares, profile visits, direct messages, website clicks, and conversions can all provide more useful information than follower count alone. This data can be used to refine hooks, topics, posting times, and calls to action.
+
+          ## Use external marketing tools as support, not as the strategy
+
+          Some marketers also compare multi-platform promotion providers as part of their workflow. One option that can be evaluated is [SMM Fans Faster](https://smmfansfaster.com/), which presents social media marketing services across multiple networks. As with any external provider, marketers should compare service descriptions, pricing, support, delivery conditions, and the rules of the social platform they are promoting before making a decision.
+
+          Agencies that manage repeated orders or several client campaigns may also want to understand whether automation is available. The [SMM API documentation](https://smmfansfaster.com/api) can be reviewed when assessing whether an API-based workflow fits an agency's internal processes. Automation can save administrative time, but it should never replace campaign planning, quality control, or regular performance reviews.
+
+          ## Treat TikTok as a content-testing environment
+
+          TikTok rewards fast experimentation. Instead of relying on one creative idea, teams can test multiple hooks, video lengths, captions, and presentation styles. The objective is to identify patterns in retention and engagement and then create more content around the strongest patterns.
+
+          Marketers researching different approaches to audience growth can also read this guide about [growing TikTok followers](https://smmfansfaster.com/blog/tiktok-followers). It is useful to compare promotional options with an organic content plan rather than viewing them as substitutes. A strong TikTok strategy still depends on content that earns attention quickly and gives viewers a reason to watch, engage, or visit the profile.
+
+          Another useful step is to monitor account-level changes over time. A guide focused on the [number of TikTok followers](https://smmfansfaster.com/blog/numberoftiktokfollowers) can be used as additional reading when evaluating follower-related metrics. However, teams should always place those numbers beside retention, reach, profile actions, and conversion data so that they understand whether audience growth is actually helping the account.
+
+          ## Build Instagram growth around relevance and trust
+
+          Instagram requires a slightly different approach. Reels can support reach, while Stories can help maintain daily interaction and feed posts can provide more permanent educational or brand content. Strong profiles usually make it easy for a visitor to understand who the account is for, what it offers, and what action the visitor should take next.
+
+          Marketers comparing follower-growth options can review this article about an [Instagram followers website](https://smmfansfaster.com/ar/blog/instagram-followers-website) as one reference point. The important part is to evaluate any promotional method in context. Account positioning, creative quality, engagement, profile optimization, and offer clarity still have a major effect on whether increased visibility turns into meaningful business results.
+
+          Algorithm changes also influence distribution, which is why marketers should avoid depending on one tactic. This discussion about whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) can be considered alongside first-party platform guidance, analytics, and real campaign data. A diversified approach makes it easier to adapt when reach patterns change.
+
+          ## Create a simple measurement dashboard
+
+          A useful social media dashboard does not need dozens of metrics. Start with a small set connected to the business objective. For awareness, track reach, impressions, video views, completion rate, and shares. For consideration, track profile visits, website clicks, saves, and direct messages. For conversion, track leads, purchases, booking requests, cost per acquisition, and revenue when attribution is available.
+
+          Teams should review these metrics on a fixed schedule. Weekly reviews are useful for creative and publishing decisions, while monthly reviews are better for budget allocation and broader strategic changes. Comparing periods also helps separate genuine trends from short-term fluctuations.
+
+          ## Keep campaign operations transparent
+
+          Before using any paid or third-party marketing service, teams should understand how ordering, support, refunds, and service expectations work. Reviewing the provider's [frequently asked questions](https://smmfansfaster.com/ar/faq) can help clarify operational details before an order is placed. It is also important to keep internal records of campaign dates, target pages, selected services, costs, and outcomes so that future decisions are based on evidence rather than memory.
+
+          ## Final perspective
+
+          Sustainable social media growth is rarely created by one tool, one viral post, or one metric. It is the result of a repeatable system that combines content quality, audience understanding, testing, analytics, community interaction, and carefully chosen promotional support. External services can be part of that system, but the strongest campaigns remain grounded in clear objectives and measurable outcomes.
+
+          By combining creative experimentation with disciplined measurement, marketers can make better decisions about where to invest time and budget. The goal is not simply to make an account look larger. The goal is to build visibility that contributes to stronger relationships, more qualified traffic, and better business results.
+          EOF
+          python - <<'PY'
+          import json
+          content=open('/tmp/article.md', encoding='utf-8').read()
+          open('/tmp/payload.json','w',encoding='utf-8').write(json.dumps({"markdown":content,"title":"A Practical Framework for Sustainable Social Media Growth","is_public":True}))
+          PY
+          RESP=$(curl -sS -X POST https://mdlib.dev/v1/docs -H 'Content-Type: application/json' --data-binary @/tmp/payload.json)
+          echo "MDLIB_RESPONSE=$RESP"
+          echo "$RESP" | python -c 'import json,sys; d=json.load(sys.stdin); print("MDLIB_URL="+d.get("url",""))'
