@@ -1,0 +1,132 @@
+name: Unique Domains 1032
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run unique-domain backlinks 1032'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify
+        shell: bash
+        run: |
+          set -e
+          python -m pip install --quiet playwright requests beautifulsoup4
+          python -m playwright install chromium --with-deps >/dev/null 2>&1
+          cat > /tmp/run.py <<'PY'
+          import asyncio,re,json,requests
+          from playwright.async_api import async_playwright
+          BACKS=[
+            ('pastemd.io','https://pastemd.io/','https://smmfansfaster.com/','social media growth services'),
+            ('notesh.ink','https://notesh.ink/','https://smmfansfaster.com/','social media marketing panel'),
+            ('noterift.com','https://noterift.com/','https://smmfansfaster.com/','SMM Fans Faster'),
+          ]
+          sections=[
+          ('Set a measurable growth objective','A strong social media plan starts with a business outcome rather than a vanity metric. Brands should decide whether the priority is awareness, qualified traffic, leads, purchases, bookings, or customer retention. That decision influences platform selection, creative format, publishing frequency, and the way results are evaluated. Clear objectives also make it easier to compare campaigns fairly because every metric has a defined role in the customer journey.'),
+          ('Research audience demand before publishing','Audience research can come from search queries, comments, direct messages, sales conversations, support tickets, competitor communities, and analytics. These signals reveal recurring questions, objections, desired outcomes, and preferred formats. Turning those findings into content briefs reduces random posting and helps the team create material that answers real needs while maintaining a consistent brand position.'),
+          ('Build repeatable content pillars','A sustainable publishing system usually combines educational posts, demonstrations, comparisons, case studies, common questions, industry commentary, and behind-the-scenes material. Each pillar should support a stage of the customer journey. Repeatable pillars improve production efficiency because writers and designers can reuse proven structures while still testing fresh hooks, examples, and creative formats.'),
+          ('Use short-form video as a learning engine','Short-form video offers rapid feedback on topics, hooks, pacing, and audience interest. Teams can compare watch time, completion rate, saves, shares, comments, profile visits, and downstream actions. Winning concepts can be adapted for multiple platforms instead of being treated as one-off posts. The goal is not simply to publish more video, but to learn which creative patterns reliably attract qualified attention.'),
+          ('Connect promotion to profile quality','Additional distribution can increase reach, but reach only creates business value when the destination is credible and easy to understand. Profiles and landing pages should communicate a clear offer, proof, positioning, and next step. Marketers comparing external promotion tools should judge them as one component of a wider strategy rather than expecting a single service to replace content quality, audience research, or conversion design.'),
+          ('Measure the whole funnel','Reporting should separate awareness, consideration, and conversion. Reach and views explain discovery. Saves, comments, profile visits, and clicks indicate deeper interest. Leads, purchases, bookings, and revenue reveal whether that attention produced a business outcome. Looking at the entire funnel helps teams diagnose where performance is weak and prevents decisions based on one isolated metric.'),
+          ('Document tests and review them weekly','Every experiment should record the hypothesis, audience, creative concept, publishing condition, result, and next action. A simple testing log turns campaign activity into reusable knowledge. Over time, teams can identify which messages, formats, offers, and distribution methods consistently perform well and which should be retired. This is especially valuable for agencies managing several accounts at once.'),
+          ('Protect brand trust while scaling','Long-term growth depends on trust. Brands should avoid deceptive endorsements, fake reviews, hacked sites, spam comments, and any tactic that violates platform safeguards. Responsible promotion, useful content, transparent messaging, strong customer experience, and disciplined measurement create a more durable foundation than shortcuts that can damage reputation or create unstable results.'),
+          ('Improve the conversion destination','Traffic quality matters as much as traffic volume. A campaign can generate strong engagement and still underperform if the landing page is slow, unclear, or difficult to use on mobile. Teams should review offer clarity, proof, page speed, forms, checkout friction, and calls to action. Improving the destination often produces larger gains than simply increasing the amount of traffic.'),
+          ('Review strategy monthly','Monthly reviews should compare platforms, content formats, audiences, costs, conversion rates, and business outcomes. The purpose is to concentrate effort on combinations that repeatedly create useful attention and qualified results. A disciplined review process also helps teams decide when to scale a tactic, when to modify it, and when to stop spending time on activity that is not contributing to the objective.')]
+          def article(site,back,anchor):
+              out=[f'# Social Media Growth Strategy for {site}: Content, Reach, and Conversion','',
+              'Social media growth becomes more reliable when content, audience research, analytics, community interaction, distribution, and conversion are managed as one connected system. This guide presents a practical framework for brands and agencies that want stronger visibility while keeping trust, measurement, and business outcomes at the center of the strategy.','']
+              for i,(h,p) in enumerate(sections):
+                  out += [f'## {h}','']
+                  txt=p+' '+p
+                  if i in (0,2,4,6): txt += ' '+p
+                  if i==4: txt += f' One option that marketers may include in their research is [{anchor}]({back}), evaluated alongside other providers for campaign fit, transparency, platform compatibility, and alignment with the broader marketing plan.'
+                  out += [txt,'']
+              out += ['## Final perspective','', 'A durable social media system combines clear objectives, audience understanding, repeatable content, structured testing, useful reporting, and a strong conversion destination. External tools can support that system, but the long-term advantage comes from learning faster and making better decisions from evidence.']
+              text='\n'.join(out)
+              while len(re.findall(r"\b[\w'-]+\b",text))<1250:
+                  text += '\n\n## Additional operational note\n\nTeams should maintain a campaign record covering objectives, audiences, creative formats, publishing dates, distribution methods, costs, and measured outcomes. This documentation makes future decisions easier, improves handoffs, and gives managers a clearer view of which patterns deserve additional investment.'
+              return text
+          async def publish(browser,domain,url,back,anchor):
+              pg=await browser.new_page()
+              art=article(domain,back,anchor)
+              print(domain,'WORDS',len(re.findall(r"\b[\w'-]+\b",art)),'BACKCOUNT',art.count('smmfansfaster.com'))
+              try:
+                  await pg.goto(url,wait_until='domcontentloaded',timeout=45000)
+                  await pg.wait_for_timeout(2500)
+                  # For Noterift, create a note first if needed.
+                  if domain=='noterift.com':
+                      for pat in ['Start writing','Create note','New note']:
+                          el=pg.get_by_text(re.compile(pat,re.I))
+                          if await el.count():
+                              try: await el.first.click(timeout=4000); await pg.wait_for_timeout(2500); break
+                              except: pass
+                  # Fill editor; choose largest textarea by area when possible.
+                  tas=pg.locator('textarea:visible')
+                  if await tas.count():
+                      best=tas.first; area=-1
+                      for i in range(await tas.count()):
+                          el=tas.nth(i)
+                          try:
+                              bb=await el.bounding_box(); a=(bb['width']*bb['height']) if bb else 0
+                              if a>area: area=a; best=el
+                          except: pass
+                      await best.fill(art)
+                  else:
+                      ce=pg.locator('[contenteditable="true"]:visible')
+                      if await ce.count(): await ce.first.fill(art)
+                      else:
+                          print(domain,'NO_EDITOR',pg.url); await pg.close(); return None
+                  await pg.wait_for_timeout(1000)
+                  # Explicit share/publish; Noterift autosaves, so no click required.
+                  if domain!='noterift.com':
+                      clicked=False
+                      for pat in ['Share Note','Generate Link','Share','Publish','Create Link','Save']:
+                          btn=pg.get_by_role('button',name=re.compile(pat,re.I))
+                          if await btn.count():
+                              try: await btn.first.click(timeout=5000); clicked=True; break
+                              except: pass
+                          tx=pg.get_by_text(re.compile('^'+re.escape(pat)+'$',re.I))
+                          if await tx.count():
+                              try: await tx.first.click(timeout=5000); clicked=True; break
+                              except: pass
+                      if not clicked: print(domain,'NO_SHARE_CLICK')
+                  await pg.wait_for_timeout(6000)
+                  candidates=[]
+                  if pg.url.rstrip('/')!=url.rstrip('/'): candidates.append(pg.url)
+                  for a in await pg.locator('a[href]').all():
+                      try:
+                          h=await a.get_attribute('href')
+                          if not h: continue
+                          if h.startswith('/'): h=url.rstrip('/')+h
+                          if domain in h and h not in candidates: candidates.append(h)
+                      except: pass
+                  body=await pg.locator('body').inner_text()
+                  for m in re.findall(r'https?://[^\s)\]<>"\']+',body):
+                      if domain in m and m not in candidates: candidates.append(m.rstrip('.,'))
+                  print(domain,'CANDIDATES',candidates[:10])
+                  for cand in candidates:
+                      p2=await browser.new_page()
+                      try:
+                          await p2.goto(cand,wait_until='networkidle',timeout=45000); await p2.wait_for_timeout(2500)
+                          hrefs=await p2.locator('a[href*="smmfansfaster.com"]').count()
+                          text=await p2.locator('body').inner_text()
+                          print(domain,'VERIFY',p2.url,'HREFS',hrefs,'TEXT',text.count('smmfansfaster.com'))
+                          if hrefs==1:
+                              final=p2.url; await p2.close(); await pg.close(); return final
+                      except Exception as e: print(domain,'VERIFY_ERR',repr(e))
+                      await p2.close()
+              except Exception as e: print(domain,'ERR',repr(e))
+              await pg.close(); return None
+          async def main():
+              async with async_playwright() as p:
+                  b=await p.chromium.launch(headless=True)
+                  out=[]
+                  for t in BACKS:
+                      u=await publish(b,*t)
+                      if u: out.append([t[0],u])
+                  await b.close()
+                  print('VALID_RESULTS_JSON='+json.dumps(out))
+                  print('VALID_COUNT='+str(len(out)))
+          asyncio.run(main())
+          PY
+          python /tmp/run.py
