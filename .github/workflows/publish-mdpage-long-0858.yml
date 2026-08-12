@@ -1,0 +1,28 @@
+name: Publish MDPage Long 0858
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish mdpage long 0858'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish long md.page article
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-10-long-backlinks-now.yml' -o /tmp/base.yml
+          python - <<'PY'
+          import re,textwrap,requests,json
+          y=open('/tmp/base.yml',encoding='utf-8').read(); m=re.search(r"cat > /tmp/publish\.py <<'PY'\n(.*?)\n\s*PY\n\s*python /tmp/publish\.py",y,re.S)
+          code=textwrap.dedent(m.group(1)); gen=code.split('results=[]',1)[0]
+          gen=gen.replace('How to Evaluate an SMM Panel Without Losing Sight of Strategy','Long-Form Guide to Evaluating Social Media Marketing Services and Campaign Quality')
+          ns={}; exec(gen,ns); a=ns['articles'][3]
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'})
+          r=s.post('https://md.page/api/publish',json={'markdown':a},timeout=30); print('MDPAGE_RAW',r.text[:500]); d=r.json(); u=d.get('url',''); print('MDPAGE_URL='+u)
+          if not u: raise SystemExit(2)
+          v=s.get(u,timeout=30); total=v.text.count('smmfansfaster.com'); hrefs=len(re.findall(r'href=["\']https://smmfansfaster\.com[^"\']*["\']',v.text,re.I)); print('VERIFY_STATUS',v.status_code,'HREFS',hrefs,'TOTAL',total)
+          if v.status_code>=400 or (hrefs<6 and total<6): raise SystemExit(3)
+          PY
