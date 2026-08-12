@@ -1,0 +1,70 @@
+name: Test Unique Domains Batch2 1010
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    if: github.event.head_commit.message == 'Test unique domains batch2 1010'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test five new anonymous publishers
+        shell: bash
+        run: |
+          python -m pip install -q beautifulsoup4
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/test-new-unique-domains-1002.yml' -o /tmp/src.yml
+          python - <<'PY'
+          import textwrap
+          src=open('/tmp/src.yml',encoding='utf-8').read()
+          start=src.index("cat > /tmp/test.py <<'PY'")+len("cat > /tmp/test.py <<'PY'")
+          end=src.index("\n          PY\n          python /tmp/test.py",start)
+          code=textwrap.dedent(src[start:end].lstrip('\n'))
+          old="out += ['## '+h,p,p+' In practice, teams should document what they tried, why they tried it, and what they learned. That small discipline turns campaign activity into reusable knowledge instead of a series of disconnected posts.']"
+          new="out += (['## '+h,p] if 'smmfansfaster.com' in p else ['## '+h,p,p+' In practice, teams should document what they tried, why they tried it, and what they learned. That small discipline turns campaign activity into reusable knowledge instead of a series of disconnected posts.'])"
+          code=code.replace(old,new)
+          prefix=code.split('results=[]',1)[0]
+          extra=r'''
+          results=[]
+          def crawl_submit(base, start_url, art, title):
+              pages=[start_url]
+              seen=set()
+              for _ in range(2):
+                  nxt=[]
+                  for pu in pages:
+                      if pu in seen: continue
+                      seen.add(pu)
+                      try:
+                          u=submit_form(base,pu,art,title)
+                          if u and verify(u): return u
+                          rr=s.get(pu,timeout=35)
+                          if has_challenge(rr.text): continue
+                          sp=BeautifulSoup(rr.text,'html.parser')
+                          for a in sp.find_all('a',href=True):
+                              nu=urljoin(rr.url,a['href'])
+                              txt=(a.get_text(' ',strip=True)+' '+a['href']).lower()
+                              if urlparse(nu).netloc==urlparse(base).netloc and any(k in txt for k in ['create','new','share','note','paste','editor','app','write']):
+                                  nxt.append(nu)
+                      except Exception as e: print('CRAWL_ERR',pu,repr(e))
+                  pages=list(dict.fromkeys(nxt))[:8]
+              return ''
+
+          candidates=[
+              ('notesh.ink','https://notesh.ink/',0),
+              ('sendnote.link','https://sendnote.link/',1),
+              ('paste2.md','https://paste2.md/',2),
+              ('plsreadme.com','https://plsreadme.com/',3),
+              ('mdshare.link','https://mdshare.link/',4),
+          ]
+          for dom,base,i in candidates:
+              try:
+                  u=crawl_submit('https://'+dom,base,arts[i],titles[i])
+                  if u and verify(u): results.append([dom,u]); print('ACCEPTED_UNIQUE='+u)
+                  else: print('REJECTED_UNIQUE='+dom)
+              except Exception as e: print(dom,'ERR',repr(e))
+          print('VALID_RESULTS_JSON='+json.dumps(results))
+          print('VALID_COUNT='+str(len(results)))
+          '''
+          open('/tmp/run.py','w',encoding='utf-8').write(prefix+textwrap.dedent(extra))
+          PY
+          python /tmp/run.py
