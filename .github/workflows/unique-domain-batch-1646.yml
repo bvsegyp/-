@@ -1,0 +1,171 @@
+name: Unique Domain Backlink Batch 1646
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run unique-domain backlink batch 1646'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify new-domain backlinks
+        shell: bash
+        run: |
+          set -e
+          python -m pip install --quiet playwright requests beautifulsoup4
+          python -m playwright install chromium --with-deps >/dev/null 2>&1
+          cat > /tmp/run.py <<'PY'
+          import asyncio,re,json,html,requests,random,string,time
+          from urllib.parse import urlparse
+          from playwright.async_api import async_playwright
+
+          TARGET='https://smmfansfaster.com/'
+          TARGETS=[
+            ('htmlput.com','https://www.htmlput.com/','HTMLPUT'),
+            ('share-html.com','https://share-html.com/','Share HTML'),
+            ('dochost.io','https://dochost.io/','DocHost'),
+            ('htmldrop.app','https://htmldrop.app/','HTMLDrop'),
+            ('pagegate.app','https://pagegate.app/','PageGate'),
+          ]
+
+          sections=[
+          ('Start with commercial goals','A reliable social media growth program begins with a business outcome rather than a vanity metric. Teams should decide whether the priority is qualified traffic, leads, purchases, bookings, retention, community growth, or a mixture of these outcomes. That decision shapes platform selection, content formats, creative testing, budget allocation, landing pages, and reporting. When goals are explicit, performance can be judged with context and the team can stop investing in activity that looks busy but produces little business value.'),
+          ('Map audience intent','Audience research should combine search behavior, customer questions, sales conversations, support tickets, comments, direct messages, and competitor communities. These inputs reveal the language people use, the problems they are trying to solve, and the objections that delay action. Good audience research makes content planning easier because topics come from real demand instead of random brainstorming. It also improves calls to action because the message can match the audience stage more accurately.'),
+          ('Build repeatable content pillars','A sustainable publishing system usually works better with a small set of repeatable pillars. Educational posts, comparisons, demonstrations, customer questions, case studies, proof, industry commentary, and behind-the-scenes material can each support a different stage of the buyer journey. Repeatable pillars make production faster while still leaving room for experiments. They also make it easier to compare performance across similar creative concepts over time.'),
+          ('Use short-form video to test quickly','Short-form video gives marketers rapid feedback on hooks, pacing, framing, topics, and calls to action. Watch time, completion rate, replays, shares, saves, comments, profile visits, clicks, and downstream conversions can reveal which concepts deserve more investment. A winning idea can then be adapted into multiple versions instead of being treated as a one-off post. The objective is to create a learning system, not simply a high volume of clips.'),
+          ('Connect distribution with destination quality','More reach only helps when the profile or landing page is ready to convert attention into action. Positioning, proof, offer clarity, page speed, mobile usability, and a simple next step should reinforce the promise made in the content. Teams comparing outside promotional support may also research <a href="https://smmfansfaster.com/">SMM Fans Faster</a> as one option inside a broader due-diligence process. Any provider should be assessed on fit, transparency, platform compatibility, and whether the service supports the wider marketing strategy.'),
+          ('Measure the whole funnel','Awareness metrics explain discovery, consideration metrics explain interest, and conversion metrics explain business impact. Looking at the funnel as a connected system prevents teams from overreacting to one isolated number. Reach and views may be strong while clicks are weak, or clicks may be healthy while the landing page underperforms. Separating these stages helps identify the actual bottleneck and directs optimization toward the right part of the customer journey.'),
+          ('Create a weekly testing rhythm','Every meaningful experiment should document the hypothesis, audience, creative concept, publishing conditions, result, and next action. A weekly review turns individual posts into a growing knowledge base. Over time, this improves creative judgment and reduces dependence on intuition. Agencies managing several accounts benefit even more because documented tests improve handoffs, reporting quality, and consistency across different team members.'),
+          ('Protect trust while growing','Sustainable growth should avoid fake reviews, deceptive endorsements, hacked sites, spam comments, and tactics that undermine platform safeguards. Short-term visibility is not valuable if it damages the brand or creates operational risk. Strong programs combine useful content, transparent promotion, good customer experience, and responsible measurement. Trust compounds, so every tactic should be evaluated partly on whether it strengthens or weakens long-term credibility.'),
+          ('Improve conversion after the click','Traffic volume matters less when the destination fails to convert. Teams should review page speed, message consistency, proof, forms, checkout friction, mobile design, pricing clarity, and offer structure. Small improvements after the click can create more business value than simply buying or generating additional traffic. Conversion analysis should therefore be part of the social media process rather than a separate project handled only after campaigns end.'),
+          ('Review allocation monthly','A monthly strategy review should compare platforms, formats, audiences, costs, and business outcomes. Resources can then move toward combinations that repeatedly create qualified attention and away from activity that produces weak results. The goal is not to maximize publishing volume. It is to improve the efficiency of the entire system by learning which messages, channels, audiences, and destinations work together most consistently.')]
+
+          def article(label):
+            title=f'Social Media Growth Framework for {label}: Content, Distribution, and Conversion'
+            out=[f'<h1>{html.escape(title)}</h1>','<p>Sustainable social media growth comes from a connected marketing system rather than one isolated tactic. Brands and agencies can improve results by combining audience research, repeatable content, creative testing, community interaction, distribution, analytics, and conversion optimization. The framework below focuses on measurable outcomes, disciplined experimentation, and long-term trust.</p>']
+            for i,(h,p) in enumerate(sections):
+              out.append(f'<h2>{html.escape(h)}</h2>')
+              reps=3 if i%2==0 else 2
+              text=' '.join([p]*reps)
+              out.append(f'<p>{text}</p>')
+            out.append('<h2>Final perspective</h2><p>A durable growth program connects objectives, audience understanding, repeatable content, structured testing, disciplined reporting, and a strong conversion destination. External tools can support the process, but the lasting advantage comes from learning faster and making better decisions from evidence.</p>')
+            body=''.join(out)
+            return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body>'+body+'</body></html>'
+
+          def count_target(htmltext):
+            return len(re.findall(r'href=["\']https://smmfansfaster\.com/?["\']',htmltext,re.I))
+
+          def verify_http(url):
+            try:
+              r=requests.get(url,timeout=30,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0'})
+              return r.status_code<400 and count_target(r.text)==1, r.url, r.status_code, count_target(r.text)
+            except Exception as e:
+              return False,url,0,-1
+
+          results=[]
+
+          # PageDrop direct open API, documented no-auth.
+          try:
+            content=article('PageDrop')
+            print('pagedrop.dev WORDS',len(re.findall(r"\b[\w'-]+\b",re.sub('<[^>]+>',' ',content))),'LINKS',count_target(content))
+            r=requests.post('https://pagedrop.dev/api/v1/sites',json={'html':content},timeout=45,headers={'User-Agent':'Mozilla/5.0'})
+            print('pagedrop.dev POST',r.status_code,r.text[:500])
+            if r.status_code<400:
+              j=r.json()
+              data=j.get('data',j)
+              url=data.get('url') or data.get('siteUrl') or data.get('liveUrl') or data.get('publicUrl')
+              if not url and data.get('id'): url='https://pagedrop.dev/s/'+str(data['id'])
+              if url:
+                ok,final,st,n=verify_http(url)
+                print('pagedrop.dev VERIFY',final,st,n)
+                if ok: results.append(['pagedrop.dev',final])
+          except Exception as e: print('pagedrop.dev ERR',repr(e))
+
+          async def publish_browser(browser,domain,url,label,idx):
+            page=await browser.new_page()
+            content=article(label)
+            print(domain,'WORDS',len(re.findall(r"\b[\w'-]+\b",re.sub('<[^>]+>',' ',content))),'LINKS',count_target(content))
+            try:
+              await page.goto(url,wait_until='domcontentloaded',timeout=45000)
+              await page.wait_for_timeout(2500)
+              # choose paste-code mode when present
+              for pat in ['paste HTML code','Paste HTML','Paste Code','or paste HTML code','Paste code']:
+                el=page.get_by_text(re.compile(pat,re.I))
+                if await el.count():
+                  try: await el.first.click(timeout=3000); await page.wait_for_timeout(700); break
+                  except: pass
+              # title/name fields
+              for sel in ['input[placeholder*="title" i]:visible','input[name*="title" i]:visible','input[placeholder*="page name" i]:visible']:
+                loc=page.locator(sel)
+                if await loc.count():
+                  try: await loc.first.fill('Social Media Growth Framework'); break
+                  except: pass
+              editors=page.locator('textarea:visible')
+              filled=False
+              if await editors.count():
+                best=None; area=-1
+                for i in range(await editors.count()):
+                  e=editors.nth(i)
+                  try:
+                    b=await e.bounding_box(); a=b['width']*b['height'] if b else 0
+                    if a>area: best=e; area=a
+                  except: pass
+                if best:
+                  await best.fill(content); filled=True
+              if not filled:
+                ce=page.locator('[contenteditable="true"]:visible')
+                if await ce.count():
+                  try: await ce.first.fill(content); filled=True
+                  except: pass
+              if not filled:
+                fi=page.locator('input[type="file"]')
+                if await fi.count():
+                  path=f'/tmp/{idx}.html'; open(path,'w',encoding='utf-8').write(content)
+                  await fi.first.set_input_files(path); filled=True
+              if not filled:
+                print(domain,'NO_INPUT'); await page.close(); return None
+              await page.wait_for_timeout(1000)
+              clicked=False
+              for pat in ['Host','Publish','Deploy Page','Deploy','Generate link','Generate Link','Generate','Share','Create Link','Upload','Get a link','Get my shareable link']:
+                btn=page.get_by_role('button',name=re.compile(pat,re.I))
+                if await btn.count():
+                  try: await btn.first.click(timeout=5000); clicked=True; break
+                  except: pass
+                txt=page.get_by_text(re.compile('^'+re.escape(pat)+'$',re.I))
+                if await txt.count():
+                  try: await txt.first.click(timeout=5000); clicked=True; break
+                  except: pass
+              if not clicked:
+                print(domain,'NO_BUTTON'); await page.close(); return None
+              await page.wait_for_timeout(7000)
+              cands=[]
+              if page.url.rstrip('/')!=url.rstrip('/'): cands.append(page.url)
+              for a in await page.locator('a[href^="http"]').all():
+                try:
+                  h=await a.get_attribute('href')
+                  if h and h not in cands: cands.append(h)
+                except: pass
+              body=await page.locator('body').inner_text()
+              for m in re.findall(r'https?://[^\s)\]<>"\']+',body):
+                m=m.rstrip('.,')
+                if m not in cands: cands.append(m)
+              print(domain,'CANDIDATES',cands[:15])
+              for cand in cands[:20]:
+                ok,final,st,n=verify_http(cand)
+                print(domain,'VERIFY',final,st,n)
+                if ok:
+                  await page.close(); return final
+            except Exception as e: print(domain,'ERR',repr(e))
+            await page.close(); return None
+
+          async def main():
+            async with async_playwright() as p:
+              b=await p.chromium.launch(headless=True)
+              for i,t in enumerate(TARGETS):
+                u=await publish_browser(b,*t,i)
+                if u: results.append([t[0],u])
+              await b.close()
+            print('VALID_RESULTS_JSON='+json.dumps(results))
+            print('VALID_COUNT='+str(len(results)))
+          asyncio.run(main())
+          PY
+          python /tmp/run.py
