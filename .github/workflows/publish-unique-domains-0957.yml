@@ -5,137 +5,41 @@ on:
     branches: [main]
 
 jobs:
-  publish:
-    if: github.event.head_commit.message == 'Run unique-domain backlink batch 1025'
+  verify:
+    if: github.event.head_commit.message == 'Verify unique-domain rendered links 1029'
     runs-on: ubuntu-latest
     steps:
-      - name: Try new anonymous publishing domains
+      - name: Verify rendered backlink count
         shell: bash
         run: |
           set -e
-          python -m pip install --quiet playwright requests beautifulsoup4
+          python -m pip install --quiet playwright
           python -m playwright install chromium --with-deps >/dev/null 2>&1
-          cat > /tmp/run.py <<'PY'
-          import asyncio,re,json,requests,subprocess,os
+          cat > /tmp/v.py <<'PY'
+          import asyncio,json
           from playwright.async_api import async_playwright
-
-          TARGETS=[
-            ('markdshare.com','https://markdshare.com/','MarkDShare'),
-            ('pastes.io','https://pastes.io/markdown-editor','Pastes'),
-            ('plsreadme.com','https://plsreadme.com/','PlsReadme'),
-            ('markdownur.com','https://www.markdownur.com/','Markdownur'),
+          targets=[
+            ('markdshare.com','https://markdshare.com/1zafhizd'),
+            ('pastes.io','https://pastes.io/rXpwWe0d'),
           ]
-          BACK='https://smmfansfaster.com/'
-          sections=[
-          ('Define a measurable social media objective','A useful growth plan begins with a measurable outcome such as awareness, qualified traffic, leads, bookings, purchases, or retention. Clear objectives prevent teams from treating follower count as the only sign of progress and make it easier to choose relevant platforms, formats, budgets, and reporting metrics.'),
-          ('Research the audience before scaling content','Audience research should influence topics, creative formats, calls to action, and distribution. Teams can use comments, direct messages, search behavior, customer support conversations, and sales questions to identify recurring needs. That evidence reduces random content production and helps marketers build messages around real demand.'),
-          ('Create repeatable content pillars','Consistent publishing is easier when content is organized into a small number of repeatable themes. Education, comparisons, demonstrations, case studies, common questions, and behind-the-scenes material can each support a different stage of the customer journey while giving the team enough structure to publish consistently.'),
-          ('Use short-form video for rapid learning','Short-form video gives marketers fast feedback on hooks, pacing, topics, and audience interest. Watch time, completion rate, shares, comments, profile visits, and downstream actions can reveal which creative patterns deserve more testing and which should be retired.'),
-          ('Connect promotion to a strong destination','Distribution only creates value when the profile or landing page is ready to convert attention into action. Positioning, proof, offer clarity, mobile usability, and a simple next step should support the message that brought the visitor there in the first place.'),
-          ('Measure the full funnel','Awareness metrics explain discovery, consideration metrics explain interest, and conversion metrics explain business impact. Reviewing them together helps teams avoid overreacting to one isolated number and makes it easier to see where the funnel is strong or weak.'),
-          ('Document experiments and learn weekly','Each campaign test should have a hypothesis, audience, creative concept, publishing condition, result, and next action. Keeping that record creates a useful history that improves decision-making over time, especially for agencies managing several accounts at once.'),
-          ('Protect trust while pursuing growth','Sustainable growth should never depend on deceptive endorsements, fake reviews, hacked sites, or spam comments. Strong brands protect long-term trust by combining useful content, transparent promotion, good customer experience, and disciplined measurement.'),
-          ('Improve conversion quality','Traffic quality matters as much as traffic volume. Teams should inspect landing-page speed, offer clarity, proof, forms, checkout friction, and mobile experience so that increased visibility has a realistic chance of creating business value.'),
-          ('Review strategy monthly','Monthly reviews should compare platforms, formats, audiences, costs, and business outcomes. The goal is to concentrate effort on the combinations that repeatedly create useful attention and qualified outcomes instead of increasing activity for its own sake.')]
-
-          def article(name):
-              title=f'Social Media Growth Strategy for {name}: Content, Reach, and Measurement'
-              out=[f'# {title}','', 'Social media growth becomes more reliable when content, audience research, analytics, community interaction, and promotion are managed as one connected system. This guide presents a practical framework for brands and agencies that want stronger visibility while keeping business outcomes, trust, and measurement at the center of the strategy.','']
-              for j,(h,p) in enumerate(sections):
-                  out += [f'## {h}','']
-                  text=(p+' '+p+' '+p) if j%2==0 else (p+' '+p)
-                  if j==4:
-                      text += f' Marketers comparing external support options may also research [SMM Fans Faster]({BACK}) as one provider within a wider evaluation process. Any provider should be assessed on campaign fit, transparency, platform compatibility, and how well it supports the broader strategy.'
-                  out += [text,'']
-              out += ['## Final perspective','', 'A durable social media system combines clear objectives, audience understanding, repeatable content, structured testing, useful reporting, and a strong conversion destination. Promotional tools can support that system, but the long-term advantage comes from learning faster and making better decisions from evidence.']
-              text='\n'.join(out)
-              while len(re.findall(r"\b[\w'-]+\b",text))<1250:
-                  text += '\n\n## Additional operational note\n\nTeams should maintain a simple campaign record covering objectives, audiences, creative formats, publishing dates, distribution methods, costs, and measured outcomes. That documentation makes future decisions easier and improves quality control across multiple campaigns.'
-              return text
-
-          async def try_site(browser,domain,url,label):
-              page=await browser.new_page()
-              art=article(label)
-              print(domain,'WORDS',len(re.findall(r"\b[\w'-]+\b",art)),'LINKS',art.count('smmfansfaster.com'))
-              try:
-                  await page.goto(url,wait_until='domcontentloaded',timeout=45000)
-                  await page.wait_for_timeout(2500)
-                  # Fill title if present.
-                  titles=page.locator('input[placeholder*="Title" i]:visible, input[name*="title" i]:visible')
-                  if await titles.count():
-                      try: await titles.first.fill('Social Media Growth Strategy: Content, Reach, and Measurement')
-                      except: pass
-                  editor=page.locator('textarea:visible')
-                  if await editor.count():
-                      await editor.first.fill(art)
-                  else:
-                      ce=page.locator('[contenteditable="true"]:visible')
-                      if await ce.count(): await ce.first.fill(art)
-                      else:
-                          print(domain,'NO_EDITOR'); await page.close(); return None
-                  await page.wait_for_timeout(700)
-                  clicked=False
-                  for pattern in ['Create New Paste','Create Link','Generate Shareable Link','Generate Link','Share','Publish','Create','Save']:
-                      btn=page.get_by_role('button',name=re.compile(pattern,re.I))
-                      if await btn.count():
-                          try: await btn.first.click(timeout=5000); clicked=True; break
-                          except: pass
-                      txt=page.get_by_text(re.compile('^'+re.escape(pattern)+'$',re.I))
-                      if await txt.count():
-                          try: await txt.first.click(timeout=5000); clicked=True; break
-                          except: pass
-                  if not clicked:
-                      print(domain,'NO_BUTTON'); await page.close(); return None
-                  await page.wait_for_timeout(6000)
-                  candidates=[]
-                  cur=page.url
-                  if cur.rstrip('/')!=url.rstrip('/'): candidates.append(cur)
-                  for a in await page.locator('a[href^="http"]').all():
-                      try:
-                          href=await a.get_attribute('href')
-                          if href and domain.replace('www.','') in href.replace('www.','') and href not in candidates: candidates.append(href)
-                      except: pass
-                  body=await page.locator('body').inner_text()
-                  for m in re.findall(r'https?://[^\s)\]<>"\']+',body):
-                      if domain.replace('www.','') in m.replace('www.','') and m not in candidates: candidates.append(m.rstrip('.,'))
-                  print(domain,'CANDIDATES',candidates[:8])
-                  for cand in candidates:
-                      try:
-                          r=requests.get(cand,timeout=25,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0'})
-                          n=r.text.count('smmfansfaster.com')
-                          print(domain,'VERIFY',cand,r.status_code,n)
-                          if r.status_code<400 and n==1:
-                              await page.close(); return cand
-                      except Exception as e: print(domain,'VERIFY_ERR',repr(e))
-              except Exception as e: print(domain,'ERR',repr(e))
-              await page.close(); return None
-
           async def main():
-              async with async_playwright() as p:
-                  browser=await p.chromium.launch(headless=True)
-                  results=[]
-                  for t in TARGETS:
-                      u=await try_site(browser,*t)
-                      if u: results.append([t[0],u])
-                  await browser.close()
-                  # Try mdshare.link CLI as fifth domain.
-                  try:
-                      art=article('MDShare')
-                      open('/tmp/mdshare.md','w',encoding='utf-8').write(art)
-                      subprocess.run('npm i -g mdshare',shell=True,check=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=120)
-                      p2=subprocess.run(['mdshare','/tmp/mdshare.md'],capture_output=True,text=True,timeout=120)
-                      print('MDSHARE_CLI',p2.stdout,p2.stderr)
-                      urls=re.findall(r'https?://[^\s]+',p2.stdout+' '+p2.stderr)
-                      for cand in urls:
-                          if 'mdshare.link' not in cand: continue
-                          r=requests.get(cand.rstrip('.,'),timeout=25,headers={'User-Agent':'Mozilla/5.0'})
-                          n=r.text.count('smmfansfaster.com')
-                          print('mdshare.link VERIFY',cand,r.status_code,n)
-                          if r.status_code<400 and n==1:
-                              results.append(['mdshare.link',cand.rstrip('.,')]); break
-                  except Exception as e: print('mdshare.link ERR',repr(e))
-                  print('VALID_RESULTS_JSON='+json.dumps(results))
-                  print('VALID_COUNT='+str(len(results)))
+            async with async_playwright() as p:
+              b=await p.chromium.launch(headless=True)
+              out=[]
+              for d,u in targets:
+                pg=await b.new_page()
+                try:
+                  await pg.goto(u,wait_until='networkidle',timeout=45000)
+                  await pg.wait_for_timeout(3000)
+                  hrefs=await pg.locator('a[href*="smmfansfaster.com"]').count()
+                  body=await pg.locator('body').inner_text()
+                  print(d,'URL',pg.url,'HREFS',hrefs,'TEXTCOUNT',body.count('smmfansfaster.com'))
+                  if hrefs==1: out.append([d,pg.url])
+                except Exception as e: print(d,'ERR',repr(e))
+                await pg.close()
+              await b.close()
+              print('VALID_RESULTS_JSON='+json.dumps(out))
+              print('VALID_COUNT='+str(len(out)))
           asyncio.run(main())
           PY
-          python /tmp/run.py
+          python /tmp/v.py
