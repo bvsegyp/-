@@ -1,0 +1,36 @@
+name: Inspect PlsReadme API 1024
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Inspect plsreadme api 1024'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect public create-link client code
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re
+          from urllib.parse import urljoin
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0'})
+          r=s.get('https://plsreadme.com/',timeout=30)
+          print('HOME',r.status_code,len(r.text))
+          scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',r.text,re.I)
+          blobs=[('home',r.text)]
+          for src in scripts:
+            u=urljoin(r.url,src)
+            rr=s.get(u,timeout=30)
+            print('SCRIPT',u,rr.status_code,len(rr.text))
+            if rr.status_code<400: blobs.append((u,rr.text))
+          for name,text in blobs:
+            low=text.lower()
+            for needle in ['/api/create-link','create-link','demo-grant']:
+              pos=0
+              while True:
+                i=low.find(needle,pos)
+                if i<0: break
+                print('\nSOURCE',name,'NEEDLE',needle,'AT',i)
+                print(text[max(0,i-1500):i+3000])
+                pos=i+len(needle)
+          PY
