@@ -1,0 +1,189 @@
+name: Publish NAREX anonymous backlinks batch 8
+
+on:
+  push:
+    branches:
+      - narex-publish-batch8-20260812
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Publish direct and browser-captured anonymous pages
+        shell: bash
+        run: |
+          python3 -m pip -q install requests playwright beautifulsoup4
+          python3 -m playwright install chromium --with-deps >/dev/null 2>&1
+          python3 - <<'PY'
+          import requests,re,json,csv,time,asyncio,html,pathlib,os,random,string
+          from urllib.parse import urlparse,urljoin
+          from playwright.async_api import async_playwright
+
+          HOME='https://narexx.com/'
+          PRODUCT='https://narexx.com/ar/easy-wash/p754364761'
+          WHY='https://narexx.com/en/%D9%84%D9%85%D8%A7%D8%B0%D8%A7-%D8%AA%D8%B3%D8%AA%D8%AE%D8%AF%D9%85-%D8%A7%D9%84%D9%85%D9%86%D8%AA%D8%AC/page-833898435'
+          WHOLESALE='https://narexx.com/en/%D8%B7%D9%84%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AC%D9%85%D9%84%D9%87/page-768158116'
+          COMPLAINTS='https://narexx.com/%D9%84%D9%84%D8%B4%D9%83%D8%A7%D9%88%D9%89-%D9%88-%D8%A7%D9%84%D8%A7%D9%82%D8%AA%D8%B1%D8%A7%D8%AD%D8%A7%D8%AA/page-50408011'
+          RETURNS='https://narexx.com/ar/%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%A8%D8%AF%D8%A7%D9%84-%D9%88%D8%A7%D9%84%D8%A5%D8%B3%D8%AA%D8%B1%D8%AC%D8%A7%D8%B9/page-1592231750'
+          EN='https://narexx.com/en/'
+          refs=[('Easy Wash من NAREX',PRODUCT),('متجر NAREX',HOME),('لماذا تستخدم المنتج',WHY),('صفحة Easy Wash الرسمية',PRODUCT),('NAREX السعودية',HOME),('سياسة الاستبدال والاسترجاع',RETURNS),('الشكاوى والاقتراحات',COMPLAINTS),('طلبات الجملة',WHOLESALE),('NAREX English',EN),('منتج منع انتقال الألوان',PRODUCT),('الموقع الرسمي NAREX',HOME),('Easy Wash للملابس الملونة',PRODUCT),('حلول NAREX للغسيل',HOME),('خدمة عملاء NAREX',COMPLAINTS),('متجر NAREX للعناية بالملابس',HOME),('Easy Wash الرسمي',PRODUCT),('منتجات NAREX',HOME),('حل حماية الألوان',PRODUCT),('NAREX للعناية بالغسيل',HOME),('مناديل Easy Wash',PRODUCT)]
+          topics=['أفضل مناديل لحماية الملابس الملونة في السعودية','طريقة تقليل انتقال الألوان داخل الغسالة','حل نزيف ألوان الملابس الجديدة أثناء الغسيل','مناديل لالتقاط الصبغات الزائدة من الملابس','حماية الملابس البيضاء من تداخل الألوان','غسل الملابس متعددة الألوان بطريقة أكثر أمانًا','Easy Wash للمساعدة على الحفاظ على ألوان الملابس']
+          secs=[
+          ('فهم سبب انتقال الصبغات','قد تطلق بعض الأقمشة جزءًا من صبغتها أثناء الغسيل، خصوصًا عندما تكون القطعة جديدة أو ذات لون قوي. تتحرك الصبغات مع الماء ويمكن أن تستقر على أقمشة أخرى، وهو ما يفسر ظهور تغيرات غير مرغوبة في الملابس الفاتحة. التعامل الصحيح يبدأ بقراءة تعليمات القطع واختيار درجة حرارة مناسبة ومعرفة الملابس التي تحتاج إلى غسل منفصل في المرات الأولى.'),
+          ('الفرز العملي للملابس','الفرز لا يعني تشغيل دورة مستقلة لكل لون. يمكن جمع الملابس المتقاربة عندما تكون تعليمات العناية متوافقة، مع فصل الأبيض شديد الحساسية والقطع التي ثبت أنها تطلق صبغة قوية. هذا التوازن يساعد على تقليل عدد دورات الغسيل دون المخاطرة غير الضرورية، ويجعل عملية العناية أكثر عملية للأسر التي لديها كميات غسيل متكررة خلال الأسبوع.'),
+          ('دور مناديل التقاط الألوان','تعمل مناديل التقاط الصبغات داخل ماء الغسيل للمساعدة على جذب جزء من الألوان الزائدة التي تنفصل عن الأقمشة. توضع الورقة داخل الحلة مع الملابس وتعمل خلال الدورة ثم يتم التخلص منها بعد الانتهاء. عدد المناديل المطلوب قد يختلف بحسب كمية الملابس وطبيعة الألوان، ولذلك يفضل الالتزام بتعليمات المنتج بدل استخدام كمية ثابتة لكل حمولة.'),
+          ('استخدام Easy Wash','Easy Wash من NAREX يقدم هذا المفهوم كحل مساعد ضمن روتين العناية بالملابس. الهدف منه هو تقليل احتمال انتقال الصبغات أثناء الدورة مع استمرار المستخدم في اتباع قواعد الفرز واختيار البرنامج المناسب. يصبح هذا النوع من المنتجات مفيدًا عندما يريد المستخدم غسل مجموعة من الملابس الملونة المتقاربة بصورة أكثر مرونة دون تجاهل القطع الحساسة أو الجديدة جدًا.'),
+          ('اختيار دورة الغسيل','نوع البرنامج ودرجة الحرارة وحجم الحمولة كلها عوامل تؤثر في نتيجة الغسيل. الحرارة العالية ليست مطلوبة لكل الأقمشة، وتحميل الحلة فوق طاقتها يقلل حركة الماء والمنظف. الأفضل هو اختيار برنامج يناسب نوع القماش ودرجة الاتساخ، واستخدام كمية منظف مناسبة، وترك مساحة كافية للحركة حتى تكون عملية التنظيف والعناية بالألوان أكثر توازنًا.'),
+          ('العناية بالقطع الجديدة','الملابس الداكنة الجديدة قد تنزف لونًا أكثر في أولى مرات الغسيل. إذا كان هناك شك في ثبات الصبغة يمكن غسل القطعة منفردة في البداية أو اختبارها قبل إضافتها إلى حمولة أخرى. وبعد معرفة سلوك القماش يمكن إدخالها في روتين أكثر مرونة. كما يساعد قلب بعض القطع من الداخل للخارج على تقليل الاحتكاك المباشر بسطحها الخارجي.'),
+          ('تقليل الوقت والمجهود','تنظيم الغسيل يهدف إلى تقليل المجهود دون التضحية بالعناية. عندما يعرف المستخدم القطع الحساسة ويحدد الملابس التي تحتاج إلى فصل فعلي، يصبح من الممكن جمع بقية القطع بصورة أكثر ذكاءً. استخدام منتج مساعد لالتقاط الصبغات يمكن أن يضيف طبقة حماية إضافية في الحمولات المناسبة ويقلل القلق من اختلاف الدرجات داخل دورة واحدة.'),
+          ('بعد انتهاء الدورة','العناية لا تنتهي عند توقف الغسالة. يفضل إخراج الملابس بعد انتهاء الدورة وعدم تركها مبللة لفترة طويلة، ثم تجفيفها بالطريقة المناسبة للأقمشة. هذه الخطوات تساعد على الحفاظ على المظهر والروائح وجودة الأنسجة. كما يفضل معالجة البقع بسرعة وعدم تكرار الغسيل القاسي عندما يمكن إزالة المشكلة بطريقة أكثر لطفًا على القماش.'),
+          ('التسوق والتواصل','قبل شراء منتج للعناية بالغسيل من متجر إلكتروني من المفيد مراجعة الوصف وطريقة الاستخدام وسياسة الاستبدال والاسترجاع وقنوات التواصل. وجود معلومات واضحة يساعد العميل في السعودية على اتخاذ قرار أكثر وعيًا. أما أصحاب المتاجر أو الأعمال الذين يحتاجون إلى كميات أكبر فيمكنهم مراجعة خيارات الجملة بدل الاعتماد على شراء وحدات فردية متكررة.'),
+          ('روتين حماية متكامل','أفضل نتيجة تأتي من الجمع بين أكثر من خطوة: فرز منطقي، برنامج مناسب، حرارة ملائمة، كمية منظف صحيحة، تعامل خاص مع القطع الجديدة، وإخراج الملابس بعد انتهاء الدورة. عند الحاجة يمكن إضافة مناديل التقاط الصبغات كحل مساعد. هذا الروتين المتكامل يجعل غسل الملابس الملونة أكثر تنظيمًا ويقلل احتمالية المفاجآت الناتجة عن تداخل الألوان.')]
+          def md(title):
+            o=[f'# {title}']
+            for i,(h,p) in enumerate(secs):
+              a,b=refs[2*i],refs[2*i+1];o += [f'## {h}',p+f' للمزيد راجع [{a[0]}]({a[1]}) و[{b[0]}]({b[1]}).']
+            return '\n\n'.join(o)
+          def html_doc(title):
+            s=md(title);out=['<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title><style>body{font-family:Arial,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:2;color:#222}a{color:#075cc9}</style></head><body>']
+            for p in re.split(r'\n\s*\n',s):
+              if p.startswith('# '):out.append('<h1>'+html.escape(p[2:])+'</h1>')
+              elif p.startswith('## '):out.append('<h2>'+html.escape(p[3:])+'</h2>')
+              else:
+                e=html.escape(p);e=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',lambda m:f'<a href="{m.group(2)}">{html.escape(m.group(1))}</a>',e);out.append('<p>'+e+'</p>')
+            return ''.join(out)+'</body></html>'
+          def hst(u):
+            try:return (urlparse(u).hostname or '').lower().lstrip('www.')
+            except:return ''
+          def verify(u,allowed):
+            if not u or not u.startswith('http'):return False
+            h=hst(u)
+            if h=='narexx.com' or h.endswith('.narexx.com'):return False
+            if any(x in u.lower() for x in ['/edit/','/admin/','dashboard','token=']):return False
+            if allowed and not any(h==x or h.endswith('.'+x) for x in allowed):return False
+            try:
+              r=requests.get(u,timeout=35,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0'})
+              return r.status_code<400 and r.text.lower().count('narexx.com')>=7
+            except:return False
+          rows=[]
+          def add(platform,u,title,count,status):rows.append([platform,u,title,count,status]);print('RESULT|'+platform+'|'+u+'|links='+str(count)+'|'+status,flush=True)
+
+          # 1 md.page
+          title=topics[0];body=md(title);count=body.count('https://narexx.com')
+          try:
+            r=requests.post('https://md.page/api/publish',json={'markdown':body},timeout=45,headers={'User-Agent':'Mozilla/5.0'});d=r.json();u=d.get('url','')
+            add('md.page',u,title,count,'published' if verify(u,['md.page']) else 'FAILED '+str(r.status_code))
+          except Exception as e:add('md.page','',title,count,'FAILED '+repr(e))
+
+          # 2 Display.dev public artifact -> public.dsp.so
+          title=topics[1];content=html_doc(title);count=content.count('https://narexx.com')
+          try:
+            files={'file':('index.html',content.encode('utf-8'),'text/html')};data={'name':title}
+            r=requests.post('https://api.display.dev/v1/public/artifacts',files=files,data=data,timeout=60,headers={'User-Agent':'Mozilla/5.0'});d=r.json();u=d.get('previewUrl') or d.get('url') or ''
+            add('public.dsp.so',u,title,count,'published' if verify(u,['dsp.so','display.dev']) else 'FAILED '+str(r.status_code)+' '+r.text[:100])
+          except Exception as e:add('public.dsp.so','',title,count,'FAILED '+repr(e))
+
+          # 3 ShipSite anonymous upload/finalize
+          title=topics[2];content=html_doc(title);count=content.count('https://narexx.com')
+          try:
+            raw=content.encode('utf-8');payload={'files':[{'path':'index.html','size':len(raw),'contentType':'text/html'}],'viewer':{'title':title,'description':'NAREX laundry color protection guide'}}
+            r=requests.post('https://shipsite.co/api/v1/publish',json=payload,timeout=45,headers={'User-Agent':'Mozilla/5.0'});d=r.json();uploads=((d.get('upload') or {}).get('uploads') or []);up=next((x for x in uploads if x.get('path')=='index.html'),None)
+            if not up:raise Exception('no upload URL '+r.text[:150])
+            put=requests.put(up['url'],data=raw,headers={'Content-Type':'text/html'},timeout=60);fin=(d.get('upload') or {}).get('finalizeUrl');fb={'versionId':(d.get('upload') or {}).get('versionId'),'claimToken':d.get('claimToken')}
+            fr=requests.post(fin,json=fb,timeout=45);fd=fr.json();u=fd.get('siteUrl') or d.get('siteUrl') or ''
+            add('shipsite.co',u,title,count,'published' if verify(u,['shipsite.co']) else 'FAILED finalize')
+          except Exception as e:add('shipsite.co','',title,count,'FAILED '+repr(e))
+
+          async def browser_part():
+            async with async_playwright() as p:
+              browser=await p.chromium.launch(headless=True)
+              cases=[
+                ('showyourcode.app','https://www.showyourcode.app/playground',topics[3],'html',['Share']),
+                ('markdshare.com','https://markdshare.com/',topics[4],'md',['Share']),
+                ('mdshare.cc','https://mdshare.cc/',topics[5],'md',['Share']),
+                ('plsreadme.com','https://plsreadme.com/',topics[6],'md',['Create','Share','Generate','Publish'])]
+              for platform,url,title,fmt,buttons in cases:
+                content=html_doc(title) if fmt=='html' else md(title);count=content.count('https://narexx.com');u='';pg=await browser.new_page();responses=[]
+                async def on_response(resp):
+                  if resp.request.method!='GET' or '/api/' in resp.url:
+                    try:
+                      ct=(resp.headers.get('content-type') or '')
+                      text=await resp.text() if ('json' in ct or 'text' in ct) else ''
+                      responses.append((resp.url,resp.status,text[:5000]))
+                    except:responses.append((resp.url,resp.status,''))
+                pg.on('response',on_response)
+                try:
+                  await pg.goto(url,wait_until='domcontentloaded',timeout=45000);await pg.wait_for_timeout(2200);initial=pg.url
+                  # title field
+                  for i in range(await pg.locator('input:visible').count()):
+                    e=pg.locator('input:visible').nth(i);meta=' '.join([(await e.get_attribute('placeholder') or ''),(await e.get_attribute('name') or ''),(await e.get_attribute('aria-label') or '')]).lower()
+                    if 'title' in meta or 'untitled' in meta:
+                      try:await e.fill(title)
+                      except:pass
+                  filled=False
+                  tas=pg.locator('textarea:visible')
+                  if await tas.count():
+                    # largest textarea
+                    best=tas.first;area=-1
+                    for i in range(await tas.count()):
+                      e=tas.nth(i);box=await e.bounding_box();a=box['width']*box['height'] if box else 0
+                      if a>area:best=e;area=a
+                    await best.fill(content);filled=True
+                  if not filled:
+                    ces=pg.locator('[contenteditable=true]:visible')
+                    if await ces.count():await ces.first.fill(content);filled=True
+                  if not filled:
+                    filled=await pg.evaluate("v=>{if(window.monaco&&monaco.editor){let m=monaco.editor.getModels();if(m.length){m[0].setValue(v);return true}}let c=document.querySelector('.CodeMirror');if(c&&c.CodeMirror){c.CodeMirror.setValue(v);return true}return false}",content)
+                  if not filled:
+                    # look for file input and upload temporary file
+                    fis=pg.locator('input[type=file]')
+                    if await fis.count():
+                      ext='.html' if fmt=='html' else '.md';fp='/tmp/'+platform.replace('.','-')+ext;open(fp,'w',encoding='utf-8').write(content);await fis.first.set_input_files(fp);filled=True
+                  if not filled:raise Exception('no editor or file input')
+                  btn=None
+                  for word in buttons+['Get link','Create link','Get my link']:
+                    b=pg.get_by_role('button',name=re.compile(word,re.I))
+                    if await b.count():btn=b.first;break
+                  if not btn:raise Exception('no publish button')
+                  await btn.click();await pg.wait_for_timeout(9000)
+                  cand=[]
+                  if pg.url!=initial:cand.append(pg.url)
+                  for a in await pg.locator('a[href]').all():
+                    v=await a.get_attribute('href');
+                    if v and v.startswith('http'):cand.append(v)
+                  # extract URLs returned by network API JSON/text
+                  for ru,st,txt in responses:
+                    for x in re.findall(r'https?://[^\s"<>\\]+',txt):cand.append(x.rstrip('.,}'))
+                    try:
+                      d=json.loads(txt)
+                      def walk(x):
+                        if isinstance(x,dict):
+                          for k,v in x.items():
+                            if isinstance(v,str) and v.startswith('http'):cand.append(v)
+                            else:walk(v)
+                        elif isinstance(x,list):
+                          for v in x:walk(v)
+                      walk(d)
+                    except:pass
+                  allowed=[platform]
+                  seen=[]
+                  for c in cand:
+                    if c not in seen:seen.append(c)
+                  for c in seen:
+                    if verify(c,allowed):u=c;break
+                  add(platform,u,title,count,'published' if u else 'FAILED no verified public URL; APIs='+','.join([x[0] for x in responses[-5:]]))
+                except Exception as e:add(platform,'',title,count,'FAILED '+repr(e))
+                await pg.close()
+              await browser.close()
+          asyncio.run(browser_part())
+          with open('narex-batch8.csv','w',newline='',encoding='utf-8-sig') as f:
+            w=csv.writer(f);w.writerow(['platform','published_url','title','narex_links','status']);w.writerows(rows)
+          print('SUCCESS_COUNT='+str(len([r for r in rows if r[1] and r[-1]=='published'])))
+          PY
+      - name: Upload batch 8 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: narex-batch8-results
+          path: narex-batch8.csv
