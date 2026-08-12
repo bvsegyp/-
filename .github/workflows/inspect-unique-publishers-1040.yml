@@ -1,0 +1,49 @@
+name: Inspect Unique Publishers 1040
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Inspect unique publishers 1040'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discover public publishing flows
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re
+          from urllib.parse import urljoin
+          sites=['https://mdbin.sivaramp.com/','https://md-share-ai.pages.dev/','https://mdx.limo/','https://markdshare.com/']
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0'})
+          for base in sites:
+            print('\n===',base,'===')
+            try:
+              r=s.get(base,timeout=30); print('HOME',r.status_code,len(r.text),r.url)
+              scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',r.text,re.I)
+              print('SCRIPTS',scripts[:40])
+              blobs=[('home',r.text)]
+              for src in scripts[:40]:
+                try:
+                  u=urljoin(r.url,src); rr=s.get(u,timeout=30)
+                  if rr.status_code<400 and len(rr.text)<5000000: blobs.append((u,rr.text))
+                except: pass
+              alltext='\n'.join(t for _,t in blobs)
+              for bad in ['captcha','recaptcha','hcaptcha','turnstile']:
+                if bad in alltext.lower(): print('CHALLENGE_KEYWORD',bad)
+              found=[]
+              pats=[r'fetch\s*\(\s*[`"\']([^`"\']+)',r'axios\.(?:post|put)\s*\(\s*[`"\']([^`"\']+)',r'["\']((?:https?://[^"\']+)?/api/[^"\']+)["\']',r'["\'](/(?:pastes|paste|share|shares|documents|publish|create|notes|note)[^"\']*)["\']']
+              for p in pats:
+                for x in re.findall(p,alltext,re.I):
+                  if isinstance(x,tuple): x=x[0]
+                  if x not in found: found.append(x)
+              print('ENDPOINTS',found[:150])
+              for ep in found[:50]:
+                key=ep.lower().split('?')[0]
+                for name,text in blobs:
+                  i=text.lower().find(key)
+                  if i>=0:
+                    print('CONTEXT',ep,'SOURCE',name)
+                    print(text[max(0,i-900):i+2200])
+                    break
+            except Exception as e: print('ERR',repr(e))
+          PY
