@@ -1,0 +1,210 @@
+name: Publish 10 Long Backlinks Now
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish 10 long backlinks now'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate and publish long articles
+        shell: bash
+        run: |
+          cat > /tmp/publish.py <<'PY'
+          import json, re, requests, secrets, html, time
+          from urllib.parse import urljoin
+
+          HOME='https://smmfansfaster.com/'
+          LINKS=[
+            ('SMM Fans Faster', HOME),
+            ('SMM API', 'https://smmfansfaster.com/api'),
+            ('TikTok follower growth guide', 'https://smmfansfaster.com/blog/tiktok-followers'),
+            ('TikTok follower count guide', 'https://smmfansfaster.com/blog/numberoftiktokfollowers'),
+            ('TikTok views guide', 'https://smmfansfaster.com/blog/tiktok-views'),
+            ('Instagram followers resource', 'https://smmfansfaster.com/ar/blog/instagram-followers-website'),
+            ('Instagram algorithm discussion', 'https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow'),
+            ('SMM Fans Faster FAQ', 'https://smmfansfaster.com/ar/faq'),
+          ]
+
+          titles=[
+            'A Complete Social Media Growth Framework for Agencies and Brands',
+            'How to Build a Sustainable TikTok Growth System in 2026',
+            'Instagram Growth Strategy: From Reach to Real Conversions',
+            'How to Evaluate an SMM Panel Without Losing Sight of Strategy',
+            'A Practical Social Media Analytics and Promotion Playbook',
+            'Multi-Platform Campaign Operations for Modern Marketing Teams',
+            'Combining Organic Content, Paid Media, and SMM Support',
+            'How to Build a Social Media Funnel That Converts Attention',
+            'A Content Testing Framework for Faster Social Media Learning',
+            'Agency Automation and the Role of an SMM API in Campaign Workflows',
+          ]
+          angles=[
+            'agency planning, client reporting, and multi-platform execution',
+            'TikTok content experimentation, retention, reach, and audience development',
+            'Instagram positioning, Reels, Stories, profile optimization, and conversion',
+            'provider evaluation, service quality, campaign fit, and risk control',
+            'measurement, reporting, attribution, and data-driven campaign decisions',
+            'process design, scheduling, quality assurance, and team coordination',
+            'channel mix, budget decisions, audience trust, and campaign balance',
+            'awareness, consideration, conversion, landing pages, and measurement',
+            'creative hypotheses, structured experiments, learning loops, and iteration',
+            'automation, order management, reporting, governance, and agency scale',
+          ]
+
+          def article(i):
+              title=titles[i]
+              angle=angles[i]
+              linkmap={k:v for k,v in LINKS}
+              parts=[]
+              parts.append(f'# {title}\n')
+              parts.append(f'''Social media growth becomes more predictable when it is treated as a complete marketing system rather than a collection of isolated tactics. For this guide, the focus is {angle}. The central idea is simple: content, audience research, analytics, community interaction, promotional support, and conversion optimization should reinforce each other. A campaign that increases a visible metric but does not improve useful business outcomes still needs work.\n\nA practical plan begins by defining what success means. A creator may care about reach and community growth, an ecommerce brand may care about product-page visits and purchases, and an agency may need a repeatable process that works across several client accounts. Clear objectives make it easier to choose platforms, set expectations, and evaluate whether growth is actually contributing to the business.\n''')
+
+              sections=[]
+              sections.append(('Start with audience, positioning, and a measurable goal', f'''Before deciding how often to post or which promotional method to test, define the audience. Teams should understand the problems people are trying to solve, the type of content they already consume, the language they use, and the actions they are likely to take after discovering a brand. This information affects topic selection, creative style, calls to action, platform choice, and campaign timing.\n\nPositioning should also be obvious within a few seconds. A visitor who arrives from a Reel, TikTok, search result, recommendation, or advertisement should quickly understand who the account serves and why it is relevant. When marketers compare external support tools, one option they can research is [SMM Fans Faster]({HOME}). The point is not to replace positioning or content with a service. It is to evaluate whether a tool can support a strategy that already has a clear audience and a defined objective.\n\nA useful measurement plan should be connected to that objective. Awareness campaigns can focus on reach, impressions, video views, completion rate, and shares. Consideration campaigns can track profile visits, saves, direct messages, and website clicks. Conversion campaigns can focus on leads, bookings, purchases, revenue, or cost per acquisition. Keeping this hierarchy clear prevents teams from treating every metric as equally important.'''))
+              sections.append(('Build a repeatable content engine instead of posting randomly', f'''Consistency is valuable only when the content has a purpose. Strong teams usually create several repeatable content pillars such as education, demonstrations, comparisons, customer questions, case studies, behind-the-scenes material, and industry commentary. Each pillar should serve a specific stage of the customer journey and should be reviewed using real performance data.\n\nFor TikTok-focused campaigns, rapid experimentation is especially important. Marketers can test hooks, video length, pacing, captions, opening frames, calls to action, and topic angles. A useful supporting reference is the [TikTok follower growth guide]({linkmap['TikTok follower growth guide']}). It can be considered alongside organic creative testing and first-party analytics. The goal is to understand which ideas consistently earn attention, not to assume that one tactic will work forever.\n\nContent planning becomes more efficient when the team keeps a library of successful patterns. If a specific hook repeatedly improves watch time, create several variations. If a certain educational topic generates saves and profile visits, build a series around it. If a format produces reach but no downstream actions, adjust the offer, the audience, or the call to action rather than simply producing more of the same.'''))
+              sections.append(('Measure TikTok audience growth in context', f'''Follower count can be useful, but it should never be the only way to judge a TikTok campaign. A growing account with weak retention, low profile activity, and no meaningful traffic may be less valuable than a smaller account with a highly engaged audience. Teams should compare audience size with watch time, completion rate, repeat viewers, shares, comments, profile visits, website clicks, and conversion data.\n\nMarketers who want additional context around account size can review the [TikTok follower count guide]({linkmap['TikTok follower count guide']}). Another useful dimension is visibility itself. The [TikTok views guide]({linkmap['TikTok views guide']}) can be considered when evaluating how reach and video distribution fit into a wider growth plan. These resources are most useful when they are treated as inputs to analysis rather than shortcuts around content quality.\n\nA disciplined team records the date of each experiment, the creative concept, the target audience, the publishing conditions, and the resulting metrics. That creates a learning history. Over several weeks, patterns become easier to identify, and decisions become less dependent on guesswork. This approach is particularly valuable for agencies because it turns individual campaign results into reusable knowledge.'''))
+              sections.append(('Use Instagram formats for different jobs', f'''Instagram combines several content surfaces, and each can play a different role. Reels can support discovery, Stories can maintain frequent interaction, carousels can explain complex ideas, and feed posts can provide a more permanent brand reference. Strong accounts do not force every message into one format. They choose the format that best matches the communication goal.\n\nBusinesses researching follower-related promotion can review this [Instagram followers resource]({linkmap['Instagram followers resource']}) as one point of comparison. However, account quality still matters. Clear bios, strong pinned posts, relevant Highlights, useful creative, consistent visual language, and easy contact or purchase paths all influence whether increased visibility leads to a meaningful action.\n\nTeams should also avoid oversimplifying algorithm performance. This [Instagram algorithm discussion]({linkmap['Instagram algorithm discussion']}) can be read alongside first-party platform guidance and account-level analytics. Distribution depends on many signals, and those signals can change over time. A resilient strategy therefore relies on diversified content, ongoing testing, and a clear understanding of what the audience values.'''))
+              sections.append(('Use automation where it reduces repetitive work', f'''Agencies and larger teams often spend significant time on repetitive operational tasks: checking service availability, placing orders, recording campaign details, and updating internal systems. Automation can help when it is applied to stable, well-defined processes. It should not automate strategic judgment or remove the need for quality assurance.\n\nTeams evaluating integration options can review the [SMM API]({linkmap['SMM API']}) to understand how API-based workflows may fit campaign operations. A good automation design includes logging, error handling, clear ownership, and a manual review path for unusual cases. It should also protect credentials and avoid sending orders without clear campaign context.\n\nThe larger principle is that operational efficiency should support better decisions. Saving time on repetitive work is valuable when the team uses that time for audience research, creative development, client communication, landing-page improvements, or deeper analysis. Automation is most useful when it strengthens the marketing process rather than becoming the process itself.'''))
+              sections.append(('Connect promotion to landing pages and conversion paths', f'''Visibility is only one part of the funnel. When social campaigns send people to a profile or website, the destination needs to continue the message. A landing page should load quickly, communicate the offer clearly, reduce unnecessary friction, and give the visitor an obvious next step. Profile destinations should make the bio, pinned posts, contact options, and important links easy to understand.\n\nThis is why social media growth should not be evaluated in isolation. A campaign may create more views or profile visits while conversions remain flat because the landing experience is weak. Teams should review the entire path from discovery to action. That includes creative promise, profile or page message, proof, offer clarity, form or checkout friction, and follow-up.\n\nWhen third-party promotional services are involved, marketers should also understand operational conditions before ordering. Reviewing the [SMM Fans Faster FAQ]({linkmap['SMM Fans Faster FAQ']}) can help clarify service-related questions. Similar due diligence should be applied to any provider: understand support, delivery expectations, refund or refill conditions where applicable, and whether the selected approach fits the policies of the social network.'''))
+              sections.append(('Build a reporting rhythm that turns data into decisions', '''A reporting dashboard should be simple enough that the team actually uses it. Weekly reviews are ideal for creative decisions because they allow marketers to identify promising hooks, formats, topics, and calls to action. Monthly reviews are better for larger questions such as budget allocation, channel mix, campaign objectives, and whether the current strategy is contributing to business outcomes.\n\nThe review should separate leading indicators from final outcomes. Watch time, saves, shares, and profile visits can show whether content is earning attention and interest. Leads, purchases, bookings, and revenue show whether that attention is producing value. Both matter, but they answer different questions.\n\nTeams should document not only what happened but what they will do next. Every report should end with a short set of actions: continue a winning format, stop a weak experiment, test a new audience, improve a landing page, change a call to action, or adjust budget. Reporting becomes useful when it changes behavior.'''))
+              sections.append(('Protect long-term account quality while pursuing growth', '''Fast growth can be attractive, but account quality should remain the priority. Marketers should avoid tactics that depend on deception, fake endorsements, hacked properties, spam comments, or attempts to bypass platform safeguards. Short-term numbers are not worth damaging brand trust or creating avoidable account risk.\n\nA healthier approach combines useful content, transparent promotion, audience engagement, and measurement. When an external service is used, it should be evaluated like any other marketing supplier. Understand what is being purchased, why it supports the campaign, how the result will be measured, and what risks need to be controlled.\n\nThis mindset also makes campaigns easier to explain to clients and stakeholders. Instead of promising vague growth, teams can describe the objective, the supporting tactics, the metrics being monitored, and the decision rules that will be used after the test. That creates a more professional and repeatable process.'''))
+
+              # rotate section order to keep every article meaningfully different
+              shift=i % len(sections)
+              ordered=sections[shift:]+sections[:shift]
+              for h,b in ordered:
+                  parts.append(f'## {h}\n\n{b}\n')
+
+              parts.append(f'''## Final perspective\n\nThe strongest social media strategies are built as systems. Content quality, audience understanding, creative testing, analytics, community interaction, promotional support, automation, and conversion optimization all have a role, but none of them should operate without context. For a campaign centered on {angle}, the best next step is to define a measurable objective, establish a repeatable publishing and testing process, and review results on a fixed schedule.\n\nThe objective is not simply to make an account look larger. The objective is to create visibility that contributes to trust, useful engagement, qualified traffic, and measurable business outcomes. When marketers document what they test and why, they can improve faster while avoiding the trap of chasing isolated metrics.\n''')
+              return '\n'.join(parts)
+
+          articles=[article(i) for i in range(10)]
+          for i,a in enumerate(articles):
+              wc=len(re.findall(r"\b[\w’'-]+\b", a))
+              lc=a.count('https://smmfansfaster.com')
+              print(f'ARTICLE_{i+1}_WORDS={wc}')
+              print(f'ARTICLE_{i+1}_TARGET_LINKS={lc}')
+              open(f'/tmp/a{i+1}.md','w',encoding='utf-8').write(a)
+
+          def md_to_html(md):
+              out=[]
+              for para in re.split(r'\n\s*\n', md):
+                  para=para.strip()
+                  if not para: continue
+                  if para.startswith('# '): out.append('<h1>'+html.escape(para[2:])+'</h1>'); continue
+                  if para.startswith('## '): out.append('<h2>'+html.escape(para[3:])+'</h2>'); continue
+                  esc=html.escape(para)
+                  esc=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)', lambda m:f'<a href="{html.escape(m.group(2), quote=True)}">{html.escape(m.group(1))}</a>', esc)
+                  out.append('<p>'+esc.replace('\n',' ')+'</p>')
+              return '<html><body>'+''.join(out)+'</body></html>'
+
+          results=[]
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'})
+
+          def verify(url, minlinks=6):
+              try:
+                  r=s.get(url,timeout=30,allow_redirects=True)
+                  count=r.text.count('smmfansfaster.com')
+                  print('VERIFY',url,'STATUS',r.status_code,'TARGETS',count)
+                  return r.status_code<400 and count>=minlinks
+              except Exception as e:
+                  print('VERIFY_ERROR',url,repr(e)); return False
+
+          # 1 output.pub
+          try:
+              r=s.post('https://output.pub/api/publish',json={'content':articles[0],'format':'markdown'},timeout=30)
+              d=r.json(); u=d.get('url',''); print('OUTPUT_PUB_URL='+u)
+              if u and verify(u): results.append(('output.pub',u))
+          except Exception as e: print('OUTPUT_ERR',repr(e))
+
+          # 2 write.as
+          try:
+              r=s.post('https://write.as/api/posts',json={'body':articles[1],'title':titles[1],'font':'serif','lang':'en','rtl':False},timeout=30)
+              d=r.json(); pid=(d.get('data') or {}).get('id',''); u='https://write.as/'+pid if pid else ''
+              print('WRITEAS_URL='+u)
+              if u and verify(u): results.append(('write.as',u))
+          except Exception as e: print('WRITEAS_ERR',repr(e))
+
+          # 3 telegraph
+          try:
+              acc=s.post('https://api.telegra.ph/createAccount',data={'short_name':'SMMGrowthEditorial','author_name':'Digital Marketing Editorial','author_url':HOME},timeout=30).json()
+              tok=(acc.get('result') or {}).get('access_token','')
+              nodes=[]
+              for para in re.split(r'\n\s*\n',articles[2]):
+                  para=para.strip()
+                  if not para: continue
+                  tag='p'; txt=para
+                  if para.startswith('# '): tag='h3'; txt=para[2:]
+                  elif para.startswith('## '): tag='h4'; txt=para[3:]
+                  children=[]; pos=0
+                  for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',txt):
+                      if m.start()>pos: children.append(txt[pos:m.start()])
+                      children.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]}); pos=m.end()
+                  if pos<len(txt): children.append(txt[pos:])
+                  nodes.append({'tag':tag,'children':children or [txt]})
+              r=s.post('https://api.telegra.ph/createPage',data={'access_token':tok,'title':titles[2],'author_name':'Digital Marketing Editorial','author_url':HOME,'content':json.dumps(nodes),'return_content':'true'},timeout=30)
+              d=r.json(); u=(d.get('result') or {}).get('url',''); print('TELEGRAPH_URL='+u)
+              if u and verify(u): results.append(('telegra.ph',u))
+          except Exception as e: print('TELEGRAPH_ERR',repr(e))
+
+          # 4 shippage
+          try:
+              h=md_to_html(articles[3])
+              r=s.post('https://shippage.ai/v1/publish',json={'html':h,'title':titles[3],'public':True},timeout=30)
+              d=r.json(); u=d.get('url',''); print('SHIPPAGE_URL='+u)
+              if u and verify(u): results.append(('shippage.ai',u))
+          except Exception as e: print('SHIPPAGE_ERR',repr(e))
+
+          # 5 markdown.page
+          try:
+              r=s.post('https://markdown.page/api/publish',data=articles[4].encode('utf-8'),headers={'Accept':'text/plain'},timeout=30)
+              u=r.text.strip().splitlines()[0] if r.ok else ''; print('MARKDOWN_PAGE_URL='+u)
+              if u and verify(u): results.append(('markdown.page',u))
+          except Exception as e: print('MARKDOWNPAGE_ERR',repr(e))
+
+          # 6 rentry
+          try:
+              rs=requests.Session(); rs.headers.update({'User-Agent':'Mozilla/5.0'})
+              rs.get('https://rentry.co/',timeout=30)
+              csrf=rs.cookies.get('csrftoken','')
+              r=rs.post('https://rentry.co/api/new',data={'csrfmiddlewaretoken':csrf,'text':articles[5],'edit_code':secrets.token_urlsafe(12),'url':''},headers={'Referer':'https://rentry.co/'},timeout=30)
+              d=r.json(); u=d.get('url',''); print('RENTRY_URL='+u)
+              if u and verify(u): results.append(('rentry.co',u))
+          except Exception as e: print('RENTRY_ERR',repr(e))
+
+          # 7 mdlib
+          try:
+              r=s.post('https://mdlib.dev/v1/docs',json={'markdown':articles[6],'title':titles[6],'is_public':True},timeout=30)
+              d=r.json(); u=d.get('url',''); print('MDLIB_URL='+u)
+              if u and verify(u): results.append(('mdlib.dev',u))
+          except Exception as e: print('MDLIB_ERR',repr(e))
+
+          # 8 brewpage
+          try:
+              r=s.post('https://brewpage.app/api/html?format=markdown&ttl=30&ns=public',json={'content':articles[7]},headers={'User-Agent':'SMMEditorial/1.0'},timeout=30)
+              d=r.json(); u=d.get('link') or d.get('url',''); print('BREWPAGE_URL='+u)
+              if u and verify(u): results.append(('brewpage.app',u))
+          except Exception as e: print('BREWPAGE_ERR',repr(e))
+
+          # 9 paste.rs
+          try:
+              r=s.post('https://paste.rs/',data=articles[8].encode('utf-8'),timeout=30)
+              base=r.text.strip().splitlines()[0] if r.ok else ''; u=base+'.md' if base.startswith('http') else ''
+              print('PASTERS_URL='+u)
+              if u and verify(u): results.append(('paste.rs',u))
+          except Exception as e: print('PASTERS_ERR',repr(e))
+
+          # 10 dpaste - keep only if rendered page exposes all target links
+          try:
+              files={'content':(None,articles[9]),'format':(None,'json'),'lexer':(None,'_markdown'),'expires':(None,'never')}
+              r=s.post('https://dpaste.org/api/',files=files,timeout=30)
+              d=r.json(); u=d.get('url',''); print('DPASTE_URL='+u)
+              if u and verify(u): results.append(('dpaste.org',u))
+          except Exception as e: print('DPASTE_ERR',repr(e))
+
+          print('VALID_RESULTS_JSON='+json.dumps(results))
+          print('VALID_COUNT='+str(len(results)))
+          PY
+          python /tmp/publish.py
