@@ -1,0 +1,11 @@
+name: Inspect ShowYourCode 1235
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Run ShowYourCode inspection 1235'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/inspect_showyourcode_1235.py
