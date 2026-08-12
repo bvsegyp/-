@@ -1,0 +1,166 @@
+name: Test New Unique Domains 1002
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    if: github.event.head_commit.message == 'Test new unique domains 1002'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Try compliant anonymous publishers
+        shell: bash
+        run: |
+          cat > /tmp/test.py <<'PY'
+          import requests,re,html,json,secrets
+          from bs4 import BeautifulSoup
+          from urllib.parse import urljoin,urlparse
+
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'})
+          targets=[
+            ('https://smmfansfaster.com/','social media marketing platform'),
+            ('https://smmfansfaster.com/api','social media marketing API'),
+            ('https://smmfansfaster.com/blog/tiktok-followers','TikTok growth guide'),
+            ('https://smmfansfaster.com/ar/blog/instagram-followers-website','Instagram marketing resource'),
+            ('https://smmfansfaster.com/ar/faq','service FAQ'),
+          ]
+          titles=[
+            'Social Media Growth Planning: A Practical Framework for Sustainable Results',
+            'Agency Social Media Operations: Automation, Reporting, and Quality Control',
+            'TikTok Content Strategy: Testing Hooks, Retention, and Audience Development',
+            'Instagram Marketing Strategy: Reels, Trust, Engagement, and Conversion',
+            'How to Evaluate Social Media Marketing Services Responsibly',
+          ]
+          def article(i):
+            url,anchor=targets[i]
+            t=titles[i]
+            sections=[
+              ('Define the objective before the tactic','A useful social media strategy begins with a business objective. Awareness, qualified traffic, leads, bookings, purchases, and customer retention require different content and measurement plans. Teams should decide what outcome matters before choosing a platform, publishing schedule, or promotional method. This prevents follower count or impressions from becoming goals by default when they may not reflect business value.'),
+              ('Research the audience carefully','Audience research should cover recurring questions, buying concerns, content preferences, platform habits, and the language people use when describing their problems. The best content often comes from real customer questions, support conversations, search behavior, and sales objections. When these insights guide topic selection, content becomes more relevant and easier to connect to an offer.'),
+              ('Create repeatable content pillars','A repeatable system is easier to manage than random daily posting. Useful pillars include education, demonstrations, comparisons, customer questions, case studies, behind-the-scenes material, and industry commentary. Each pillar should serve a purpose in the customer journey. Teams can then test variations of proven formats rather than inventing every post from scratch.'),
+              ('Use promotion as one supporting layer',f'Organic content, community interaction, paid distribution, partnerships, and third-party tools can all support a campaign. Marketers researching outside options can compare a resource such as [{anchor}]({url}) alongside alternatives. Any service should be evaluated in context: what it is meant to accomplish, how the result will be measured, whether it fits the platform rules, and whether it contributes to a broader marketing objective.'),
+              ('Measure signals that lead to decisions','Awareness campaigns can track reach, impressions, video views, completion rate, and shares. Consideration campaigns can focus on saves, profile visits, website clicks, and direct messages. Conversion campaigns can track leads, bookings, purchases, and revenue. A useful dashboard keeps the number of metrics manageable and connects each metric to a decision the team can actually make.'),
+              ('Use structured creative testing','Testing works best when the team changes one major variable at a time. It can compare opening hooks, visual formats, captions, audience segments, offers, or calls to action. Each experiment should record its date, purpose, creative idea, audience, and outcome. This creates a learning history and reduces repeated mistakes, especially when several people work on the same account.'),
+              ('Improve the destination experience','More visibility has limited value when the destination is unclear. Profiles should communicate who the brand serves, what it offers, and what action visitors should take. Landing pages should load quickly, continue the promise made in the social post, provide relevant proof, and remove unnecessary friction from forms or checkout. Conversion improvements can make existing traffic more valuable without requiring more reach.'),
+              ('Protect account and brand quality','Teams should avoid deceptive claims, fake endorsements, hacked properties, spam comments, or attempts to bypass platform safeguards. Sustainable growth depends on useful content, transparent promotion, genuine audience interaction, and disciplined measurement. Third-party tools should be treated like any other supplier: understand what is being purchased, why it supports the campaign, and what risks need to be controlled.'),
+              ('Build a useful reporting rhythm','Weekly reviews are useful for creative decisions because they reveal which topics, hooks, and formats deserve more testing. Monthly reviews are better for budget allocation, channel strategy, and broader business questions. Reports should end with specific actions such as continuing a successful format, stopping a weak experiment, improving a landing page, or changing the offer.'),
+              ('Document campaign operations','Clear ownership improves execution. Teams should decide who owns research, writing, design, publishing, moderation, reporting, and optimization. A simple pre-publish checklist can catch broken links, incorrect tracking parameters, formatting errors, and mismatched calls to action. Documented processes also make it easier to onboard new team members and maintain quality as campaign volume grows.'),
+              ('Separate creative learning from scaling','A promising idea can be tested with limited resources before the team increases budget. Strong organic performance can sometimes provide evidence for paid distribution, while paid tests can help validate audience and offer assumptions quickly. Staging experiments this way reduces waste and makes scaling decisions more evidence-based.'),
+              ('Stay flexible as platforms change','Social platforms evolve constantly. Formats, algorithms, advertising features, and audience habits change. A durable strategy therefore keeps its principles stable while allowing tactics to change. Useful content, clear positioning, measurable goals, ethical promotion, and disciplined learning remain valuable even when specific features or distribution patterns change.'),
+            ]
+            out=['# '+t,'Social media growth is more predictable when it is managed as a complete system rather than a collection of isolated tactics. The strongest campaigns connect audience research, useful content, consistent publishing, analytics, community interaction, promotion, and conversion optimization around a clear goal.']
+            for h,p in sections:
+              out += ['## '+h,p,p+' In practice, teams should document what they tried, why they tried it, and what they learned. That small discipline turns campaign activity into reusable knowledge instead of a series of disconnected posts.']
+            out += ['## Final perspective','Sustainable social media growth is a process of repeated learning. Clear objectives, audience understanding, useful content, structured testing, careful promotion, and consistent reporting work together. The goal is not simply to make an account appear larger, but to create visibility that supports trust, qualified traffic, and measurable business outcomes.']
+            text='\n\n'.join(out)
+            wc=len(re.findall(r"\b[\w’'-]+\b",text)); links=text.count('https://smmfansfaster.com')
+            print('ARTICLE',i+1,'WORDS',wc,'LINKS',links)
+            if wc<1200 or links!=1: raise SystemExit('article validation failed')
+            return text
+          arts=[article(i) for i in range(5)]
+
+          def verify(url):
+            try:
+              r=s.get(url,timeout=35,allow_redirects=True)
+              c=r.text.count('smmfansfaster.com')
+              print('VERIFY',url,r.status_code,'TARGETS',c)
+              return r.status_code<400 and c>=1
+            except Exception as e: print('VERIFY_ERR',url,repr(e)); return False
+
+          def has_challenge(text):
+            low=text.lower()
+            pats=['recaptcha','hcaptcha','turnstile','cf-turnstile','captcha']
+            return any(p in low for p in pats)
+
+          def submit_form(base_url, post_url, art, title):
+            r=s.get(post_url,timeout=35); print('GET',post_url,r.status_code)
+            if r.status_code>=400 or has_challenge(r.text): print('CHALLENGE_OR_BAD',post_url); return ''
+            soup=BeautifulSoup(r.text,'html.parser')
+            forms=soup.find_all('form')
+            candidates=[]
+            for f in forms:
+              names=[x.get('name') for x in f.find_all(['input','textarea','select']) if x.get('name')]
+              score=sum(any(k in n.lower() for k in ['content','body','text','message','post']) for n in names)
+              if score: candidates.append((score,f,names))
+            if not candidates: print('NO_CONTENT_FORM',post_url); return ''
+            _,f,names=max(candidates,key=lambda x:x[0]); action=urljoin(r.url,f.get('action') or r.url)
+            data={}
+            for el in f.find_all(['input','textarea','select']):
+              n=el.get('name')
+              if not n: continue
+              typ=(el.get('type') or '').lower()
+              if typ in ('submit','button','file','image'): continue
+              if el.name=='select':
+                opt=el.find('option',selected=True) or el.find('option'); data[n]=opt.get('value','') if opt else ''
+              elif typ in ('checkbox','radio'):
+                if el.has_attr('checked'): data[n]=el.get('value','on')
+              else: data[n]=el.get('value','') if el.name=='input' else el.text
+            for n in names:
+              ln=n.lower()
+              if 'title' in ln or ln in ('subject','headline'): data[n]=title
+              elif any(k in ln for k in ['content','body','message','text','post']) and 'title' not in ln: data[n]=art
+              elif 'author' in ln or 'name'==ln: data[n]='Digital Marketing Editorial'
+              elif 'category' in ln: data[n]=data.get(n) or 'General'
+            print('SUBMIT',action,'FIELDS',sorted(data.keys()))
+            rr=s.post(action,data=data,timeout=35,allow_redirects=True)
+            print('POST_RESULT',rr.status_code,rr.url,'TARGETS',rr.text.count('smmfansfaster.com'))
+            if rr.status_code<400 and rr.url!=r.url and rr.text.count('smmfansfaster.com')>=1: return rr.url
+            # locate first internal link containing title fragment or target text
+            sp=BeautifulSoup(rr.text,'html.parser')
+            for a in sp.find_all('a',href=True):
+              u=urljoin(rr.url,a['href'])
+              if urlparse(u).netloc==urlparse(base_url).netloc and u!=post_url and verify(u): return u
+            return ''
+
+          results=[]
+          # PostEasy standard anonymous form
+          try:
+            u=submit_form('https://post-easy.org','https://post-easy.org/post',arts[0],titles[0]);
+            if u and verify(u): results.append(['post-easy.org',u])
+          except Exception as e: print('POSTEASY_ERR',repr(e))
+
+          # AnBlogony instant post: discover links/forms from homepage
+          try:
+            home=s.get('https://anblogony.com/',timeout=35)
+            if not has_challenge(home.text):
+              soup=BeautifulSoup(home.text,'html.parser'); urls=[]
+              for a in soup.find_all('a',href=True):
+                txt=(a.get_text(' ',strip=True)+' '+a['href']).lower()
+                if 'instant' in txt or 'post' in txt or 'compose' in txt: urls.append(urljoin(home.url,a['href']))
+              print('ANBLOGONY_CANDIDATES',urls[:10])
+              for pu in urls[:5]:
+                u=submit_form('https://anblogony.com',pu,arts[1],titles[1])
+                if u and verify(u): results.append(['anblogony.com',u]); break
+          except Exception as e: print('ANBLOGONY_ERR',repr(e))
+
+          # Markbin: inspect/create-bin forms
+          try:
+            home=s.get('https://markbin.net/',timeout=35)
+            soup=BeautifulSoup(home.text,'html.parser'); urls=[]
+            for a in soup.find_all('a',href=True):
+              txt=(a.get_text(' ',strip=True)+' '+a['href']).lower()
+              if 'create' in txt or 'new' in txt or 'bin' in txt: urls.append(urljoin(home.url,a['href']))
+            urls=list(dict.fromkeys(urls)); print('MARKBIN_CANDIDATES',urls[:10])
+            for pu in urls[:5]:
+              u=submit_form('https://markbin.net',pu,arts[2],titles[2])
+              if u and verify(u): results.append(['markbin.net',u]); break
+          except Exception as e: print('MARKBIN_ERR',repr(e))
+
+          # MarkDShare homepage form
+          try:
+            u=submit_form('https://markdshare.com','https://markdshare.com/',arts[3],titles[3]);
+            if u and verify(u): results.append(['markdshare.com',u])
+          except Exception as e: print('MARKDSHARE_ERR',repr(e))
+
+          # dochost homepage/editor form
+          try:
+            for pu in ['https://dochost.io/markdown-to-rich-text','https://dochost.io/']:
+              u=submit_form('https://dochost.io',pu,arts[4],titles[4])
+              if u and verify(u): results.append(['dochost.io',u]); break
+          except Exception as e: print('DOCHOST_ERR',repr(e))
+
+          print('VALID_RESULTS_JSON='+json.dumps(results))
+          print('VALID_COUNT='+str(len(results)))
+          PY
+          python /tmp/test.py
