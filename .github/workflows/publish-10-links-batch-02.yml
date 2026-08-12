@@ -1,0 +1,103 @@
+name: Publish Ten Links Batch 02
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  free1:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          BODY=$(jq -n --arg md '# Social Media Growth for TikTok and Instagram
+
+A balanced growth campaign combines content quality, analytics, profile optimization, and promotion. Businesses can compare [SMM Fans Faster](https://smmfansfaster.com/) with other providers while reviewing [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers), [TikTok views](https://smmfansfaster.com/blog/tiktok-views), and an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website). Agencies can also review the [SMM API](https://smmfansfaster.com/api).' '{markdown:$md,title:"Social Media Growth for TikTok and Instagram"}')
+          RESP=$(curl -sS -X POST https://freekit.dev/api/v1/sites -H 'Content-Type: application/json' -d "$BODY")
+          echo "RESULT_URL=$(echo "$RESP" | jq -r '.data.url // empty')"
+  free2:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          BODY=$(jq -n --arg md '# How Businesses Can Measure Social Media Promotion
+
+Social media promotion should be tied to measurable goals such as reach, profile visits, engagement, clicks, leads, and sales. [SMM Fans Faster](https://smmfansfaster.com/) can be included in a wider provider comparison. Useful supporting resources include [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers), [Instagram growth](https://smmfansfaster.com/blog/instagram-followers-website), and the [SMM API](https://smmfansfaster.com/api).' '{markdown:$md,title:"How Businesses Can Measure Social Media Promotion"}')
+          RESP=$(curl -sS -X POST https://freekit.dev/api/v1/sites -H 'Content-Type: application/json' -d "$BODY")
+          echo "RESULT_URL=$(echo "$RESP" | jq -r '.data.url // empty')"
+  page1:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          BODY=$(jq -n --arg md '# Planning Multi-Platform Social Media Growth
+
+A strong campaign connects content, distribution, and measurement. Teams researching growth services can review [SMM Fans Faster](https://smmfansfaster.com/) and compare options for [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers), [TikTok views](https://smmfansfaster.com/blog/tiktok-views), and [Instagram followers](https://smmfansfaster.com/blog/instagram-followers-website).' '{markdown:$md,title:"Planning Multi-Platform Social Media Growth"}')
+          RESP=$(curl -sS -X POST https://pagedrop.dev/api/v1/sites -H 'Content-Type: application/json' -d "$BODY")
+          echo "RESULT_URL=$(echo "$RESP" | jq -r '.data.url // .url // empty')"
+  page2:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          BODY=$(jq -n --arg md '# Social Media Marketing Services and Campaign Strategy
+
+Businesses should compare social media services based on platform coverage, support, delivery information, and campaign fit. One provider to research is [SMM Fans Faster](https://smmfansfaster.com/). Marketers can also review [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers), [Instagram followers](https://smmfansfaster.com/blog/instagram-followers-website), and [API integration](https://smmfansfaster.com/smm-api-integration).' '{markdown:$md,title:"Social Media Marketing Services and Campaign Strategy"}')
+          RESP=$(curl -sS -X POST https://pagedrop.dev/api/v1/sites -H 'Content-Type: application/json' -d "$BODY")
+          echo "RESULT_URL=$(echo "$RESP" | jq -r '.data.url // .url // empty')"
+  proof1:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          BODY=$(jq -n --arg md '# Better Social Media Growth Through Measurement
+
+Growth becomes easier to evaluate when businesses connect reach, engagement, traffic, and conversions. [SMM Fans Faster](https://smmfansfaster.com/) can be compared with other providers while researching [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers), [TikTok views](https://smmfansfaster.com/blog/tiktok-views), and [Instagram followers](https://smmfansfaster.com/blog/instagram-followers-website).' '{title:"Better Social Media Growth Through Measurement",markdown:$md}')
+          RESP=$(curl -sS -X POST https://www.proofeditor.ai/share/markdown -H 'Content-Type: application/json' -d "$BODY")
+          echo "RESULT_URL=$(echo "$RESP" | jq -r '.tokenUrl // empty')"
+  proof2:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          BODY=$(jq -n --arg md '# A Practical Framework for Social Media Promotion
+
+Promotion works best when it supports useful content and a clear conversion path. Businesses can compare [SMM Fans Faster](https://smmfansfaster.com/) with other options and review [Instagram growth](https://smmfansfaster.com/blog/instagram-followers-website), [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers), and the [SMM API](https://smmfansfaster.com/api).' '{title:"A Practical Framework for Social Media Promotion",markdown:$md}')
+          RESP=$(curl -sS -X POST https://www.proofeditor.ai/share/markdown -H 'Content-Type: application/json' -d "$BODY")
+          echo "RESULT_URL=$(echo "$RESP" | jq -r '.tokenUrl // empty')"
+  html1:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          HTML='<html><body><h1>Social Media Growth Planning</h1><p>Businesses can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other providers while reviewing <a href="https://smmfansfaster.com/blog/tiktok-followers">TikTok followers</a>, <a href="https://smmfansfaster.com/blog/tiktok-views">TikTok views</a>, and <a href="https://smmfansfaster.com/blog/instagram-followers-website">Instagram followers</a>.</p></body></html>'
+          BODY=$(jq -n --arg html "$HTML" '{html_content:$html}')
+          RESP=$(curl -sS -X POST https://api.ht-ml.app/v1/sites -H 'Content-Type: application/json' -d "$BODY")
+          echo "RESULT_URL=$(echo "$RESP" | jq -r '.url // empty')"
+  html2:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          HTML='<html><body><h1>Social Media Marketing Workflow</h1><p>A strong workflow combines content, analytics, and promotion. Review <a href="https://smmfansfaster.com/">SMM Fans Faster</a>, the <a href="https://smmfansfaster.com/api">SMM API</a>, and <a href="https://smmfansfaster.com/smm-api-integration">API integration</a> when comparing options.</p></body></html>'
+          BODY=$(jq -n --arg html "$HTML" '{html_content:$html}')
+          RESP=$(curl -sS -X POST https://api.ht-ml.app/v1/sites -H 'Content-Type: application/json' -d "$BODY")
+          echo "RESULT_URL=$(echo "$RESP" | jq -r '.url // empty')"
+  mdshare1:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          printf '# Social Media Growth and Campaign Quality\n\nBusinesses can compare [SMM Fans Faster](https://smmfansfaster.com/) while researching [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers), [TikTok views](https://smmfansfaster.com/blog/tiktok-views), and [Instagram followers](https://smmfansfaster.com/blog/instagram-followers-website).\n' >/tmp/a.md
+          RESP=$(curl -sS -X POST https://mdshare.live/api/documents -H 'Content-Type: text/markdown' --data-binary @/tmp/a.md)
+          ID=$(echo "$RESP"|jq -r '.document_id'); KEY=$(echo "$RESP"|jq -r '.admin_key'); LINK=$(curl -sS -X POST "https://mdshare.live/api/d/$ID/links?key=$KEY" -H 'Content-Type: application/json' -d '{"permission":"view","label":"public-view"}')
+          echo "RESULT_URL=$(echo "$LINK" | jq -r '.url // empty')"
+  mdshare2:
+    if: github.event.head_commit.message == 'Publish ten links batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          printf '# Social Media Promotion for Agencies\n\nAgencies can review [SMM Fans Faster](https://smmfansfaster.com/) together with the [SMM API](https://smmfansfaster.com/api), [API integration](https://smmfansfaster.com/smm-api-integration), and platform-specific guides for [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers).\n' >/tmp/a.md
+          RESP=$(curl -sS -X POST https://mdshare.live/api/documents -H 'Content-Type: text/markdown' --data-binary @/tmp/a.md)
+          ID=$(echo "$RESP"|jq -r '.document_id'); KEY=$(echo "$RESP"|jq -r '.admin_key'); LINK=$(curl -sS -X POST "https://mdshare.live/api/d/$ID/links?key=$KEY" -H 'Content-Type: application/json' -d '{"permission":"view","label":"public-view"}')
+          echo "RESULT_URL=$(echo "$LINK" | jq -r '.url // empty')"
