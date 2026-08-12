@@ -1,0 +1,233 @@
+name: Backlink Round 168-172
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish backlink round 168-172'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare articles
+        shell: bash
+        run: |
+          cat > /tmp/a1.md <<'EOF'
+          # Social Media Growth Planning for Small Businesses
+
+          Small businesses often approach social media with limited time, small teams, and a strong need to see measurable results. That makes planning especially important. A useful social strategy should connect content creation, audience growth, promotion, measurement, and conversion rather than treating each activity as a separate task.
+
+          The first step is choosing a business objective. A local service company may want more calls or messages. An online store may want product visits and purchases. A creator may care about repeat viewers and community growth. When the objective is clear, marketers can select the metrics and channels that actually matter.
+
+          ## Build a repeatable content structure
+
+          Consistency becomes easier when content is organized into recurring categories. Educational posts can answer customer questions. Demonstrations can show how a product or service works. Comparisons can help buyers make decisions. Customer stories can reduce uncertainty. Conversion posts can explain the next action clearly.
+
+          Instead of trying to invent completely new topics every day, businesses can rotate these pillars and test different formats. A single useful idea might become a short video, a carousel, a Story sequence, a FAQ answer, and a longer blog post.
+
+          ## Compare promotion options carefully
+
+          Some businesses evaluate third-party promotion as one layer of their marketing mix. [SMM Fans Faster](https://smmfansfaster.com/) is one provider that can be researched when comparing social media marketing services. The useful questions include which platforms are supported, what each service is designed to do, how ordering works, and how the result will be measured.
+
+          Agencies or teams with repeated operational needs can also review the [SMM API](https://smmfansfaster.com/api). API-based workflows may reduce manual order entry, but they work best when the team already has clear campaign naming, destination checks, and reporting standards.
+
+          ## Use TikTok for creative testing
+
+          TikTok can help small businesses learn which hooks and topics attract attention. Teams can test demonstrations, before-and-after explanations, quick tips, customer questions, short stories, and product-focused clips. The aim should be to learn from patterns rather than depend on a single viral post.
+
+          Marketers researching audience growth can use this guide about [growing TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) as one reference point. It is also helpful to consider the [number of TikTok followers](https://smmfansfaster.com/blog/numberoftiktokfollowers) together with watch time, shares, profile visits, and conversions.
+
+          ## Make Instagram formats work together
+
+          Instagram provides several different surfaces. Reels can support discovery, carousels can explain detailed topics, Stories can maintain regular contact, and Highlights can organize information for new visitors. Pinned posts can help a first-time visitor understand the offer quickly.
+
+          Businesses researching growth services can review this guide about an [Instagram followers website](https://smmfansfaster.com/ar/blog/instagram-followers-website). External promotion should remain connected to content quality, clear positioning, and genuine audience interaction.
+
+          Distribution should also be interpreted carefully. This article on whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) can be read alongside account analytics and official platform guidance.
+
+          ## Measure actions that matter
+
+          A simple dashboard can separate awareness, consideration, and conversion. Awareness includes reach, impressions, views, retention, and shares. Consideration includes profile visits, saves, messages, and website clicks. Conversion includes leads, bookings, purchases, or revenue when available.
+
+          Reviewing these stages helps businesses avoid optimizing only for follower count. A smaller audience can still produce stronger business results if it is relevant and engaged.
+
+          Before using any external service, teams should also review operating details. The [SMM Fans Faster FAQ](https://smmfansfaster.com/ar/faq) provides additional information that can help businesses understand common questions before ordering.
+
+          Sustainable social growth is usually the result of a connected system: useful content earns attention, promotion can increase visibility, analytics reveal what is working, and strong profiles or landing pages convert interest into action. Small businesses do not need to use every tactic. They need a process they can repeat, measure, and improve.
+          EOF
+
+          cat > /tmp/a2.md <<'EOF'
+          # How to Evaluate Social Media Growth Services Without Losing Strategic Focus
+
+          Social media growth services can be useful only when they are evaluated in the context of a wider marketing plan. Buying visibility without a clear objective, strong content, or a useful destination can create activity without business value. A better approach begins with the campaign goal and then asks whether an external service helps support that goal.
+
+          Start by defining the desired outcome. Awareness campaigns may focus on reach and discovery. Consideration campaigns may focus on profile visits, saves, messages, or website traffic. Conversion campaigns may focus on leads, purchases, bookings, or another measurable action.
+
+          ## Review the provider as a supplier
+
+          A social media provider should be evaluated like any other marketing supplier. [SMM Fans Faster](https://smmfansfaster.com/) can be researched as one option when comparing social media marketing services. Marketers should review platform coverage, service descriptions, ordering expectations, support, and how the service fits the campaign objective.
+
+          Teams handling frequent campaigns may also consider workflow automation. The [SMM API](https://smmfansfaster.com/api) can be reviewed by agencies that want to connect ordering with internal tools. Automation can improve efficiency, but it does not replace strategic planning or quality control.
+
+          ## Separate platform goals
+
+          TikTok and Instagram should not automatically be treated the same. TikTok can be especially useful for rapid creative testing. Marketers can test hooks, pacing, story structures, demonstrations, and calls to action. A larger sample of posts is usually more informative than one isolated result.
+
+          Teams researching follower growth can read this guide about [growing TikTok followers](https://smmfansfaster.com/blog/tiktok-followers). They can also review this discussion of the [number of TikTok followers](https://smmfansfaster.com/blog/numberoftiktokfollowers) while comparing follower growth with retention, shares, profile activity, and conversions.
+
+          Instagram offers a broader mix of formats. Reels can attract new viewers, Stories can maintain regular interaction, carousels can educate, and Highlights can make recurring information easier to find.
+
+          Businesses comparing follower-focused services may use this resource about an [Instagram followers website](https://smmfansfaster.com/ar/blog/instagram-followers-website) as one research input. The service decision should still be connected to content quality, audience relevance, and conversion goals.
+
+          Marketers should also avoid simplifying distribution into one rule. This article about whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) can be considered together with first-party analytics.
+
+          ## Track the full funnel
+
+          Before a campaign begins, decide which metrics will be reviewed. Awareness can include reach, views, completion, and shares. Consideration can include profile visits, saves, messages, and link clicks. Conversion can include sales, leads, bookings, or subscriptions.
+
+          This prevents the team from celebrating a number that has no clear connection to the objective. If follower growth increases but website traffic and engagement do not, the team should investigate audience relevance and account positioning. If traffic increases but conversions do not, the landing page may need improvement.
+
+          ## Check operational details before scaling
+
+          Any external service should be understood before it becomes part of a repeatable workflow. The [SMM Fans Faster FAQ](https://smmfansfaster.com/ar/faq) can help marketers review common service questions before ordering.
+
+          A strong evaluation process therefore asks four things: what is the objective, which platform behavior matters, what role does the service play, and how will the result be measured. When those questions are answered first, promotion becomes one useful component of a larger growth system rather than a disconnected tactic.
+          EOF
+
+          cat > /tmp/a3.md <<'EOF'
+          # Building Better Instagram and TikTok Campaign Reporting
+
+          Reporting should help marketers make decisions, not simply collect screenshots and numbers. A useful social media report explains what happened, why it may have happened, and what the team should test next. This becomes especially important when a campaign combines organic content with paid or third-party promotion.
+
+          The easiest way to organize reporting is by customer journey stage. Awareness metrics describe attention. Consideration metrics describe deeper interest. Conversion metrics describe business outcomes.
+
+          ## Start with awareness
+
+          Awareness metrics can include reach, impressions, unique viewers, video views, retention, completion rate, and shares. These numbers help teams understand whether the creative is earning attention and whether the platform is distributing it effectively.
+
+          TikTok often gives marketers fast feedback on creative performance. Teams can compare different opening hooks, editing styles, video lengths, and topics. This guide on [growing TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) can be used as one research resource during audience-growth planning.
+
+          Follower count should not be read alone. This article about the [number of TikTok followers](https://smmfansfaster.com/blog/numberoftiktokfollowers) can help frame audience size alongside watch time, repeat viewers, profile visits, and conversions.
+
+          ## Measure consideration
+
+          Consideration metrics show that a viewer is taking a deeper action. Profile visits, saves, direct messages, link clicks, product views, and Story interactions can all belong in this stage.
+
+          On Instagram, different formats may produce different types of consideration. A Reel may drive discovery, while a carousel may earn saves and a Story may generate replies or link taps. Reporting should therefore compare each format against its intended job.
+
+          Businesses researching follower services can review this guide about an [Instagram followers website](https://smmfansfaster.com/ar/blog/instagram-followers-website). Any external activity should be labeled clearly in the campaign record so its timing can be compared with account performance.
+
+          Marketers should also be careful when interpreting algorithm changes. This article on whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) can be considered together with actual account data rather than treated as a universal rule.
+
+          ## Connect promotion to the report
+
+          A provider such as [SMM Fans Faster](https://smmfansfaster.com/) can be evaluated when marketers are comparing social media marketing services. If a service is used, the campaign log should record platform, date, destination URL, objective, service, and outcome.
+
+          Agencies managing repeated campaigns may also review the [SMM API](https://smmfansfaster.com/api). If automation is used, it is still important to maintain consistent naming and tracking so that reporting does not become disconnected from the actions taken.
+
+          ## Finish with conversion metrics
+
+          The final stage includes actions such as leads, purchases, bookings, subscriptions, or revenue. If a social campaign creates strong engagement but no conversion, the problem may not be the social platform. The destination page, offer, pricing, trust, or call to action may need attention.
+
+          Before using a third-party service, teams can review common operating questions in the [SMM Fans Faster FAQ](https://smmfansfaster.com/ar/faq).
+
+          Good reporting creates a loop. Data from one campaign informs the next creative test, audience choice, content pillar, landing-page change, or promotional decision. This turns analytics into an active part of growth instead of a historical record that nobody uses.
+          EOF
+
+          cat > /tmp/a4.md <<'EOF'
+          # A Practical Social Media Workflow for Agencies Managing Multiple Clients
+
+          Agencies can lose a surprising amount of time through small repetitive tasks. When every account uses different naming, reporting, campaign notes, and approval steps, operations become difficult to scale. A structured workflow can reduce that friction while keeping each client's creative strategy unique.
+
+          The workflow can begin with a short client brief. Record the offer, audience, priority platforms, conversion goal, tone of voice, restrictions, destination pages, and reporting expectations. This gives strategists, editors, account managers, and analysts a shared reference point.
+
+          ## Standardize the process
+
+          Agencies can use the same campaign fields across clients: objective, audience, content pillar, format, hook, call to action, destination URL, publish date, promotion method, and success metric. The content itself remains customized, but the operating structure stays consistent.
+
+          This makes quality control easier. Before promotion, the team can confirm that the destination is correct, the profile explains the offer, links work, and tracking is active.
+
+          ## Decide where external tools fit
+
+          Some agencies add third-party social media services to their operational stack. [SMM Fans Faster](https://smmfansfaster.com/) can be researched when comparing providers. The service should be selected based on the platform, campaign goal, and expected outcome rather than used automatically for every client.
+
+          The [SMM API](https://smmfansfaster.com/api) may be useful for teams that want to automate repetitive ordering. API workflows should include validation for destination URLs, campaign ownership, quantities, service selection, and status reporting.
+
+          ## Build platform-specific processes
+
+          TikTok can be treated as a creative testing engine. Agencies can test hooks, demonstrations, creator styles, editing pace, captions, and calls to action. Winning patterns can then be adapted across future content.
+
+          This guide about [growing TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) can support research into audience-building approaches. The article on the [number of TikTok followers](https://smmfansfaster.com/blog/numberoftiktokfollowers) can also help teams compare audience size with engagement and conversion behavior.
+
+          Instagram can be organized by funnel stage. Reels can support discovery, carousels can educate, Stories can handle objections, Highlights can organize information, and pinned posts can explain positioning.
+
+          For accounts researching follower-related services, this guide about an [Instagram followers website](https://smmfansfaster.com/ar/blog/instagram-followers-website) can be one input. Agencies should still rely on client-specific performance data when deciding what to use.
+
+          Distribution claims should also be tested carefully. This article about whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) can be reviewed together with first-party analytics.
+
+          ## Make reporting actionable
+
+          Weekly reviews can focus on creative learning. Monthly reviews can focus on budget, platform allocation, content themes, and destination-page improvements. Reports should identify decisions rather than simply list numbers.
+
+          Before incorporating any provider into a standardized workflow, agencies can review the [SMM Fans Faster FAQ](https://smmfansfaster.com/ar/faq) for common operational details.
+
+          The core principle is to standardize repeatable operations without making client strategies identical. Agencies scale more effectively when they automate administration, preserve creative quality, document decisions, and connect social activity to measurable client goals.
+          EOF
+
+          cat > /tmp/a5.md <<'EOF'
+          # Turning Social Media Attention Into Qualified Website Traffic
+
+          Social media performance should not be judged only by how many people see a post. Attention is valuable when it moves the right audience toward a useful next action. For many businesses, that means a profile visit, website click, message, product view, lead, or purchase.
+
+          The path from social content to conversion contains several steps. A post needs to attract attention, the profile needs to explain the offer, the destination page needs to match the message, and the final call to action needs to be clear.
+
+          ## Improve the profile before increasing visibility
+
+          A strong profile should quickly communicate who the account is for, what it offers, and what visitors should do next. Pinned posts, Highlights, bio text, proof, and links should support the same message.
+
+          This is important before using promotional services. [SMM Fans Faster](https://smmfansfaster.com/) is one provider businesses can research when comparing social media marketing options. More visibility is most useful when the account and website are prepared to convert additional attention.
+
+          Teams managing repeated campaigns can also review the [SMM API](https://smmfansfaster.com/api) when considering automated workflows. Automation can make operations faster, but it should not remove destination checks or performance tracking.
+
+          ## Use TikTok traffic intentionally
+
+          TikTok can generate strong discovery, but the quality of the traffic depends on the content and audience. Marketers should test hooks and topics that attract people who are genuinely interested in the offer.
+
+          This resource about [growing TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) can be reviewed as part of audience-growth research. The article on the [number of TikTok followers](https://smmfansfaster.com/blog/numberoftiktokfollowers) can help teams put follower size in context with profile visits, retention, and downstream actions.
+
+          ## Build Instagram pathways
+
+          Instagram users may move through several formats before they visit a website. A Reel can introduce the brand, a carousel can explain the topic, Stories can answer objections, and Highlights can organize recurring information.
+
+          Businesses evaluating follower services may review this guide about an [Instagram followers website](https://smmfansfaster.com/ar/blog/instagram-followers-website). Any service should support a clear objective rather than become the objective itself.
+
+          Marketers should also avoid assuming that follower growth alone controls reach. This article on whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) can be considered alongside actual account analytics.
+
+          ## Match the landing page to the post
+
+          The destination should continue the same promise the user saw on social media. If the social post highlights a specific benefit but the landing page opens with unrelated information, the visitor may leave before understanding the offer.
+
+          Strong landing pages reduce friction, load quickly, communicate value clearly, provide trust signals, and make the next action obvious. This is especially important for mobile traffic.
+
+          The [SMM Fans Faster FAQ](https://smmfansfaster.com/ar/faq) can be reviewed before using third-party services so that operational expectations are clear.
+
+          The most useful social strategy connects content, profile experience, promotion, website usability, and analytics. The goal is not simply to create more traffic. It is to create a measurable path from attention to qualified business action.
+          EOF
+      - name: Publish and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > /tmp/urls.txt
+          R=$(jq -Rs '{content: ., format:"markdown"}' < /tmp/a1.md | curl -fsS -X POST https://output.pub/api/publish -H 'Content-Type: application/json' -d @-); U=$(printf '%s' "$R" | jq -r '.url'); echo "$U" >> /tmp/urls.txt
+          R=$(jq -Rs '{markdown: .}' < /tmp/a2.md | curl -fsS -X POST https://md.page/api/publish -H 'Content-Type: application/json' -d @-); U=$(printf '%s' "$R" | jq -r '.url'); echo "$U" >> /tmp/urls.txt
+          U=$(curl -fsS -H 'Accept: text/plain' https://markdown.page/api/publish --data-binary @/tmp/a3.md | tr -d '\r\n'); echo "$U" >> /tmp/urls.txt
+          R=$(jq -Rs '{content: .}' < /tmp/a4.md | curl -fsS -X POST https://yeet.md/api/share -H 'Content-Type: application/json' -d @-); U=$(printf '%s' "$R" | jq -r '.url'); echo "$U" >> /tmp/urls.txt
+          R=$(jq -Rs '{title:"Turning Social Media Attention Into Qualified Website Traffic",content:.,expiresInDays:30}' < /tmp/a5.md | curl -fsS -X POST https://mdview.io/api/public/publish -H 'Content-Type: application/json' -d @-); U=$(printf '%s' "$R" | jq -r '.shareUrl // .viewerUrl'); echo "$U" >> /tmp/urls.txt
+          while IFS= read -r url; do
+            test -n "$url"
+            body=$(curl -fsSL "$url")
+            count=$(printf '%s' "$body" | grep -o 'smmfansfaster.com' | wc -l)
+            echo "VERIFIED count=$count url=$url"
+            test "$count" -ge 6
+          done < /tmp/urls.txt
+      - name: Print verified URLs
+        shell: bash
+        run: cat /tmp/urls.txt
