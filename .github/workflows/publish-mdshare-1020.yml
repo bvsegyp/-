@@ -1,0 +1,113 @@
+name: Publish MdShare 1020
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish mdshare 1020'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish one long article with one backlink
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # A Practical Social Media Content and Measurement Playbook
+
+          Social media growth works best when it is managed as a complete marketing system rather than as a collection of disconnected tactics. A strong plan connects audience research, content quality, publishing consistency, creative testing, analytics, community interaction, and conversion optimization to a clear business objective.
+
+          ## Define the objective first
+
+          Before choosing a platform or promotional tactic, decide what outcome matters. Awareness, website traffic, leads, bookings, purchases, and retention each require different metrics and different content decisions. Clear objectives prevent teams from treating follower count as the only measure of progress. A creator may prioritize community growth, while an ecommerce business may care more about qualified sessions and purchases. Agencies often need to manage several objectives across different clients at the same time.
+
+          ## Understand the audience
+
+          Audience research should identify recurring questions, buying concerns, preferred content formats, platform habits, and the language people use to describe their problems. These insights can come from search behavior, customer support conversations, sales objections, comments, reviews, and direct messages. Content becomes more relevant when it reflects real audience needs rather than internal assumptions. Teams should document common themes so they can return to proven topics without publishing the same message repeatedly.
+
+          ## Build repeatable content pillars
+
+          A reliable publishing system usually includes several repeatable pillars such as education, demonstrations, comparisons, customer questions, case studies, behind-the-scenes material, and industry commentary. Each pillar should have a purpose in the customer journey. Educational posts can attract attention, demonstrations can explain an offer, comparisons can support evaluation, and case studies can reduce uncertainty. This structure also helps teams maintain consistency when several people contribute to the calendar.
+
+          ## Use promotion as support
+
+          Organic publishing, paid distribution, partnerships, and carefully evaluated third-party tools can support the same strategy. Teams researching audience-development approaches can review this [TikTok growth guide](https://smmfansfaster.com/blog/tiktok-followers) as one reference while comparing alternatives. Any external service should fit a defined campaign objective and should never replace useful content, account quality, or genuine audience engagement.
+
+          ## Measure useful signals
+
+          For awareness, track reach, impressions, video views, completion rate, and shares. For consideration, monitor saves, profile visits, direct messages, and website clicks. For conversion, track leads, purchases, bookings, revenue, and cost per acquisition where reliable attribution is available. A smaller set of meaningful metrics is usually more actionable than a dashboard filled with every available number. The best metric is one that helps the team decide what to do next.
+
+          ## Test creative ideas systematically
+
+          Creative testing works best when one major variable changes at a time. Teams can compare opening hooks, visual formats, captions, offers, audiences, and calls to action. Documenting the hypothesis and the outcome makes each campaign a learning opportunity. Over time, this creates a useful library of patterns instead of a collection of isolated results. It also reduces the risk of declaring a tactic successful based on one unusual post.
+
+          ## Improve the destination
+
+          Visibility creates limited value if the destination is unclear. Social profiles should explain who the brand serves, what it offers, and what action a visitor should take next. Landing pages should load quickly, continue the promise made in the social post, provide relevant proof, and remove unnecessary friction from forms or checkout. Conversion improvements can make existing traffic more valuable without requiring more reach.
+
+          ## Protect long-term account quality
+
+          Short-term growth should not come at the expense of trust. Teams should avoid deceptive claims, fake endorsements, hacked properties, spam comments, and attempts to bypass platform safeguards. Third-party services should be evaluated like any other supplier: understand what is being purchased, how it supports the objective, how the outcome will be measured, and what risks need to be controlled.
+
+          ## Create a reporting rhythm
+
+          Weekly reviews work well for creative decisions, while monthly reviews are better for budget allocation and broader strategy. Every report should end with actions: continue a winning format, stop a weak test, improve a landing page, refine the offer, or adjust the audience. Reporting becomes valuable when it changes what the team does next. Comparing periods also helps separate real trends from short-term fluctuations.
+
+          ## Document operations
+
+          Clear ownership helps teams maintain quality as campaign volume grows. Decide who owns research, writing, design, publishing, moderation, reporting, and optimization. A pre-publish checklist can catch broken links, incorrect tracking parameters, formatting mistakes, and mismatched calls to action before they become repeated problems. Documented workflows also make it easier to onboard new team members and maintain consistency across accounts.
+
+          ## Separate learning from scaling
+
+          Promising ideas can be tested with limited resources before the team increases budget. Strong organic performance can provide evidence for paid distribution, and small paid tests can validate audience or offer assumptions. Staging experiments this way reduces waste and improves confidence in scaling decisions. It also makes failures less expensive because a weak hypothesis can be stopped before large resources are committed.
+
+          ## Maintain a useful editorial calendar
+
+          An editorial calendar should record more than publication dates. It can include the target audience, content pillar, format, campaign objective, call to action, and primary metric. This context makes later analysis more useful. When performance is reviewed, the team can understand why the post existed and whether it accomplished the intended job rather than judging every piece by the same standard.
+
+          ## Build a creative archive
+
+          Save successful hooks, headline structures, opening frames, visual patterns, and calls to action. A creative archive gives marketers tested building blocks that can be adapted to new topics. The goal is not to copy previous posts but to understand which components consistently earn attention or drive action. Over time, the archive reduces the amount of guesswork required during planning.
+
+          ## Use customer feedback as research
+
+          Comments, support tickets, sales calls, reviews, and on-site behavior reveal what audiences understand and where friction remains. If prospects repeatedly ask the same question, that question is a strong content candidate. If visitors abandon a page at the same point, the issue may require a page change rather than more traffic. Strong marketing systems connect these feedback signals to the editorial process.
+
+          ## Distinguish platform metrics from business metrics
+
+          A post can perform well on a platform without producing immediate revenue, and that can still be useful when its objective is awareness. Conversely, a post with modest reach may be highly valuable if it produces qualified leads. Evaluation should always return to the original objective. This keeps teams from using one universal benchmark for every campaign and every stage of the funnel.
+
+          ## Treat growth as a portfolio of experiments
+
+          Some experiments will fail, and that is acceptable when the cost is controlled and the learning is captured. The objective is not to make every post successful. The objective is to improve the percentage of decisions informed by evidence over time. A healthy portfolio includes safe, proven formats as well as smaller tests that explore new topics, audiences, and creative approaches.
+
+          ## Stay flexible
+
+          Social platforms change frequently. Formats, recommendation systems, advertising features, and audience habits evolve. Durable strategies keep their principles stable while allowing tactics to change. Useful content, clear positioning, ethical promotion, measurable goals, and disciplined learning remain valuable even as specific platform features change.
+
+          ## Final perspective
+
+          Sustainable social media growth is a process of repeated learning. Clear objectives, audience understanding, useful content, structured testing, careful promotion, conversion optimization, and consistent reporting reinforce one another. The strongest strategy does not chase isolated numbers; it builds visibility that contributes to trust, qualified traffic, and measurable business outcomes.
+          EOF
+          python - <<'PY'
+          import re
+          a=open('/tmp/a.md').read(); print('WORDS',len(re.findall(r"\b[\w’'-]+\b",a)),'LINKS',a.count('https://smmfansfaster.com'))
+          assert len(re.findall(r"\b[\w’'-]+\b",a))>=1200 and a.count('https://smmfansfaster.com')==1
+          PY
+          npm install -g mdshare
+          mdshare --help || true
+          set +e
+          OUT=$(mdshare /tmp/a.md 2>&1)
+          RC=$?
+          set -e
+          echo "RC=$RC"
+          echo "$OUT"
+          test "$RC" -eq 0
+          URL=$(echo "$OUT" | grep -oE 'https?://[^ ]+' | tail -1 | sed 's/[),.;]*$//')
+          echo "URL=$URL"
+          test -n "$URL"
+          python - "$URL" <<'PY'
+          import requests,re,sys
+          u=sys.argv[1]; r=requests.get(u,headers={'User-Agent':'Mozilla/5.0'},timeout=35,allow_redirects=True)
+          hrefs=re.findall(r'href=["\'](https://smmfansfaster\.com[^"\']*)["\']',r.text,re.I)
+          print('STATUS',r.status_code,'FINAL',r.url,'HREFS',hrefs)
+          assert r.status_code<400 and len(hrefs)==1
+          PY
