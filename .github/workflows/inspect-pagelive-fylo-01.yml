@@ -1,0 +1,11 @@
+name: Inspect PageLive and Fylo
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Run fresh publisher inspection'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/inspect_pagelive_fylo_01.sh
