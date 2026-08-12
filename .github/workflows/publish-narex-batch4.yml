@@ -1,0 +1,229 @@
+name: Publish NAREX anonymous backlinks batch 4
+
+on:
+  push:
+    branches:
+      - narex-publish-batch4-20260812
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Prepare article generator
+        shell: bash
+        run: |
+          cat > /tmp/publish_batch4.py <<'PY'
+          import html, os, re, json, time, subprocess, tempfile, pathlib, requests
+
+          HOME='https://narexx.com/'
+          PRODUCT='https://narexx.com/ar/easy-wash/p754364761'
+          WHY='https://narexx.com/en/%D9%84%D9%85%D8%A7%D8%B0%D8%A7-%D8%AA%D8%B3%D8%AA%D8%AE%D8%AF%D9%85-%D8%A7%D9%84%D9%85%D9%86%D8%AA%D8%AC/page-833898435'
+          WHOLESALE='https://narexx.com/en/%D8%B7%D9%84%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AC%D9%85%D9%84%D9%87/page-768158116'
+          COMPLAINTS='https://narexx.com/%D9%84%D9%84%D8%B4%D9%83%D8%A7%D9%88%D9%89-%D9%88-%D8%A7%D9%84%D8%A7%D9%82%D8%AA%D8%B1%D8%A7%D8%AD%D8%A7%D8%AA/page-50408011'
+          RETURNS='https://narexx.com/ar/%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%A8%D8%AF%D8%A7%D9%84-%D9%88%D8%A7%D9%84%D8%A5%D8%B3%D8%AA%D8%B1%D8%AC%D8%A7%D8%B9/page-1592231750'
+          EN='https://narexx.com/en/'
+
+          refs=[
+            ('Easy Wash من NAREX',PRODUCT),('متجر NAREX',HOME),('لماذا تستخدم المنتج',WHY),
+            ('صفحة Easy Wash الرسمية',PRODUCT),('NAREX السعودية',HOME),('سياسة الاستبدال والاسترجاع',RETURNS),
+            ('الشكاوى والاقتراحات',COMPLAINTS),('طلبات الجملة',WHOLESALE),('NAREX English',EN),
+            ('منتج منع انتقال الألوان',PRODUCT),('الموقع الرسمي NAREX',HOME),('Easy Wash الرسمي',PRODUCT),
+            ('متجر NAREX للعناية بالغسيل',HOME),('خدمة عملاء NAREX',COMPLAINTS),('حلول NAREX للغسيل',HOME),('Easy Wash للملابس الملونة',PRODUCT)
+          ]
+
+          paragraphs=[
+            'انتقال الألوان بين الملابس أثناء الغسيل من المشكلات التي قد تظهر مع القطع الجديدة أو الأقمشة ذات الصبغات القوية. وقد يلاحظ المستخدم تغيرًا في لون قطعة فاتحة بعد غسلها مع قطعة داكنة، لذلك يبدأ التعامل الصحيح مع المشكلة بفهم طبيعة الأقمشة وقراءة تعليمات العناية الموجودة على كل قطعة قبل تشغيل الغسالة.',
+            'الفرز الجيد يظل خطوة مهمة، لكن الحياة اليومية لا تسمح دائمًا بتقسيم كل مجموعة صغيرة من الملابس إلى دورة منفصلة. لهذا ظهرت حلول مساعدة مصممة لالتقاط جزء من الصبغات المتسربة داخل ماء الغسيل. الفكرة هي تقليل فرصة انتقال اللون من قطعة إلى أخرى مع الاستمرار في اتباع قواعد الغسيل الأساسية وعدم التعامل مع المنتج كبديل كامل عن الحذر مع القطع شديدة الحساسية.',
+            'تعمل مناديل التقاط الألوان داخل دورة الغسيل مع حركة الماء والملابس. يوضع المنديل في الحلة مع القطع، ثم يبدأ في التقاط الصبغات الزائدة التي قد تتحرر من بعض الأقمشة. بعد انتهاء الدورة يتم التخلص منه. عدد المناديل المناسب قد يختلف بحسب كمية الملابس وقوة الألوان، ولذلك من الأفضل مراجعة تعليمات المنتج الحالية قبل الاستخدام.',
+            'من النصائح المفيدة أيضًا عدم تحميل الغسالة فوق طاقتها، لأن وجود مساحة كافية لحركة الماء والمنظف يساعد على تنظيف الملابس بصورة أكثر توازنًا. كما يفضل استخدام درجة حرارة مناسبة لنوع القماش، وتجنب الحرارة العالية عندما لا تكون ضرورية، خصوصًا مع الملابس الملونة التي قد تتأثر الصبغة فيها مع تكرار الغسيل.',
+            'الملابس الجديدة الداكنة تحتاج إلى عناية إضافية في المرات الأولى لأنها قد تطلق كمية أكبر من الصبغة. يمكن غسل القطعة منفردة أول مرة عند الشك في ثبات لونها، ثم إدخالها ضمن روتين الغسيل المعتاد لاحقًا. كذلك يمكن قلب بعض الملابس من الداخل إلى الخارج لتقليل الاحتكاك المباشر على السطح الخارجي والمحافظة على مظهرها لفترة أطول.',
+            'بالنسبة للأسر التي تشغل الغسالة عدة مرات أسبوعيًا، فإن تنظيم عملية الفرز واختيار المنتجات المناسبة يمكن أن يوفر وقتًا ملحوظًا. الهدف ليس جمع كل الألوان دون تمييز، بل تقليل الفرز الزائد عندما تكون الملابس متقاربة ويمكن غسلها معًا بصورة آمنة، مع إضافة حل مساعد لالتقاط الصبغات إذا كان ذلك مناسبًا لطبيعة الحمولة.',
+            'قبل شراء أي منتج للعناية بالملابس من متجر إلكتروني، من المفيد مراجعة معلومات المنتج وسياسات الاستبدال والاسترجاع وقنوات التواصل. هذه الخطوة تساعد العميل على معرفة طريقة الاستخدام الحالية وما إذا كان المنتج يناسب احتياجه، كما تتيح لأصحاب الأعمال والمتاجر التعرف على خيارات الجملة عندما تكون هناك حاجة إلى كميات أكبر.',
+            'الحفاظ على الملابس لا يعتمد على منتج واحد فقط؛ النتيجة الأفضل تأتي من روتين متكامل يجمع بين الفرز المنطقي، واختيار البرنامج الصحيح، وكمية المنظف المناسبة، والتعامل السريع مع الملابس بعد انتهاء الدورة، والاستفادة من منتجات التقاط الصبغات عند الحاجة. مع تكرار هذا الروتين تقل المفاجآت غير المرغوبة ويصبح الغسيل اليومي أكثر تنظيمًا.'
+          ]
+
+          def article(title):
+            out=[f'<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><style>body{{font-family:Arial,sans-serif;line-height:2;max-width:900px;margin:40px auto;padding:0 22px;color:#222}}h1,h2{{line-height:1.5}}a{{color:#075cc9}}</style></head><body><article><h1>{html.escape(title)}</h1>']
+            ri=0
+            heads=['فهم مشكلة انتقال الألوان','الفرز الذكي للملابس','كيف تعمل مناديل التقاط الألوان','اختيار دورة الغسيل المناسبة','العناية بالملابس الجديدة','توفير الوقت في روتين الغسيل','التسوق من NAREX','الخلاصة']
+            for head,p in zip(heads,paragraphs):
+              a,b=refs[ri%len(refs)],refs[(ri+1)%len(refs)]; ri+=2
+              out.append(f'<h2>{head}</h2><p>{html.escape(p)} للمزيد يمكن زيارة <a href="{a[1]}">{html.escape(a[0])}</a> و<a href="{b[1]}">{html.escape(b[0])}</a>.</p>')
+            out.append(f'<p>مصادر إضافية للعناية بالألوان: <a href="{PRODUCT}">Easy Wash من NAREX</a>، <a href="{HOME}">متجر NAREX السعودية</a>.</p></article></body></html>')
+            return ''.join(out)
+
+          def valid_public(url):
+            if not url or not url.startswith('http'): return False
+            try:
+              r=requests.get(url,timeout=25,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0'})
+              return r.status_code < 400 and 'narexx.com' in r.text.lower()
+            except Exception:
+              return False
+
+          def write_file(title,name):
+            d=pathlib.Path('/tmp/narex-b4'); d.mkdir(exist_ok=True)
+            p=d/name
+            p.write_text(article(title),encoding='utf-8')
+            return str(p), article(title).count('https://narexx.com')
+          PY
+
+      - name: Publish Pastepile corrected endpoint
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          exec(open('/tmp/publish_batch4.py',encoding='utf-8').read())
+          title='ورق منع انتقال الألوان أثناء الغسيل للملابس الملونة'
+          h=article(title); result=['pastepile.com','','',title,h.count('https://narexx.com'),'FAILED']
+          try:
+            payload={'title':title,'content':h,'language':'html','visibility':'public','expiry':'never'}
+            r=requests.post('https://www.pastepile.com/api/public/pastes',json=payload,timeout=45,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0'})
+            try: d=r.json()
+            except: d={}
+            u=d.get('url') or d.get('link') or d.get('shareUrl') or ''
+            if valid_public(u): result=['pastepile.com',u,r.status_code,title,h.count('https://narexx.com'),'published']
+            else: result=['pastepile.com','',r.status_code,title,h.count('https://narexx.com'),'FAILED_RESPONSE '+r.text[:250].replace('\n',' ')]
+          except Exception as e: result[-1]='FAILED '+repr(e)
+          print('RESULT|'+'|'.join(map(str,result)))
+          import csv
+          with open('b4-pastepile.csv','w',newline='',encoding='utf-8-sig') as f: csv.writer(f).writerows([['platform','published_url','status_code','title','narex_links','status'],result])
+          PY
+
+      - name: Publish anonymous Netlify deploy
+        shell: bash
+        run: |
+          npm install -g netlify-cli@latest >/dev/null 2>&1
+          python3 - <<'PY'
+          exec(open('/tmp/publish_batch4.py',encoding='utf-8').read())
+          import json,subprocess,csv,os,pathlib,re
+          title='دليل حماية الملابس من اختلاط الألوان أثناء الغسيل'
+          d=pathlib.Path('/tmp/netlify-narex'); d.mkdir(exist_ok=True); (d/'index.html').write_text(article(title),encoding='utf-8')
+          result=['netlify.app','','',title,article(title).count('https://narexx.com'),'FAILED']
+          try:
+            p=subprocess.run(['netlify','deploy','--allow-anonymous','--dir',str(d),'--no-build','--json'],capture_output=True,text=True,timeout=120)
+            text=(p.stdout or '')+'\n'+(p.stderr or '')
+            try: data=json.loads(p.stdout)
+            except: data={}
+            candidates=[data.get('deploy_url'),data.get('url'),data.get('ssl_url')]
+            candidates += re.findall(r'https://[a-zA-Z0-9.-]+\.netlify\.app[^\s"\']*',text)
+            u=next((x for x in candidates if x and valid_public(x)),'')
+            result=['netlify.app',u,p.returncode,title,article(title).count('https://narexx.com'),'published' if u else 'FAILED '+text[-300:].replace('\n',' ')]
+          except Exception as e: result[-1]='FAILED '+repr(e)
+          print('RESULT|'+'|'.join(map(str,result)))
+          with open('b4-netlify.csv','w',newline='',encoding='utf-8-sig') as f: csv.writer(f).writerows([['platform','published_url','status_code','title','narex_links','status'],result])
+          PY
+
+      - name: Browser publish permanent and no-signup hosts
+        shell: bash
+        run: |
+          python3 -m pip -q install selenium
+          python3 - <<'PY'
+          exec(open('/tmp/publish_batch4.py',encoding='utf-8').read())
+          from selenium import webdriver
+          from selenium.webdriver.common.by import By
+          from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.common.keys import Keys
+          import csv,time,os,re,pathlib
+
+          cases=[
+            ('htmlput.com','https://www.htmlput.com/?lang=en','HTMLPUT دليل منع اختلاط ألوان الملابس','htmlput'),
+            ('sharemyhtml.com','https://sharemyhtml.com/','ShareMyHTML حماية الملابس من انتقال الألوان','file'),
+            ('static.run','https://static.run/','Static.run مناديل التقاط الألوان للغسيل','file'),
+            ('oneclicklive.app','https://oneclicklive.app/','OneClickLive حل انتقال الصبغات بين الملابس','editor'),
+            ('dochost.io','https://dochost.io/','dochost مناديل منع انتقال الألوان في السعودية','dochost'),
+            ('htmlhost.co','https://htmlhost.co/','htmlhost روتين حماية ألوان الملابس','file')
+          ]
+          opt=Options(); opt.add_argument('--headless=new'); opt.add_argument('--no-sandbox'); opt.add_argument('--disable-dev-shm-usage'); opt.add_argument('--window-size=1440,1100'); opt.add_argument('--lang=en-US')
+          driver=webdriver.Chrome(options=opt); rows=[]
+
+          def clean_candidate(u,start,site):
+            if not u or not u.startswith('http') or u.rstrip('/')==start.rstrip('/'): return False
+            # generated pages may use subdomains or share domains; verify content instead of exact host
+            return valid_public(u)
+
+          for site,url,title,mode in cases:
+            h=article(title); count=h.count('https://narexx.com'); result=[site,'',title,count,'FAILED']
+            try:
+              driver.delete_all_cookies(); driver.get(url); time.sleep(4); start=driver.current_url
+              file_path,_=write_file(title,site.replace('.','-')+'.html')
+              if mode=='htmlput':
+                ok=driver.execute_script("var cm=document.querySelector('.CodeMirror'); if(cm&&cm.CodeMirror){cm.CodeMirror.setValue(arguments[0]); return true;} return false;",h)
+                if not ok:
+                  areas=driver.find_elements(By.CSS_SELECTOR,'textarea')
+                  if not areas: raise Exception('HTMLPUT editor not found')
+                  driver.execute_script("arguments[0].value=arguments[1];arguments[0].dispatchEvent(new Event('input',{bubbles:true}));",areas[0],h)
+              elif mode=='file':
+                inputs=driver.find_elements(By.CSS_SELECTOR,'input[type="file"]')
+                if not inputs:
+                  # click likely upload/paste control then retry
+                  for b in driver.find_elements(By.CSS_SELECTOR,'button,a'):
+                    txt=(b.text or '').lower()
+                    if any(k in txt for k in ['upload','select','browse','choose','paste html']):
+                      try: driver.execute_script('arguments[0].click();',b); time.sleep(1)
+                      except: pass
+                  inputs=driver.find_elements(By.CSS_SELECTOR,'input[type="file"]')
+                if not inputs: raise Exception('file input not found')
+                inputs[0].send_keys(file_path); time.sleep(3)
+              elif mode in ('editor','dochost'):
+                if mode=='dochost':
+                  for b in driver.find_elements(By.CSS_SELECTOR,'button'):
+                    if 'paste code' in (b.text or '').lower():
+                      try: driver.execute_script('arguments[0].click();',b); time.sleep(1)
+                      except: pass
+                fields=driver.find_elements(By.CSS_SELECTOR,'textarea,[contenteditable="true"]')
+                if not fields:
+                  cm=driver.find_elements(By.CSS_SELECTOR,'.CodeMirror')
+                  if cm:
+                    driver.execute_script("arguments[0].CodeMirror.setValue(arguments[1]);",cm[0],h)
+                  else: raise Exception('editor not found')
+                else:
+                  field=max(fields,key=lambda x:x.size.get('width',0)*x.size.get('height',0))
+                  try: field.clear(); field.send_keys(h)
+                  except: driver.execute_script("arguments[0].value=arguments[1];arguments[0].dispatchEvent(new Event('input',{bubbles:true}));",field,h)
+              time.sleep(2)
+              # fill a title/name if obvious
+              for inp in driver.find_elements(By.CSS_SELECTOR,'input[type="text"]')[:12]:
+                meta=' '.join([(inp.get_attribute('placeholder') or ''),(inp.get_attribute('name') or ''),(inp.get_attribute('aria-label') or '')]).lower()
+                if any(k in meta for k in ['title','name','slug']) and inp.is_displayed():
+                  try: inp.clear(); inp.send_keys('narex-'+str(int(time.time()))[-6:])
+                  except: pass
+              btn=None
+              keys=['host now','give it a url','deploy','publish','get my link','get url','create link','host','upload','نشر']
+              for b in driver.find_elements(By.CSS_SELECTOR,'button,input[type="submit"],a[role="button"]'):
+                txt=((b.text or '')+' '+(b.get_attribute('value') or '')+' '+(b.get_attribute('aria-label') or '')).strip().lower()
+                if any(k in txt for k in keys) and b.is_displayed() and b.is_enabled(): btn=b; break
+              if btn:
+                driver.execute_script('arguments[0].click();',btn); time.sleep(10)
+              else:
+                # some upload hosts auto-publish immediately after file selection
+                time.sleep(7)
+              candidates=[]
+              if driver.current_url!=start: candidates.append(driver.current_url)
+              for a in driver.find_elements(By.CSS_SELECTOR,'a[href]'):
+                u=a.get_attribute('href') or ''
+                if u.startswith('http') and u.rstrip('/')!=start.rstrip('/'): candidates.append(u)
+              body=driver.page_source
+              candidates += re.findall(r'https?://[^\s"<>]+',body)
+              # prefer URLs that verify NAREX content
+              seen=[]
+              for u in candidates:
+                u=u.replace('&amp;','&').rstrip('.,;)\"\'')
+                if u not in seen: seen.append(u)
+              pub=next((u for u in seen if clean_candidate(u,start,site)),'')
+              result=[site,pub,title,count,'published' if pub else 'FAILED no verified public URL']
+            except Exception as e:
+              result=[site,'',title,count,'FAILED '+repr(e)]
+            rows.append(result); print('RESULT|'+'|'.join(map(str,result)),flush=True)
+          driver.quit()
+          with open('b4-browser.csv','w',newline='',encoding='utf-8-sig') as f: csv.writer(f).writerows([['platform','published_url','title','narex_links','status']]+rows)
+          PY
+
+      - name: Upload batch 4 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: narex-batch4-results
+          path: |
+            b4-pastepile.csv
+            b4-netlify.csv
+            b4-browser.csv
