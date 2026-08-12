@@ -1,0 +1,67 @@
+name: Publish 3 Fresh Replacements 0854
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish 3 fresh replacements 0854'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish three long replacement articles
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-10-long-backlinks-now.yml' -o /tmp/base.yml
+          python - <<'PY'
+          import re,textwrap,requests,json
+          y=open('/tmp/base.yml',encoding='utf-8').read()
+          m=re.search(r"cat > /tmp/publish\.py <<'PY'\n(.*?)\n\s*PY\n\s*python /tmp/publish\.py",y,re.S)
+          code=textwrap.dedent(m.group(1))
+          gen=code.split('results=[]',1)[0]
+          gen=gen.replace('A Complete Social Media Growth Framework for Agencies and Brands','Social Media Growth Governance: A Long-Form Guide for Marketing Teams')
+          gen=gen.replace('How to Build a Sustainable TikTok Growth System in 2026','TikTok Campaign Optimization: A Detailed Framework for Sustainable Growth')
+          gen=gen.replace('Instagram Growth Strategy: From Reach to Real Conversions','Instagram Campaign Systems: A Detailed Guide to Reach, Trust, and Conversion')
+          ns={}
+          exec(gen,ns)
+          arts=ns['articles']
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'})
+          def check(url):
+              try:
+                  r=s.get(url,timeout=30,allow_redirects=True)
+                  hrefs=len(re.findall(r'href=["\']https://smmfansfaster\.com[^"\']*["\']',r.text,re.I))
+                  total=r.text.count('smmfansfaster.com')
+                  print('VERIFY',url,'STATUS',r.status_code,'HREFS',hrefs,'TOTAL',total)
+                  return r.status_code<400 and (hrefs>=6 or total>=6)
+              except Exception as e:
+                  print('VERIFY_ERR',url,repr(e)); return False
+          results=[]
+          # peekmd.dev
+          try:
+              r=s.post('https://peekmd.dev/api/create',json={'markdown':arts[0]},timeout=30)
+              print('PEEKMD_RAW',r.text[:500]); d=r.json(); u=d.get('url','')
+              print('PEEKMD_URL='+u)
+              if u and check(u): results.append(['peekmd.dev',u])
+          except Exception as e: print('PEEKMD_ERR',repr(e))
+          # mdless.net
+          try:
+              r=s.post('https://mdless.net/api/link',data=arts[1].encode('utf-8'),timeout=30)
+              print('MDLESS_RAW',r.text[:500])
+              try: d=r.json(); u=d.get('url','')
+              except: u=r.text.strip().splitlines()[0] if r.ok else ''
+              print('MDLESS_URL='+u)
+              if u and check(u): results.append(['mdless.net',u])
+          except Exception as e: print('MDLESS_ERR',repr(e))
+          # emdee.info
+          try:
+              r=s.post('https://emdee.info/api/',data=arts[2].encode('utf-8'),headers={'Content-Type':'text/markdown'},timeout=30)
+              print('EMDEE_RAW',r.text[:500])
+              try: d=r.json(); u=d.get('url') or d.get('share_url','')
+              except: u=r.text.strip().splitlines()[0] if r.ok else ''
+              print('EMDEE_URL='+u)
+              if u and check(u): results.append(['emdee.info',u])
+          except Exception as e: print('EMDEE_ERR',repr(e))
+          print('VALID_RESULTS_JSON='+json.dumps(results))
+          print('VALID_COUNT='+str(len(results)))
+          PY
