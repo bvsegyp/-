@@ -1,0 +1,47 @@
+name: Inspect JS Publishers 1015
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Inspect JS publishers 1015'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discover public publish endpoints only
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re
+          from urllib.parse import urljoin,urlparse
+          sites=['https://notesh.ink/','https://sendnote.link/','https://plsreadme.com/','https://mdshare.link/','https://markdshare.com/']
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0'})
+          for base in sites:
+            print('\n=== SITE',base,'===')
+            try:
+              r=s.get(base,timeout=30); print('HOME',r.status_code,len(r.text))
+              scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',r.text,re.I)
+              print('SCRIPTS',scripts[:20])
+              blobs=[r.text]
+              for src in scripts[:12]:
+                u=urljoin(r.url,src)
+                try:
+                  rr=s.get(u,timeout=30)
+                  if rr.status_code<400 and len(rr.text)<3000000: blobs.append(rr.text)
+                except: pass
+              text='\n'.join(blobs)
+              patterns=[
+                r'fetch\s*\(\s*["\']([^"\']+)',
+                r'axios\.(?:post|put)\s*\(\s*["\']([^"\']+)',
+                r'["\']((?:https?://[^"\']+)?/api/[^"\']+)["\']',
+                r'["\'](/(?:notes|documents|pastes|shares|publish|create)[^"\']*)["\']'
+              ]
+              found=[]
+              for p in patterns:
+                for m in re.findall(p,text,re.I):
+                  if isinstance(m,tuple): m=m[0]
+                  if m not in found: found.append(m)
+              print('ENDPOINTS',found[:80])
+              for keyword in ['csrf','captcha','turnstile','recaptcha','hcaptcha']:
+                if keyword in text.lower(): print('HAS_'+keyword.upper(),1)
+            except Exception as e: print('ERR',repr(e))
+          PY
