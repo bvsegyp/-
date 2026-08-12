@@ -1,0 +1,139 @@
+name: Publish NAREX anonymous backlinks batch 12
+on:
+  push:
+    branches: [narex-publish-batch12-20260812]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish direct anonymous batch
+        shell: bash
+        run: |
+          python3 -m pip -q install requests playwright
+          python3 -m playwright install chromium --with-deps >/dev/null 2>&1
+          python3 - <<'PY'
+          import requests,re,json,csv,html,asyncio
+          from urllib.parse import urlparse
+          from playwright.async_api import async_playwright
+          HOME='https://narexx.com/';PRODUCT='https://narexx.com/ar/easy-wash/p754364761'
+          WHY='https://narexx.com/en/%D9%84%D9%85%D8%A7%D8%B0%D8%A7-%D8%AA%D8%B3%D8%AA%D8%AE%D8%AF%D9%85-%D8%A7%D9%84%D9%85%D9%86%D8%AA%D8%AC/page-833898435'
+          WHOLESALE='https://narexx.com/en/%D8%B7%D9%84%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AC%D9%85%D9%84%D9%87/page-768158116'
+          COMPLAINTS='https://narexx.com/%D9%84%D9%84%D8%B4%D9%83%D8%A7%D9%88%D9%89-%D9%88-%D8%A7%D9%84%D8%A7%D9%82%D8%AA%D8%B1%D8%A7%D8%AD%D8%A7%D8%AA/page-50408011'
+          RETURNS='https://narexx.com/ar/%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%A8%D8%AF%D8%A7%D9%84-%D9%88%D8%A7%D9%84%D8%A5%D8%B3%D8%AA%D8%B1%D8%AC%D8%A7%D8%B9/page-1592231750';EN='https://narexx.com/en/'
+          refs=[('Easy Wash',PRODUCT),('NAREX السعودية',HOME),('لماذا تستخدم المنتج',WHY),('صفحة المنتج',PRODUCT),('متجر NAREX',HOME),('سياسة الاستبدال والاسترجاع',RETURNS),('الشكاوى والاقتراحات',COMPLAINTS),('طلبات الجملة',WHOLESALE),('النسخة الإنجليزية',EN),('مناديل Easy Wash',PRODUCT),('منتجات NAREX',HOME),('حل حماية الألوان',PRODUCT),('NAREX للعناية بالغسيل',HOME),('Easy Wash الرسمي',PRODUCT),('المتجر الرسمي',HOME),('خدمة العملاء',COMPLAINTS),('حلول الغسيل',HOME),('Easy Wash للملابس الملونة',PRODUCT),('NAREX',HOME),('منتج منع انتقال الألوان',PRODUCT)]
+          paras=[
+          'انتقال الألوان بين الملابس من المشكلات الشائعة عند غسل القطع الجديدة أو ذات الدرجات القوية. بعض الأقمشة تطلق صبغة داخل الماء وقد تستقر هذه الصبغة على قطع أخرى، لذلك تبدأ الحماية الجيدة من قراءة تعليمات الغسيل وفهم طبيعة القماش واختيار درجة حرارة تناسب الحمولة بدل استخدام إعداد واحد لكل الملابس.',
+          'الفرز الذكي لا يعني تشغيل دورة منفصلة لكل لون. يمكن جمع الملابس المتقاربة عندما تكون تعليمات العناية متوافقة، مع فصل الأبيض شديد الحساسية والقطع الجديدة المعروفة بنزيف اللون. هذا الأسلوب يساعد الأسر على تقليل عدد الدورات غير الضرورية مع الاحتفاظ بمستوى جيد من الحذر والتنظيم.',
+          'مناديل التقاط الألوان تعمل داخل ماء الغسيل للمساعدة على جذب جزء من الصبغات الزائدة. توضع الورقة مع الملابس داخل الحلة وتتحرك أثناء الدورة ثم يتم التخلص منها بعد الانتهاء. عدد المناديل المناسب يعتمد على كمية الملابس وقوة الألوان، لذلك يفضل الالتزام بالتعليمات الحالية للمنتج.',
+          'Easy Wash من NAREX يقدم هذا النوع من الحلول كجزء من روتين العناية بالملابس. الهدف هو إضافة وسيلة مساعدة تقلل احتمالية انتقال الصبغات، لا إلغاء قواعد الفرز أو تجاهل القطع الحساسة. ويمكن أن يكون ذلك مناسبًا للعائلات التي تشغل الغسالة عدة مرات أسبوعيًا وتبحث عن طريقة أكثر عملية للعناية بالألوان.',
+          'درجة الحرارة وبرنامج الغسيل وحجم الحمولة تؤثر جميعها في النتيجة. الحرارة العالية ليست مطلوبة لكل الأقمشة، كما أن تحميل الغسالة فوق طاقتها يقلل حركة الماء والمنظف. من الأفضل استخدام برنامج يناسب نوع القماش وكمية منظف معتدلة وترك مساحة تسمح للملابس بالحركة داخل الحلة.',
+          'الملابس الداكنة الجديدة قد تحتاج إلى غسل منفصل في المرة الأولى إذا كان هناك شك في ثبات الصبغة. بعد معرفة سلوك القماش يصبح إدخاله في حمولة أخرى أكثر أمانًا. كما يمكن قلب بعض القطع من الداخل إلى الخارج لتقليل الاحتكاك المباشر على السطح الخارجي والمحافظة على مظهرها فترة أطول.',
+          'تنظيم روتين الغسيل يوفر الوقت عندما يتم تحديد القطع التي تحتاج إلى فصل فعلي بدل تقسيم كل حمولة بصورة مبالغ فيها. بعد معرفة الملابس الحساسة يمكن التعامل مع بقية القطع بمرونة أكبر، مع استخدام حل مساعد لالتقاط الصبغات عندما يكون ذلك مناسبًا لطبيعة الألوان الموجودة في الحلة.',
+          'العناية لا تتوقف عند انتهاء الدورة. يفضل إخراج الملابس وعدم تركها مبللة لفترة طويلة، ثم تجفيفها بالطريقة المناسبة لنوع القماش. كما يساعد التعامل السريع مع البقع وتجنب الغسيل القاسي المتكرر على الحفاظ على جودة الأنسجة والألوان مع مرور الوقت.',
+          'قبل شراء أي منتج للعناية بالملابس عبر الإنترنت من المفيد مراجعة وصف المنتج وطريقة الاستخدام وسياسات المتجر وقنوات التواصل. للمستخدم في السعودية، معرفة سياسة الاستبدال والاسترجاع وخيارات التواصل والجملة تجعل قرار الشراء أكثر وضوحًا وتساعد على اختيار الكمية المناسبة للاستخدام المنزلي أو التجاري.',
+          'أفضل حماية للألوان تأتي من روتين متكامل يجمع بين الفرز المنطقي والبرنامج المناسب ودرجة الحرارة الملائمة والكمية الصحيحة من المنظف والعناية بالقطع الجديدة. ويمكن إضافة مناديل التقاط الصبغات كخطوة مساعدة عند الحاجة، ما يجعل الغسيل الملون أكثر تنظيمًا ويقلل المفاجآت الناتجة عن انتقال اللون.'
+          ]
+          topics=['حل اختلاط ألوان الملابس في السعودية','مناديل التقاط اللون الزائد أثناء الغسيل','طريقة حماية الملابس البيضاء من الألوان','منع نزيف صبغة الملابس الجديدة','مناديل الغسيل لحماية الألوان','روتين المحافظة على ألوان الملابس','أفضل طريقة لغسل الملابس متعددة الألوان','Easy Wash للعناية اليومية بالملابس']
+          def md(title):
+            out=['# '+title]
+            for i,p in enumerate(paras):
+              a,b=refs[2*i],refs[2*i+1];out += ['## نصيحة '+str(i+1),p+f' للمزيد راجع [{a[0]}]({a[1]}) و[{b[0]}]({b[1]}).']
+            return '\n\n'.join(out)
+          def hdoc(title):
+            text=md(title);parts=[]
+            for block in text.split('\n\n'):
+              if block.startswith('# '):parts.append('<h1>'+html.escape(block[2:])+'</h1>')
+              elif block.startswith('## '):parts.append('<h2>'+html.escape(block[3:])+'</h2>')
+              else:
+                e=html.escape(block);e=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',lambda m:f'<a href="{m.group(2)}">{html.escape(m.group(1))}</a>',e);parts.append('<p>'+e+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title><style>body{font-family:Arial,sans-serif;max-width:920px;margin:40px auto;padding:0 22px;line-height:2;color:#222}a{color:#075cca}</style></head><body>'+''.join(parts)+'</body></html>'
+          def host(u):
+            try:return (urlparse(u).hostname or '').lower().lstrip('www.')
+            except:return ''
+          def request_verify(u,allowed):
+            if not u or not u.startswith('http'):return False
+            hh=host(u)
+            if 'narexx.com' in hh or any(x in u.lower() for x in ['/edit/','admin','dashboard','token=']):return False
+            if allowed and not any(hh==d or hh.endswith('.'+d) for d in allowed):return False
+            try:
+              r=requests.get(u,timeout=35,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0'});return r.status_code<400 and r.text.lower().count('narexx.com')>=7
+            except:return False
+          async def browser_verify(u,allowed):
+            if not u:return False
+            hh=host(u)
+            if allowed and not any(hh==d or hh.endswith('.'+d) for d in allowed):return False
+            try:
+              async with async_playwright() as p:
+                b=await p.chromium.launch(headless=True);pg=await b.new_page();await pg.goto(u,wait_until='domcontentloaded',timeout=40000);await pg.wait_for_timeout(3000);src=(await pg.content()).lower();await b.close();return src.count('narexx.com')>=7
+            except:return False
+          rows=[]
+          def add(site,u,title,count,ok,note=''):
+            rows.append([site,u if ok else '',title,count,'published' if ok else 'FAILED '+note]);print('RESULT|'+site+'|'+(u if ok else '')+'|links='+str(count)+'|'+rows[-1][-1],flush=True)
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 NAREXPublisher/12.0'})
+
+          # mdshare.cc - public viewer is SPA, browser verify
+          title=topics[0];a=md(title);c=a.count('https://narexx.com');u='';note=''
+          try:
+            r=s.post('https://mdshare.cc/api/documents',json={'title':title,'content':a},timeout=40);d=r.json();sid=d.get('shareId') or (d.get('data') or {}).get('shareId');u='https://mdshare.cc/view/'+sid if sid else '';note=r.text[:120]
+          except Exception as e:note=repr(e)
+          ok=asyncio.run(browser_verify(u,['mdshare.cc']));add('mdshare.cc',u,title,c,ok,note)
+
+          # ShowYourCode nested data.uuid + SPA verify
+          title=topics[1];h=hdoc(title);c=h.count('https://narexx.com');u='';note=''
+          try:
+            r=s.post('https://www.showyourcode.app/api/works',json={'htmlContent':h,'title':title,'topicIds':[],'type':'html','templateId':None},timeout=40);d=r.json();uuid=d.get('uuid') or (d.get('data') or {}).get('uuid');u='https://www.showyourcode.app/share/'+uuid if uuid else '';note=r.text[:120]
+          except Exception as e:note=repr(e)
+          ok=asyncio.run(browser_verify(u,['showyourcode.app']));add('showyourcode.app',u,title,c,ok,note)
+
+          # Artidrop
+          title=topics[2];h=hdoc(title);c=h.count('https://narexx.com');u='';note=''
+          payload={'format':'html','content':h,'title':title,'visibility':'public'}
+          for endpoint in ['https://api.artidrop.ai/v1/artifacts','https://artidrop.ai/v1/artifacts']:
+            try:
+              r=s.post(endpoint,json=payload,timeout=40);d=r.json();u=d.get('url') or d.get('share_url') or d.get('public_url') or (('https://artidrop.ai/a/'+d.get('short_id')) if d.get('short_id') else '');note=r.text[:100]
+              if u:break
+            except Exception as e:note=repr(e)
+          add('artidrop.ai',u,title,c,request_verify(u,['artidrop.ai']),note)
+
+          # hurl.page
+          title=topics[3];h=hdoc(title);c=h.count('https://narexx.com');u='';note=''
+          try:
+            r=s.post('https://hurl.page/deploy',data=h.encode(),headers={'Content-Type':'text/html'},timeout=40);m=re.search(r'https://[^\s<>"\']+',r.text);u=m.group(0).rstrip('.,}') if m else '';note=r.text[:120]
+          except Exception as e:note=repr(e)
+          add('hurl.page',u,title,c,request_verify(u,['hurl.page']),note)
+
+          # sshgrid.com
+          title=topics[4];h=hdoc(title);c=h.count('https://narexx.com');u='';note=''
+          try:
+            r=s.post('https://sshgrid.com/api/v1/deploy',json={'files':[{'path':'index.html','content':h}],'label':'NAREX Color Care'},timeout=40);d=r.json();u=d.get('url') or d.get('site_url') or d.get('public_url') or '';note=r.text[:120]
+          except Exception as e:note=repr(e)
+          add('sshgrid.com',u,title,c,request_verify(u,['sshgrid.com']),note)
+
+          # htmlshare.net
+          title=topics[5];h=hdoc(title);c=h.count('https://narexx.com');u='';note=''
+          try:
+            r=s.post('https://api.htmlshare.net/v1/publish',json={'html':h},timeout=40);d=r.json();u=d.get('url','');note=r.text[:120]
+          except Exception as e:note=repr(e)
+          add('htmlshare.net',u,title,c,request_verify(u,['htmlshare.net']),note)
+
+          # pastehtml.com
+          title=topics[6];h=hdoc(title);c=h.count('https://narexx.com');u='';note=''
+          try:
+            r=s.post('https://pastehtml.com/upload/create?input_type=html&result=address',data={'txt':h},timeout=40);m=re.search(r'https?://[^\s<>"\']+',r.text);u=m.group(0).rstrip('.,}') if m else '';u='https://'+u[7:] if u.startswith('http://') else u;note=r.text[:120]
+          except Exception as e:note=repr(e)
+          add('pastehtml.com',u,title,c,request_verify(u,['pastehtml.com']),note)
+
+          # ship.page -> shipped.page public domain
+          title=topics[7];h=hdoc(title);c=h.count('https://narexx.com');u='';note=''
+          try:
+            r=s.post('https://ship.page/deploy',data=h.encode(),headers={'Content-Type':'text/html'},timeout=40);d=r.json();u=d.get('url','');note=r.text[:120]
+          except Exception as e:note=repr(e)
+          add('shipped.page',u,title,c,request_verify(u,['shipped.page']),note)
+
+          with open('narex-batch12.csv','w',newline='',encoding='utf-8-sig') as f:csv.writer(f).writerows([['platform','published_url','title','narex_links','status']]+rows)
+          print('SUCCESS_COUNT='+str(len([r for r in rows if r[1]])))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: narex-batch12-results
+          path: narex-batch12.csv
