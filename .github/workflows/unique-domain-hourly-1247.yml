@@ -1,0 +1,191 @@
+name: Unique Domain Backlink Batch 1247
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run unique-domain backlink batch 1247'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify new-domain pages
+        shell: bash
+        run: |
+          set -e
+          python -m pip install --quiet playwright
+          python -m playwright install chromium --with-deps >/dev/null 2>&1
+          cat > /tmp/run.py <<'PY'
+          import asyncio,re,json,html,random,string
+          from playwright.async_api import async_playwright
+
+          TARGETS=[
+            ('paste.page','https://paste.page/free-html-hosting','Paste Page'),
+            ('share-html.com','https://share-html.com/','Share HTML'),
+            ('pagepaste.com','https://pagepaste.com/','PagePaste'),
+            ('crevioo.com','https://crevioo.com/','Crevioo'),
+            ('pagegate.app','https://pagegate.app/','PageGate'),
+            ('showyourcode.app','https://www.showyourcode.app/','ShowYourCode'),
+            ('htmldrop.app','https://htmldrop.app/','HTMLDrop'),
+          ]
+
+          ANGLES=[
+            ('Building a Measurable Social Media Growth System','https://smmfansfaster.com/','social media growth services'),
+            ('How Agencies Can Scale Social Media Delivery Without Losing Quality','https://smmfansfaster.com/api','SMM API documentation'),
+            ('A Practical TikTok Audience Growth Framework','https://smmfansfaster.com/blog/numberoftiktokfollowers','TikTok follower growth guide'),
+            ('Instagram Growth Planning: Reach, Retention, and Conversion','https://smmfansfaster.com/blog/the-best-time-to-post-on-instagram','Instagram growth resource'),
+            ('From Reach to Revenue: A Social Media Funnel for Service Businesses','https://smmfansfaster.com/smm-api-integration','SMM API integration'),
+            ('How Ecommerce Brands Can Structure Social Media Acquisition','https://smmfansfaster.com/ar/blog/socialmediaservices','social media services guide'),
+            ('A Sustainable Content and Distribution Playbook for Growing Brands','https://smmfansfaster.com/blog/asurewaytoincreasetiktokfollowers','TikTok growth strategy'),
+          ]
+
+          SECTIONS=[
+          ('Start with a commercial objective', 'A useful social media plan begins with a business outcome rather than a vanity metric. Teams should decide whether the priority is awareness, qualified traffic, leads, purchases, bookings, retention, or community growth. That decision influences channel selection, creative formats, publishing cadence, promotion, landing pages, and reporting. Clear objectives also make experiments easier to evaluate because success has a defined meaning instead of changing after results arrive.'),
+          ('Map the audience and its decision process', 'Audience research should combine demographic assumptions with behavioral evidence. Search queries, comments, customer support conversations, reviews, sales calls, saved posts, competitor communities, and direct messages reveal the questions people ask before taking action. Grouping those questions by awareness, consideration, and purchase stage helps marketers design content that moves people forward rather than publishing disconnected posts.'),
+          ('Create repeatable content pillars', 'Strong publishing systems usually rely on a small number of durable themes. Educational explainers can build trust, demonstrations can reduce uncertainty, comparisons can support evaluation, case examples can supply proof, and behind-the-scenes content can humanize the brand. A pillar system improves consistency while leaving room for timely experiments, trends, seasonal campaigns, and platform-native ideas.'),
+          ('Use short-form video as a testing engine', 'Short-form video is especially useful for testing hooks, pacing, angles, objections, and calls to action quickly. A team can compare completion rate, average watch time, rewatches, shares, saves, comments, profile visits, and downstream clicks. The strongest concepts can then be repurposed into longer videos, carousels, ads, landing-page copy, email content, and sales enablement material.'),
+          ('Build a distribution layer around good content', 'Publishing alone does not guarantee reach. Distribution can include employee advocacy, creator partnerships, paid amplification, community participation, search-friendly captions, internal cross-promotion, and selective use of external promotional tools. The important principle is that distribution should magnify content that already has a clear purpose and destination rather than substitute for message quality.'),
+          ('Strengthen the destination before increasing traffic', 'Extra attention is valuable only when the profile or landing page can convert it. Visitors should understand the offer quickly, see credible proof, find a clear next step, and encounter minimal friction on mobile devices. Page speed, message consistency, navigation, forms, checkout flow, guarantees, FAQs, and support options often have as much influence on campaign performance as the post that generated the click.'),
+          ('Measure the funnel instead of one headline metric', 'Reach and views describe discovery, but they do not explain whether attention was useful. Saves, profile visits, engaged sessions, clicks, and repeat visits provide stronger consideration signals. Leads, purchases, bookings, revenue, and retention show business impact. Reviewing the complete funnel helps teams identify whether a problem sits in creative quality, targeting, offer strength, landing-page experience, or follow-up.'),
+          ('Document experiments and build institutional memory', 'Every meaningful test should have a hypothesis, audience, creative concept, distribution condition, measurement window, result, and next action. Recording those elements creates a learning library that becomes more valuable over time. Agencies benefit especially because documentation improves handoffs and keeps account knowledge from disappearing when people change roles or projects.'),
+          ('Protect trust while pursuing growth', 'Growth tactics should not undermine long-term brand credibility. Deceptive endorsements, fake reviews, hacked sites, spam comments, impersonation, or platform-rule circumvention can create reputational and operational risk. Sustainable growth combines useful content, transparent promotion, responsive customer service, consistent brand experience, and disciplined measurement.'),
+          ('Review resource allocation on a fixed cadence', 'A monthly strategy review should compare channels, formats, audiences, content pillars, costs, conversion rates, and business outcomes. The goal is to concentrate resources on combinations that repeatedly create useful attention and reduce investment in activity that looks busy but produces weak downstream results. Quarterly reviews can then revisit positioning, major offers, technology, and channel mix.'),
+          ]
+
+          def build_article(idx,label):
+              title,target,anchor=ANGLES[idx]
+              intro=(f'{title} requires more than publishing frequently. The most dependable approach connects audience research, useful content, distribution, analytics, and conversion optimization into one operating system. This guide explains a practical structure that brands and agencies can use to make social media activity easier to measure and improve over time. The emphasis is on repeatable decisions, responsible promotion, and business outcomes rather than isolated spikes in vanity metrics.')
+              parts=[f'<h1>{html.escape(title)}</h1>',f'<p>{html.escape(intro)}</p>']
+              for j,(h,p) in enumerate(SECTIONS):
+                  text=p
+                  if j==4:
+                      text += f' For teams evaluating external support, one relevant resource is <a href="{target}">{html.escape(anchor)}</a>. It should be assessed as part of the wider marketing system, alongside content quality, audience fit, conversion readiness, and transparent measurement.'
+                  # add distinct operational depth per article
+                  extra=(f' In the context of {label}, this means assigning an owner, a review cadence, and a small set of decision rules so that the team knows when to scale, revise, or stop an activity. The objective is not maximum activity; it is a clearer relationship between effort, audience response, and commercial value.')
+                  parts += [f'<h2>{html.escape(h)}</h2>', f'<p>{html.escape(text,quote=False).replace("&lt;a href=\""+target+"\"&gt;"+html.escape(anchor)+"&lt;/a&gt;", "<a href=\""+target+"\">"+html.escape(anchor)+"</a>")}</p>', f'<p>{html.escape(extra)}</p>']
+              conclusion=('A durable social media growth system is built from clear objectives, audience understanding, repeatable content, disciplined distribution, strong conversion destinations, and a documented learning loop. Teams that review evidence consistently can improve quality without depending on one platform feature or one campaign. The advantage compounds because every test adds to the organization’s understanding of what its audience values and what turns attention into meaningful action.')
+              parts += ['<h2>Final perspective</h2>',f'<p>{html.escape(conclusion)}</p>']
+              body=''.join(parts)
+              # pad naturally into requested length using useful operational paragraphs, preserving one target link
+              add=('Teams should also maintain a lightweight campaign record containing the objective, audience, creative format, publish date, distribution method, cost, measurement window, result, and next action. That record makes weekly reviews faster, improves accountability, and helps distinguish recurring patterns from isolated wins. Over several months, it becomes a practical evidence base for budgeting, creative planning, onboarding, and forecasting. ')
+              while len(re.findall(r"\b[\w'-]+\b",re.sub('<[^>]+>',' ',body))) < 1250:
+                  body += '<p>'+html.escape(add)+'</p>'
+              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body>'+body+'</body></html>'
+
+          async def fill_largest(page, content, filepath):
+              # Prefer paste/code modes where exposed.
+              for pat in ['paste HTML code','Paste HTML','Paste Code','HTML']:
+                  try:
+                      el=page.get_by_text(re.compile(pat,re.I))
+                      if await el.count():
+                          await el.first.click(timeout=2000)
+                          await page.wait_for_timeout(300)
+                          break
+                  except: pass
+              tas=page.locator('textarea:visible')
+              if await tas.count():
+                  best=None; area=-1
+                  for i in range(await tas.count()):
+                      e=tas.nth(i)
+                      try:
+                          b=await e.bounding_box(); a=(b['width']*b['height']) if b else 0
+                          if a>area: area=a; best=e
+                      except: pass
+                  if best:
+                      await best.fill(content); return True
+              ce=page.locator('[contenteditable="true"]:visible')
+              if await ce.count():
+                  await ce.first.fill(content); return True
+              fi=page.locator('input[type=file]')
+              if await fi.count():
+                  await fi.first.set_input_files(filepath); return True
+              return False
+
+          async def publish(browser,idx,target):
+              domain,url,label=target
+              content=build_article(idx,label)
+              words=len(re.findall(r"\b[\w'-]+\b",re.sub('<[^>]+>',' ',content)))
+              print(domain,'WORDS',words,'TARGET_LINKS',content.count('smmfansfaster.com'))
+              path=f'/tmp/page{idx}.html'; open(path,'w',encoding='utf-8').write(content)
+              page=await browser.new_page()
+              try:
+                  await page.goto(url,wait_until='domcontentloaded',timeout=45000)
+                  await page.wait_for_timeout(2200)
+                  # Optional title/name/slug fields.
+                  slug='growth-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(8))
+                  for sel,val in [
+                    ('input[placeholder*="title" i]:visible','Social Media Growth Strategy'),
+                    ('input[name*="title" i]:visible','Social Media Growth Strategy'),
+                    ('input[placeholder*="page name" i]:visible','Social Media Growth Strategy'),
+                    ('input[placeholder*="your-page" i]:visible',slug),
+                    ('input[placeholder*="custom" i]:visible',slug),
+                  ]:
+                      try:
+                          loc=page.locator(sel)
+                          if await loc.count(): await loc.first.fill(val)
+                      except: pass
+                  ok=await fill_largest(page,content,path)
+                  if not ok:
+                      print(domain,'NO_INPUT'); await page.close(); return None
+                  await page.wait_for_timeout(500)
+                  clicked=False
+                  for pat in ['Get my shareable link','Generate Live Page','Generate link','Generate Link','Publish','Share','Create Link','Deploy','Upload','Generate']:
+                      try:
+                          btn=page.get_by_role('button',name=re.compile(pat,re.I))
+                          if await btn.count():
+                              await btn.first.click(timeout=5000); clicked=True; break
+                      except: pass
+                      try:
+                          txt=page.get_by_text(re.compile('^'+re.escape(pat)+'$',re.I))
+                          if await txt.count():
+                              await txt.first.click(timeout=5000); clicked=True; break
+                      except: pass
+                  if not clicked:
+                      print(domain,'NO_BUTTON'); await page.close(); return None
+                  await page.wait_for_timeout(6500)
+                  cands=[]
+                  if page.url.rstrip('/') != url.rstrip('/'): cands.append(page.url)
+                  for a in await page.locator('a[href^="http"]').all():
+                      try:
+                          h=await a.get_attribute('href')
+                          if h and h not in cands: cands.append(h)
+                      except: pass
+                  try:
+                      body=await page.locator('body').inner_text()
+                      for m in re.findall(r'https?://[^\s)\]<>"\']+',body):
+                          m=m.rstrip('.,')
+                          if m not in cands: cands.append(m)
+                  except: pass
+                  print(domain,'CANDIDATES',cands[:12])
+                  for cand in cands[:20]:
+                      vp=await browser.new_page()
+                      try:
+                          await vp.goto(cand,wait_until='domcontentloaded',timeout=30000)
+                          await vp.wait_for_timeout(2200)
+                          hrefs=await vp.locator('a[href*="smmfansfaster.com"]').count()
+                          final=vp.url
+                          print(domain,'VERIFY',final,'HREFS',hrefs)
+                          if hrefs==1:
+                              await vp.close(); await page.close(); return final
+                      except Exception as e:
+                          print(domain,'VERIFY_ERR',cand,repr(e))
+                      try: await vp.close()
+                      except: pass
+              except Exception as e: print(domain,'ERR',repr(e))
+              try: await page.close()
+              except: pass
+              return None
+
+          async def main():
+              async with async_playwright() as p:
+                  browser=await p.chromium.launch(headless=True)
+                  results=[]
+                  for i,t in enumerate(TARGETS):
+                      u=await publish(browser,i,t)
+                      if u: results.append([t[0],u])
+                  await browser.close()
+                  print('VALID_RESULTS_JSON='+json.dumps(results))
+                  print('VALID_COUNT='+str(len(results)))
+          asyncio.run(main())
+          PY
+          python /tmp/run.py
