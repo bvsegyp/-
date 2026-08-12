@@ -1,0 +1,106 @@
+name: Publish NAREX anonymous backlinks
+
+on:
+  push:
+    branches:
+      - narex-publish-20260812
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Publish long Arabic backlink articles
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.error, csv, time
+
+          HOME = "https://narexx.com/"
+          PRODUCT = "https://narexx.com/ar/easy-wash/p754364761"
+          WHY = "https://narexx.com/en/%D9%84%D9%85%D8%A7%D8%B0%D8%A7-%D8%AA%D8%B3%D8%AA%D8%AE%D8%AF%D9%85-%D8%A7%D9%84%D9%85%D9%86%D8%AA%D8%AC/page-833898435"
+          WHOLESALE = "https://narexx.com/en/%D8%B7%D9%84%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AC%D9%85%D9%84%D9%87/page-768158116"
+          COMPLAINTS = "https://narexx.com/%D9%84%D9%84%D8%B4%D9%83%D8%A7%D9%88%D9%89-%D9%88-%D8%A7%D9%84%D8%A7%D9%82%D8%AA%D8%B1%D8%A7%D8%AD%D8%A7%D8%AA/page-50408011"
+          RETURNS = "https://narexx.com/ar/%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%A8%D8%AF%D8%A7%D9%84-%D9%88%D8%A7%D9%84%D8%A5%D8%B3%D8%AA%D8%B1%D8%AC%D8%A7%D8%B9/page-1592231750"
+          EN = "https://narexx.com/en/"
+
+          topics = [
+            ("منديل منع اختلاط ألوان الغسيل في السعودية", "حلول عملية لتقليل انتقال الصبغات بين الملابس الملونة"),
+            ("مناديل منع انتقال الألوان أثناء الغسيل", "طريقة أكثر تنظيمًا للعناية بالملابس عند غسل أكثر من لون"),
+            ("مناديل امتصاص ألوان الغسيل للملابس الملونة", "كيف تساعد أوراق التقاط الصبغات في روتين الغسيل اليومي"),
+            ("مانع انتقال الألوان في الغسالة الأوتوماتيك", "نصائح للعائلات للحفاظ على مظهر الملابس وتقليل اختلاط الألوان"),
+            ("حل مشكلة نزيف ألوان الملابس أثناء الغسيل", "خطوات عملية للمساعدة على حماية الملابس من الصبغات المتسربة")
+          ]
+
+          def article(title, subtitle, idx):
+              blocks = [
+                f"# {title}\n\n{subtitle}. تعتبر مشكلة انتقال الألوان من أكثر المشكلات التي تظهر عند غسل الملابس الملونة معًا، خصوصًا مع القطع الجديدة أو ذات الدرجات القوية. وقد يؤدي تسرب الصبغات إلى تغير مظهر الملابس الفاتحة أو الحاجة إلى إعادة الغسيل، لذلك يبحث كثير من المستخدمين في السعودية عن وسائل تساعد على تقليل هذه المشكلة دون تحويل كل لون إلى دورة غسيل منفصلة.",
+                f"## فهم سبب انتقال الألوان\n\nعندما تتحرك الملابس داخل الماء قد تطلق بعض الأقمشة جزءًا من الصبغة، ثم تعود هذه الصبغات لتترسب على قطع أخرى. يختلف حجم المشكلة بحسب نوع القماش وثبات اللون ودرجة حرارة الماء وطول دورة الغسيل. لذلك تبدأ العناية الجيدة من قراءة تعليمات كل قطعة، مع الاستفادة من حلول إضافية مثل [Easy Wash من NAREX]({PRODUCT}) للمساعدة على التقاط الصبغات الزائدة أثناء دورة الغسيل.",
+                f"## لماذا يهتم المستخدم بمنتجات التقاط الصبغات\n\nالفكرة الأساسية في هذه المنتجات هي إضافة ورقة أو منديل إلى الغسالة بحيث يعمل أثناء الدورة على جذب جزء من اللون المتسرب. يشرح [متجر NAREX]({HOME}) هذا المفهوم ضمن منتجاته المخصصة للعناية بالغسيل، ويمكن كذلك الاطلاع على صفحة [لماذا تستخدم المنتج]({WHY}) للتعرف على الهدف من استخدامه ومزاياه المرتبطة بتقليل انتقال اللون.",
+                "## روتين غسيل أكثر تنظيمًا\n\nلا يعني استخدام منديل التقاط الألوان تجاهل قواعد الغسيل الأساسية. من الأفضل فصل القطع المعروفة بأنها تنزف لونًا بصورة قوية في المرات الأولى، وعدم تحميل الغسالة فوق طاقتها، واختيار درجة حرارة مناسبة لنوع القماش. الجمع بين هذه الخطوات وبين منتج مخصص لالتقاط الصبغات يمكن أن يجعل روتين الغسيل أكثر راحة، خصوصًا للعائلات التي تشغل عدة دورات أسبوعيًا.",
+                f"## استخدام Easy Wash\n\nوفق معلومات المنتج، يمكن وضع منديل أو أكثر بحسب كمية الملابس وطبيعة الألوان، ثم تشغيل دورة الغسيل بالطريقة المعتادة. بعد انتهاء الدورة يتم التخلص من المنديل. يمكن مراجعة [صفحة Easy Wash الرسمية]({PRODUCT}) قبل الاستخدام لمعرفة التعليمات الحالية، كما يمكن الرجوع مرة أخرى إلى [NAREX السعودية]({HOME}) لمتابعة المنتجات والمعلومات المتاحة من المتجر.",
+                "## تقليل الحاجة إلى الفرز الزائد\n\nيأخذ فرز الملابس وقتًا، وقد يؤدي تقسيم كمية صغيرة من الملابس إلى دورات كثيرة إلى استهلاك ماء وكهرباء ووقت إضافي. الهدف من حلول التقاط الصبغات ليس إلغاء الفرز تمامًا، بل جعله أكثر ذكاءً. يمكن مثلًا الاستمرار في فصل الأبيض شديد الحساسية والقطع الجديدة جدًا، ثم استخدام حل مساعد مع المجموعات المتقاربة من الملابس الملونة.",
+                f"## التسوق والثقة في المتجر\n\nقبل الشراء من أي متجر إلكتروني من المهم معرفة سياسات ما بعد البيع. لدى NAREX صفحة مخصصة لـ[سياسة الاستبدال والاسترجاع]({RETURNS})، كما يوفر المتجر قناة لـ[الشكاوى والاقتراحات]({COMPLAINTS}) لمن يريد التواصل بشأن تجربة الشراء أو المنتج. هذه الصفحات تساعد العميل على معرفة قنوات التواصل والسياسات قبل إتمام الطلب.",
+                f"## حلول للأفراد والكميات\n\nإلى جانب الشراء الفردي، توجد لدى NAREX صفحة مخصصة لـ[طلبات الجملة]({WHOLESALE}) للراغبين في كميات أكبر. كما يمكن للزائر الاطلاع على [النسخة الإنجليزية من متجر NAREX]({EN}) عند الحاجة. وجود أكثر من قناة ومصدر للمعلومات يجعل رحلة البحث عن المنتج وطريقة استخدامه أكثر وضوحًا.",
+                "## نصائح إضافية للحفاظ على ألوان الملابس\n\nيُفضل قلب بعض الملابس من الداخل إلى الخارج قبل الغسيل، وتجنب درجات الحرارة العالية عندما لا تكون ضرورية، وعدم ترك الملابس المبللة لفترة طويلة بعد انتهاء الدورة. كما أن اختيار منظف مناسب وعدم الإفراط في الكمية يساعدان على الحفاظ على الأقمشة ومظهرها. وعند التعامل مع قطعة جديدة داكنة اللون، يمكن اختبار ثبات الصبغة أو غسلها منفردة أول مرة إذا كان هناك شك في انتقال اللون.",
+                f"## الخلاصة\n\nبالنسبة لمن يبحث عن **{title}**، فإن أفضل نتيجة تأتي من دمج عدة خطوات معًا: فرز منطقي، برنامج مناسب، تعليمات عناية صحيحة، ومنتج مساعد لالتقاط الصبغات عند الحاجة. يمكن البدء من [المنتج Easy Wash]({PRODUCT}) ثم الرجوع إلى [موقع NAREX]({HOME}) للحصول على معلومات أحدث حول المنتج والتوفر. بهذه الطريقة يصبح التعامل مع الغسيل الملون أكثر تنظيمًا وتقل احتمالية المفاجآت الناتجة عن انتقال اللون بين القطع."
+              ]
+              return "\n\n".join(blocks)
+
+          def post_raw(url, data, ctype="text/markdown", accept="application/json"):
+              req = urllib.request.Request(url, data=data.encode("utf-8"), method="POST")
+              req.add_header("Content-Type", ctype)
+              req.add_header("Accept", accept)
+              req.add_header("User-Agent", "Mozilla/5.0 NAREXPublisher/1.0")
+              with urllib.request.urlopen(req, timeout=45) as r:
+                  body = r.read().decode("utf-8", "replace")
+                  return r.status, dict(r.headers), body
+
+          def post_json(url, payload):
+              return post_raw(url, json.dumps(payload, ensure_ascii=False), "application/json", "application/json")
+
+          results = []
+          publishers = [
+              ("markdown.page", lambda a: post_raw("https://markdown.page/api/publish", a, "text/markdown", "application/json")),
+              ("output.pub", lambda a: post_json("https://output.pub/api/publish", {"content": a, "format": "markdown"})),
+              ("pagedrop.dev", lambda a: post_json("https://pagedrop.dev/api/v1/sites", {"markdown": a})),
+              ("freekit.dev", lambda a: post_json("https://freekit.dev/api/v1/sites", {"markdown": a})),
+              ("yeet.md", lambda a: post_json("https://yeet.md/api/share", {"content": a})),
+          ]
+
+          for i, ((title, subtitle), (site, pub)) in enumerate(zip(topics, publishers), start=1):
+              a = article(title, subtitle, i)
+              link_count = a.count("https://narexx.com")
+              try:
+                  status, headers, body = pub(a)
+                  data = json.loads(body) if body.strip().startswith("{") else {"url": body.strip()}
+                  if site == "pagedrop.dev" or site == "freekit.dev":
+                      url = data.get("data", {}).get("url", "")
+                  else:
+                      url = data.get("url") or data.get("shareUrl") or data.get("viewerUrl") or ""
+                  if not url:
+                      url = headers.get("Location", "")
+                  results.append([site, url, status, title, link_count, "published" if url else "response_without_url"])
+                  print(f"PUBLISHED|{site}|{url}|links={link_count}")
+              except Exception as e:
+                  results.append([site, "", "", title, link_count, f"FAILED: {e}"])
+                  print(f"FAILED|{site}|{e}")
+              time.sleep(2)
+
+          with open("narex-published-links.csv", "w", newline="", encoding="utf-8-sig") as f:
+              w = csv.writer(f)
+              w.writerow(["platform", "published_url", "http_status", "title", "narex_links", "status"])
+              w.writerows(results)
+
+          ok = [r for r in results if r[1]]
+          if not ok:
+              raise SystemExit("No anonymous platform published successfully")
+          print(f"SUCCESS_COUNT={len(ok)}")
+          PY
+
+      - name: Upload publication results
+        uses: actions/upload-artifact@v4
+        with:
+          name: narex-published-links
+          path: narex-published-links.csv
