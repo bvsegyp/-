@@ -1,4 +1,4 @@
-name: Unique Domain Backlink Batch 1055
+name: Unique Domain Backlink Batch 1447B
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish:
-    if: github.event.head_commit.message == 'Run unique-domain backlink batch 1055'
+    if: github.event.head_commit.message == 'Run unique-domain backlink batch 1447b'
     runs-on: ubuntu-latest
     steps:
       - name: Publish and verify unique-domain backlinks
@@ -16,20 +16,17 @@ jobs:
           python -m pip install --quiet playwright
           python -m playwright install chromium --with-deps >/dev/null 2>&1
           cat > /tmp/run.py <<'PY'
-          import asyncio,re,json,html,os,random,string
+          import asyncio,re,json,html,random,string
           from playwright.async_api import async_playwright
-
           TARGETS=[
-            ('paste.page','https://paste.page/free-html-hosting','PastePage'),
-            ('share-html.com','https://share-html.com/','ShareHTML'),
-            ('showyourcode.app','https://www.showyourcode.app/','ShowYourCode'),
-            ('shareyourhtml.com','https://shareyourhtml.com/','ShareYourHTML'),
-            ('swolvy.com','https://swolvy.com/','Swolvy'),
-            ('dropadraft.com','https://dropadraft.com/','DropADraft'),
+            ('htmlput.com','https://htmlput.com/','HTMLPUT'),
             ('pagepaste.com','https://pagepaste.com/','PagePaste'),
+            ('showyourcode.app','https://www.showyourcode.app/','ShowYourCode'),
+            ('pagegate.app','https://pagegate.app/','PageGate'),
+            ('yapp.page','https://yapp.page/','Yapp'),
           ]
           BACK='https://smmfansfaster.com/'
-          base_sections=[
+          S=[
             ('Set a measurable objective','Strong social media programs start with a measurable business objective. Awareness, qualified traffic, leads, purchases, bookings, retention, and community growth each require different decisions about creative formats, channels, budgets, and reporting. When teams define the outcome first, they avoid treating follower counts as the only sign of progress and can evaluate whether activity is creating useful business value.'),
             ('Research audience demand','Audience research should shape content topics, creative style, platform selection, and calls to action. Useful inputs include search behavior, sales conversations, support tickets, direct messages, comments, reviews, and competitor communities. These signals help marketers understand recurring needs and objections, which makes content more relevant and reduces random experimentation.'),
             ('Create repeatable content pillars','A sustainable publishing system usually relies on several repeatable content pillars such as education, demonstrations, comparisons, customer questions, case studies, behind-the-scenes material, and industry commentary. Each pillar can support a different stage of the customer journey while giving the team enough structure to publish consistently without producing repetitive posts.'),
@@ -39,65 +36,44 @@ jobs:
             ('Build a weekly experimentation loop','Each experiment should document a hypothesis, audience, creative concept, publishing conditions, result, and next action. A weekly learning process turns individual posts into a growing knowledge base and makes future decisions less dependent on intuition. This is especially valuable for agencies managing several accounts at once.'),
             ('Protect long-term trust','Growth tactics should never undermine brand trust. Avoid deceptive endorsements, spam comments, fake reviews, hacked sites, or tactics that violate platform safeguards. Sustainable growth is built through useful content, transparent promotion, strong customer experience, and disciplined measurement.'),
             ('Improve conversion after the click','Traffic quality matters as much as traffic volume. Teams should review page speed, message consistency, proof, forms, checkout friction, mobile experience, and offer structure so that increased visibility has a realistic chance of producing qualified outcomes.'),
-            ('Review allocation monthly','Monthly reviews should compare platforms, formats, audiences, costs, and business outcomes. Resources can then shift toward combinations that repeatedly create useful attention and away from activity that looks busy but produces little measurable value.')
-          ]
-
+            ('Review allocation monthly','Monthly reviews should compare platforms, formats, audiences, costs, and business outcomes. Resources can then shift toward combinations that repeatedly create useful attention and away from activity that looks busy but produces little measurable value.')]
           def article(label):
               title=f'Social Media Growth Strategy for {label}: Content, Measurement, and Conversion'
-              out=[f'<h1>{html.escape(title)}</h1>', '<p>Sustainable social media growth comes from a connected marketing system rather than one isolated tactic. Brands and agencies can improve results by combining audience research, repeatable content, creative testing, community interaction, distribution, analytics, and conversion optimization. The framework below focuses on practical processes that can be measured and improved over time.</p>']
-              for i,(h,p) in enumerate(base_sections):
-                  text=' '.join([p]* (3 if i%2==0 else 2))
-                  if i==4:
-                      text += f' Teams comparing external promotional support can also evaluate <a href="{BACK}">SMM Fans Faster</a> as one option within a broader due-diligence process. Any provider should be assessed on campaign fit, transparency, platform compatibility, and whether it supports the wider marketing strategy.'
+              out=[f'<h1>{html.escape(title)}</h1>','<p>Sustainable social media growth comes from a connected marketing system rather than one isolated tactic. Brands and agencies can improve results by combining audience research, repeatable content, creative testing, community interaction, distribution, analytics, and conversion optimization.</p>']
+              for i,(h,p) in enumerate(S):
+                  text=' '.join([p]*(3 if i%2==0 else 2))
+                  if i==4: text += f' Teams comparing external promotional support can also evaluate <a href="{BACK}">SMM Fans Faster</a> as one option within a broader due-diligence process.'
                   out.append(f'<h2>{html.escape(h)}</h2><p>{text}</p>')
-              out.append('<h2>Final perspective</h2><p>A durable social media program connects clear objectives, audience understanding, repeatable content, structured testing, disciplined reporting, and a strong conversion destination. External tools can support that system, but the lasting advantage comes from learning faster, documenting decisions, and improving based on evidence.</p>')
+              out.append('<h2>Final perspective</h2><p>A durable social media program connects clear objectives, audience understanding, repeatable content, structured testing, disciplined reporting, and a strong conversion destination.</p>')
               body=''.join(out)
               while len(re.findall(r"\b[\w'-]+\b",re.sub('<[^>]+>',' ',body)))<1250:
-                  body += '<h2>Additional operational note</h2><p>Teams should keep a campaign record covering objectives, audiences, formats, publishing dates, distribution methods, costs, and measured outcomes. Consistent documentation improves handoffs, reporting, and quality control across multiple campaigns while making it easier to distinguish repeatable patterns from isolated wins.</p>'
+                  body += '<h2>Additional operational note</h2><p>Teams should keep a campaign record covering objectives, audiences, formats, publishing dates, distribution methods, costs, and measured outcomes. Consistent documentation improves handoffs, reporting, and quality control across multiple campaigns.</p>'
               return '<!doctype html><html><head><meta charset="utf-8"><title>'+html.escape(title)+'</title></head><body>'+body+'</body></html>'
-
           async def verify(browser,url):
               vp=await browser.new_page()
               try:
-                  await vp.goto(url,wait_until='domcontentloaded',timeout=40000)
-                  await vp.wait_for_timeout(2500)
-                  hrefs=await vp.locator('a[href*="smmfansfaster.com"]').count()
-                  final=vp.url
-                  print('VERIFY',final,'HREFS',hrefs)
-                  return final if hrefs==1 else None
-              except Exception as e:
-                  print('VERIFY_ERR',url,repr(e)); return None
-              finally:
-                  await vp.close()
-
+                  await vp.goto(url,wait_until='domcontentloaded',timeout=40000); await vp.wait_for_timeout(2500)
+                  hrefs=await vp.locator('a[href*="smmfansfaster.com"]').count(); final=vp.url
+                  print('VERIFY',final,'HREFS',hrefs); return final if hrefs==1 else None
+              except Exception as e: print('VERIFY_ERR',url,repr(e)); return None
+              finally: await vp.close()
           async def publish(browser,domain,url,label,idx):
-              page=await browser.new_page()
-              content=article(label)
+              page=await browser.new_page(); content=article(label)
               print(domain,'WORDS',len(re.findall(r"\b[\w'-]+\b",re.sub('<[^>]+>',' ',content))),'TARGET_LINKS',content.count('href="https://smmfansfaster.com/"'))
               try:
-                  await page.goto(url,wait_until='domcontentloaded',timeout=45000)
-                  await page.wait_for_timeout(2500)
-                  # optional mode buttons
+                  await page.goto(url,wait_until='domcontentloaded',timeout=45000); await page.wait_for_timeout(2500)
                   for pat in ['Paste HTML','Paste Code','Code','HTML']:
                       el=page.get_by_text(re.compile('^'+re.escape(pat)+'$',re.I))
                       if await el.count():
                           try: await el.first.click(timeout=2500); await page.wait_for_timeout(500); break
                           except: pass
-                  # title/slug fields
                   slug='smm-growth-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(8))
-                  for sel,val in [
-                    ('input[placeholder*="title" i]:visible','Social Media Growth Strategy'),
-                    ('input[name*="title" i]:visible','Social Media Growth Strategy'),
-                    ('input[placeholder*="page name" i]:visible','Social Media Growth Strategy'),
-                    ('input[placeholder*="slug" i]:visible',slug),
-                  ]:
+                  for sel,val in [('input[placeholder*="title" i]:visible','Social Media Growth Strategy'),('input[name*="title" i]:visible','Social Media Growth Strategy'),('input[placeholder*="name" i]:visible','Social Media Growth Strategy'),('input[placeholder*="slug" i]:visible',slug)]:
                       loc=page.locator(sel)
                       if await loc.count():
                           try: await loc.first.fill(val)
                           except: pass
-                  # choose editor or upload
-                  editors=page.locator('textarea:visible')
-                  filled=False
+                  filled=False; editors=page.locator('textarea:visible')
                   if await editors.count():
                       best=None; area=-1
                       for i in range(await editors.count()):
@@ -106,21 +82,17 @@ jobs:
                               box=await e.bounding_box(); a=(box['width']*box['height']) if box else 0
                               if a>area: best=e; area=a
                           except: pass
-                      if best:
-                          await best.fill(content); filled=True
+                      if best: await best.fill(content); filled=True
                   if not filled:
                       ce=page.locator('[contenteditable="true"]:visible')
-                      if await ce.count():
-                          await ce.first.fill(content); filled=True
+                      if await ce.count(): await ce.first.fill(content); filled=True
                   if not filled:
                       fi=page.locator('input[type="file"]')
                       if await fi.count():
                           path=f'/tmp/{idx}.html'; open(path,'w',encoding='utf-8').write(content); await fi.first.set_input_files(path); filled=True
-                  if not filled:
-                      print(domain,'NO_INPUT'); return None
-                  await page.wait_for_timeout(800)
-                  clicked=False
-                  for pat in ['Get my shareable link','Publish','Share','Deploy','Deploy Page','Generate Link','Generate Live Page','Create Link','Upload','Get shareable link']:
+                  if not filled: print(domain,'NO_INPUT'); return None
+                  await page.wait_for_timeout(800); clicked=False
+                  for pat in ['Host','Get my shareable link','Publish','Share','Deploy','Deploy Page','Generate Link','Generate Live Page','Create Link','Upload','Generate']:
                       btn=page.get_by_role('button',name=re.compile(pat,re.I))
                       if await btn.count():
                           try: await btn.first.click(timeout=5000); clicked=True; break
@@ -129,11 +101,8 @@ jobs:
                       if await txt.count():
                           try: await txt.first.click(timeout=5000); clicked=True; break
                           except: pass
-                  if not clicked:
-                      print(domain,'NO_BUTTON'); return None
-                  await page.wait_for_timeout(7000)
-                  cands=[]
-                  cur=page.url
+                  if not clicked: print(domain,'NO_BUTTON'); return None
+                  await page.wait_for_timeout(7000); cands=[]; cur=page.url
                   if cur.rstrip('/')!=url.rstrip('/'): cands.append(cur)
                   for a in await page.locator('a[href^="http"]').all():
                       try:
@@ -148,22 +117,16 @@ jobs:
                   for cand in cands[:20]:
                       final=await verify(browser,cand)
                       if final: return final
-              except Exception as e:
-                  print(domain,'ERR',repr(e))
-              finally:
-                  await page.close()
+              except Exception as e: print(domain,'ERR',repr(e))
+              finally: await page.close()
               return None
-
           async def main():
               async with async_playwright() as p:
-                  b=await p.chromium.launch(headless=True)
-                  results=[]
+                  b=await p.chromium.launch(headless=True); results=[]
                   for i,t in enumerate(TARGETS):
                       u=await publish(b,*t,i)
                       if u: results.append([t[0],u])
-                  await b.close()
-                  print('VALID_RESULTS_JSON='+json.dumps(results))
-                  print('VALID_COUNT='+str(len(results)))
+                  await b.close(); print('VALID_RESULTS_JSON='+json.dumps(results)); print('VALID_COUNT='+str(len(results)))
           asyncio.run(main())
           PY
           python /tmp/run.py
