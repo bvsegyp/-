@@ -1,0 +1,39 @@
+name: Publish Next 10 Backlinks 0920
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish next 10 backlinks 0920'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-run long-form publishing workflow with fresh titles
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-next-10-0912.yml' -o /tmp/prev.yml
+          python - <<'PY'
+          import re
+          txt=open('/tmp/prev.yml',encoding='utf-8').read()
+          txt=txt.replace('name: Publish Next 10 Backlinks 0912','name: Internal')
+          m=re.search(r"python - <<'PY'\n(.*?)\n\s*PY",txt,re.S)
+          if not m: raise SystemExit('SCRIPT_NOT_FOUND')
+          code=m.group(1)
+          repl={
+            'Social Media Growth Architecture: A Long-Form Guide for Sustainable Reach and Conversion':'Social Media Growth Strategy 2026: Building Reach, Trust, Traffic, and Conversion',
+            'TikTok Growth Operations in 2026: Creative Testing, Retention, and Audience Quality':'TikTok Growth Blueprint 2026: Content Systems, Retention, and Audience Development',
+            'Instagram Growth Systems: Reels, Stories, Trust, and Conversion Measurement':'Instagram Growth Blueprint: Reels, Stories, Authority, and Conversion',
+            'How to Compare Social Media Growth Providers with Better Due Diligence':'How to Evaluate Social Media Marketing Providers for Long-Term Campaign Quality',
+            'Social Media Analytics Playbook: Measuring Reach, Engagement, Traffic, and Sales':'Social Media Measurement Framework: Reach, Engagement, Leads, and Revenue',
+            'Multi-Platform Campaign Operations: A Detailed Guide for Marketing Teams':'Multi-Platform Social Media Operations for Agencies and Growth Teams',
+            'Balancing Organic Content, Paid Distribution, and Social Media Growth Services':'Organic Content, Paid Media, and Social Growth Support: A Balanced Framework',
+            'Building a Social Media Funnel from Discovery to Qualified Conversion':'Social Media Funnel Strategy: Turning Discovery into Qualified Conversions',
+            'Creative Testing Systems for Faster Social Media Learning and Better Decisions':'Creative Testing Playbook for Faster Social Media Learning',
+            'Agency Automation with SMM APIs: Governance, Reporting, and Scalable Workflows':'SMM API Automation for Agencies: Reporting, Governance, and Scalable Workflows'
+          }
+          for a,b in repl.items(): code=code.replace(a,b)
+          open('/tmp/run.py','w',encoding='utf-8').write(code)
+          PY
+          python /tmp/run.py
