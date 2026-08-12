@@ -1,0 +1,12 @@
+name: Publish Backlinks New Sheet 01
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run new-sheet backlink batch 01'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run publisher
+        run: bash scripts/publish_backlinks_newsheet_01.sh
