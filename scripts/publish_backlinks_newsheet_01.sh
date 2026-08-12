@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
 set +e
-cat >/tmp/backlink.html <<'EOF'
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Social Media Growth Strategy: Content, Analytics and Promotion</title></head><body><main style="max-width:920px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.8;color:#171717"><h1>Social Media Growth Strategy: Content, Analytics and Promotion</h1><p>Reliable social media growth depends on the interaction between content quality, audience research, publishing consistency, analytics, conversion planning, and carefully selected promotional support.</p><p>Teams comparing external providers can include <a href="https://smmfansfaster.com/">SMM Fans Faster</a> in a broader review. Useful factors include platform coverage, delivery expectations, minimum orders, support, refill conditions, cancellation options, and campaign fit.</p><h2>TikTok growth</h2><p>Marketers can review resources about <a href="https://smmfansfaster.com/blog/tiktok-followers">TikTok followers</a>, <a href="https://smmfansfaster.com/blog/tiktok-views">TikTok views, followers, and likes</a>, and the <a href="https://smmfansfaster.com/blog/numberoftiktokfollowers">number of TikTok followers</a>. These visible metrics should be compared with retention, saves, shares, comments, and profile activity.</p><h2>Instagram growth</h2><p>Instagram teams can review this guide to an <a href="https://smmfansfaster.com/blog/instagram-followers-website">Instagram followers website</a>, plus discussions about whether <a href="https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow">increasing followers affects the Instagram algorithm</a> and whether <a href="https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement">buying Instagram followers affects engagement</a>.</p><h2>Measurement and automation</h2><p>Campaign dashboards should separate awareness, engagement, conversion, and revenue. Agencies and resellers can also review the public <a href="https://smmfansfaster.com/api">SMM API documentation</a> and the <a href="https://smmfansfaster.com/smm-api-integration">SMM API integration</a> page when evaluating automation workflows.</p><p>The strongest long-term approach improves the complete path from discovery to action instead of maximizing one visible number in isolation.</p></main></body></html>
+cat >/tmp/draftlet.html <<'EOF'
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>How to Build a Better Social Media Growth System</title></head><body><main style="max-width:920px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.8;color:#171717"><h1>How to Build a Better Social Media Growth System</h1><p>A strong social media growth system connects useful content, audience research, consistent publishing, analytics, profile optimization, conversion planning, and carefully selected promotional support.</p><p>Businesses comparing external providers can include <a href="https://smmfansfaster.com/">SMM Fans Faster</a> in a wider review of social media marketing services. Useful comparison factors include platform coverage, delivery expectations, order minimums, support, refill conditions, cancellation options, and campaign fit.</p><h2>Use clear goals</h2><p>Awareness campaigns may focus on reach and views. Engagement campaigns can track watch time, saves, shares, and comments. Conversion campaigns should connect social activity to profile visits, website clicks, inquiries, leads, purchases, and revenue.</p><h2>TikTok growth</h2><p>Marketers can review guides about <a href="https://smmfansfaster.com/blog/tiktok-followers">TikTok followers</a>, <a href="https://smmfansfaster.com/blog/tiktok-views">TikTok views, followers, and likes</a>, and the <a href="https://smmfansfaster.com/blog/numberoftiktokfollowers">number of TikTok followers</a>. Visible growth is most useful when evaluated alongside retention and interaction quality.</p><h2>Instagram growth</h2><p>Instagram teams can review this guide to an <a href="https://smmfansfaster.com/blog/instagram-followers-website">Instagram followers website</a>, along with discussions about whether <a href="https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow">increasing followers affects the Instagram algorithm</a> and whether <a href="https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement">buying Instagram followers affects engagement</a>.</p><h2>Automation and measurement</h2><p>Agencies can review the public <a href="https://smmfansfaster.com/api">SMM API documentation</a> and the <a href="https://smmfansfaster.com/smm-api-integration">SMM API integration</a> page while designing workflows. Automation should support careful campaign management rather than replace human review.</p><p>The strongest long-term approach improves the full path from discovery to action rather than maximizing a single visible metric.</p></main></body></html>
 EOF
-
-# Verify the already-created ShareDuo artifact using the public preview convention.
-for SD_URL in 'https://preview.shareduo.com/xs9d9q6' 'https://preview.shareduo.com/xs9d9q6/' ; do
- code=$(curl -sS -L -o /tmp/sd-live.html -w '%{http_code}' "$SD_URL")
- echo "SHAREDUO_VERIFY=$code $SD_URL"
- if [ "$code" = "200" ] && grep -q 'smmfansfaster.com' /tmp/sd-live.html; then echo "RESULT_URL=$SD_URL"; break; fi
-done
-
-# PagePaste — correct multipart field reading file contents.
-PP_RESP=$(curl -sS -L -D /tmp/pp-headers.txt 'https://pagepaste.com/' -F 'html=</tmp/backlink.html' -F 'title=Social Media Growth Strategy')
-printf '%s' "$PP_RESP" >/tmp/pp-response.html
-echo 'PAGEPASTE_HEADERS_START'; grep -Ei '^(location|content-location):' /tmp/pp-headers.txt | tail -5; echo 'PAGEPASTE_HEADERS_END'
-# Look for result/share URLs, excluding static assets.
-PP_URL=$(grep -Eo 'https://pagepaste\.com/[A-Za-z0-9][A-Za-z0-9/_-]{2,}' /tmp/pp-response.html | grep -Ev '(assets|images|icons|manifest|cdn|blog|privacy|terms)' | sort -u | tail -1)
-if [ -z "$PP_URL" ]; then
- loc=$(grep -Ei '^location:' /tmp/pp-headers.txt | tail -1 | sed -E 's/^[Ll]ocation:[[:space:]]*//;s/\r$//')
- [[ "$loc" == /* ]] && PP_URL="https://pagepaste.com$loc"
- [[ "$loc" == https://pagepaste.com/* ]] && PP_URL="$loc"
+SIZE=$(wc -c </tmp/draftlet.html | tr -d ' ')
+CREATE=$(python3 -c 'import json,os; print(json.dumps({"files":[{"path":"index.html","contentType":"text/html","size":int(os.environ["SIZE"])}]}))' SIZE="$SIZE" 2>/dev/null)
+# construct JSON reliably
+CREATE=$(SIZE="$SIZE" python3 -c 'import json,os; print(json.dumps({"files":[{"path":"index.html","contentType":"text/html","size":int(os.environ["SIZE"])}]}))')
+RESP=$(curl -sS -X POST 'https://api.draftlet.io/api/v1/publish' -H 'content-type: application/json' --data-binary "$CREATE")
+echo "DRAFTLET_CREATE=$RESP"
+UPLOAD=$(python3 -c 'import json,sys; d=json.load(sys.stdin); u=d.get("uploads") or []; print(u[0].get("uploadUrl","") if u else "")' <<< "$RESP" 2>/dev/null)
+FINAL=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("finalizeUrl", ""))' <<< "$RESP" 2>/dev/null)
+LIVE=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("url", ""))' <<< "$RESP" 2>/dev/null)
+if [ -n "$UPLOAD" ]; then
+  curl -sS -X PUT "$UPLOAD" -H 'Content-Type: text/html' -H "Content-Length: $SIZE" --data-binary @/tmp/draftlet.html >/tmp/draftlet-upload.out
+  echo "DRAFTLET_UPLOAD_DONE=1"
 fi
-echo "PAGEPASTE_CANDIDATE=$PP_URL"
-if [[ "$PP_URL" == https://pagepaste.com/* ]]; then
- code=$(curl -sS -L -o /tmp/pp-live.html -w '%{http_code}' "$PP_URL")
- if [ "$code" = "200" ] && grep -q 'smmfansfaster.com' /tmp/pp-live.html; then echo "RESULT_URL=$PP_URL"; else echo "PAGEPASTE_VERIFY_FAILED=$code"; fi
+if [[ "$FINAL" == /* ]]; then FINAL="https://api.draftlet.io$FINAL"; fi
+if [ -n "$FINAL" ]; then
+  FRESP=$(curl -sS -X POST "$FINAL" -H 'Content-Type: application/json' -d '{}')
+  echo "DRAFTLET_FINALIZE=$FRESP"
+  FURL=$(python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("url", ""))' <<< "$FRESP" 2>/dev/null)
+  [ -n "$FURL" ] && LIVE="$FURL"
+fi
+if [[ "$LIVE" == https://*.draftlet.io* ]]; then
+  code=$(curl -sS -L -o /tmp/draftlet-live.html -w '%{http_code}' "$LIVE")
+  if [ "$code" = "200" ] && grep -q 'smmfansfaster.com' /tmp/draftlet-live.html; then echo "RESULT_URL=$LIVE"; else echo "DRAFTLET_VERIFY_FAILED=$code $LIVE"; fi
 fi
