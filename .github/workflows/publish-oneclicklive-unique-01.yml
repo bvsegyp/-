@@ -1,0 +1,12 @@
+name: Publish Unique OneClickLive Backlink
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run unique OneClickLive backlink'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/publish_oneclicklive_unique.py | tee publish.log
+      - run: grep '^RESULT_URL=https://' publish.log || true
