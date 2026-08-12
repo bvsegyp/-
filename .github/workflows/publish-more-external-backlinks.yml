@@ -1,0 +1,66 @@
+name: Publish More External Backlink Articles
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish_more:
+    if: github.event.head_commit.message == 'Run more external publishers once'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish to markdown.page
+        shell: bash
+        run: |
+          cat > /tmp/markdownpage.md <<'EOF'
+          # How to Build a More Reliable TikTok Growth Strategy
+
+          TikTok growth is strongest when content quality, audience research, publishing consistency, analytics, and promotion are treated as parts of one system rather than isolated tactics.
+
+          Creators and agencies should start by defining a clear audience and testing repeatable content formats. Short hooks, strong watch-time retention, relevant trends, and consistent posting can all improve discovery. It is also useful to compare tools that support several social networks from one dashboard.
+
+          A multi-platform provider such as [SMM Fans Faster](https://smmfansfaster.com/) can be reviewed alongside other SMM options when comparing service coverage, ordering conditions, support, and campaign fit.
+
+          For marketers focused specifically on TikTok, this guide on [increasing TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) gives additional context, while agencies that need workflow automation can review the [SMM API](https://smmfansfaster.com/api).
+
+          ## Focus on useful metrics
+
+          Avoid judging campaign performance only by follower count. Track reach, watch time, completion rate, profile visits, clicks, leads, and conversions. Promotional services should support a broader marketing plan and should always be used in line with the rules of the social platform being promoted.
+          EOF
+          RESP=$(curl -sS https://markdown.page/api/publish --data-binary @/tmp/markdownpage.md)
+          echo "MARKDOWN_PAGE_URL=$RESP"
+
+      - name: Publish to Rentry
+        shell: bash
+        run: |
+          cat > /tmp/rentry.md <<'EOF'
+          # Social Media Campaign Planning for Agencies and Brands
+
+          Managing several social networks at the same time can become difficult without a clear system. A practical campaign plan should connect content production, audience research, publishing schedules, analytics, and promotional activity.
+
+          When comparing external marketing tools, teams can review a provider such as [SMM Fans Faster](https://smmfansfaster.com/) as one multi-platform option and evaluate platform coverage, service descriptions, support, and ordering conditions before deciding what fits their workflow.
+
+          Instagram-focused marketers may also find this guide on an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) useful when researching different growth approaches. Agencies that want to automate service ordering can review the provider's [API documentation](https://smmfansfaster.com/api).
+
+          ## Build around measurable outcomes
+
+          Strong social media campaigns are easier to improve when teams track more than follower growth. Reach, engagement, watch time, profile actions, website clicks, leads, and sales can all provide useful signals.
+
+          Promotional services should be used as one supporting layer alongside useful content, community engagement, paid media, and ongoing testing.
+          EOF
+          curl -sS -c /tmp/rentry.cookies https://rentry.co/ > /tmp/rentry-home.html
+          CSRF=$(grep -o 'csrftoken[^;]*' /tmp/rentry.cookies | tail -n1 | cut -f2)
+          EDIT_CODE=$(python - <<'PY'
+          import secrets
+          print(secrets.token_urlsafe(12))
+          PY
+          )
+          TEXT=$(cat /tmp/rentry.md)
+          RESP=$(curl -sS -b /tmp/rentry.cookies -c /tmp/rentry.cookies -X POST https://rentry.co/api/new \
+            -H 'Referer: https://rentry.co/' \
+            --data-urlencode "csrfmiddlewaretoken=$CSRF" \
+            --data-urlencode "text=$TEXT" \
+            --data-urlencode "edit_code=$EDIT_CODE" \
+            --data-urlencode 'url=')
+          echo "RENTRY_RESPONSE=$RESP"
+          echo "$RESP" | python -c 'import json,sys; d=json.load(sys.stdin); print("RENTRY_URL="+d.get("url",""))'
