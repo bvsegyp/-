@@ -1,0 +1,30 @@
+name: Publish Unique DocHost Backlink
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run unique DocHost backlink batch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect and publish
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/publish_unique_dochost_01.sh | tee backlink-run.log
+      - name: Extract URLs
+        if: always()
+        shell: bash
+        run: |
+          grep '^RESULT_URL=https://' backlink-run.log | sed 's/^RESULT_URL=//' > backlink_urls.txt || true
+          echo "URL_COUNT=$(wc -l < backlink_urls.txt)"
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unique-dochost-${{ github.run_id }}
+          path: backlink_urls.txt
+          retention-days: 7
