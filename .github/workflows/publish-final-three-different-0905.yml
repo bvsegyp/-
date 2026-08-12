@@ -1,0 +1,102 @@
+name: Publish Final Three Different 0905
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish final three different 0905'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify three different-domain articles
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-10-long-backlinks-now.yml' -o /tmp/base.yml
+          python - <<'PY'
+          import re,textwrap,requests,json,html
+
+          y=open('/tmp/base.yml',encoding='utf-8').read()
+          m=re.search(r"cat > /tmp/publish\.py <<'PY'\n(.*?)\n\s*PY\n\s*python /tmp/publish\.py",y,re.S)
+          if not m: raise SystemExit('BASE_SCRIPT_NOT_FOUND')
+          code=textwrap.dedent(m.group(1)); gen=code.split('results=[]',1)[0]
+          replacements={
+            'A Complete Social Media Growth Framework for Agencies and Brands':'Building a Sustainable Social Media Acquisition System: Content, Distribution, and Measurement',
+            'How to Build a Sustainable TikTok Growth System in 2026':'TikTok Campaign Engineering: A Long-Form Framework for Creative Testing and Retention',
+            'Instagram Growth Strategy: From Reach to Real Conversions':'Instagram Audience Strategy: Discovery, Trust, Engagement, and Conversion Architecture',
+            'agency planning, client reporting, and multi-platform execution':'audience acquisition systems, editorial planning, distribution quality, measurement, and sustainable campaign operations',
+            'TikTok content experimentation, retention, reach, and audience development':'TikTok campaign engineering, creative testing, retention signals, distribution quality, and audience development',
+            'Instagram positioning, Reels, Stories, profile optimization, and conversion':'Instagram discovery systems, profile trust, Reels and Stories strategy, engagement quality, and conversion architecture'
+          }
+          for a,b in replacements.items(): gen=gen.replace(a,b)
+          ns={}; exec(gen,ns)
+          arts=ns['articles']; titles=ns['titles']; md_to_html=ns['md_to_html']
+          s=requests.Session(); s.headers.update({'User-Agent':'SMMEditorial/1.0'})
+          results=[]
+
+          for i in range(3):
+              print(f'ARTICLE_{i+1}_WORDS={len(re.findall(r"\\b[\\w’\'-]+\\b",arts[i]))}')
+              print(f'ARTICLE_{i+1}_TARGET_LINKS={arts[i].count("https://smmfansfaster.com")}')
+
+          def verify_html(url):
+              try:
+                  r=s.get(url,timeout=35,allow_redirects=True)
+                  hrefs=len(re.findall(r'href=["\']https://smmfansfaster\.com[^"\']*["\']',r.text,re.I))
+                  total=r.text.count('smmfansfaster.com')
+                  print('VERIFY',url,'STATUS',r.status_code,'HREFS',hrefs,'TOTAL',total)
+                  return r.status_code<400 and (hrefs>=6 or total>=6)
+              except Exception as e:
+                  print('VERIFY_ERR',url,repr(e)); return False
+
+          # 1 BrewPage: validate previously-created public short URL through canonical content endpoint
+          brew_short='https://brewpage.app/public/XAeIot391g'
+          brew_source='https://brewpage.app/api/html/public/XAeIot391g'
+          try:
+              if verify_html(brew_source):
+                  results.append(['brewpage.app',brew_short]); print('ACCEPTED_URL='+brew_short)
+              else: print('REJECTED_DOMAIN=brewpage.app')
+          except Exception as e: print('BREWPAGE_ERR',repr(e))
+
+          # 2 dpaste.org: anonymous Markdown, no expiry
+          try:
+              files={
+                'content':(None,arts[1]),
+                'lexer':(None,'_markdown'),
+                'format':(None,'json'),
+                'expires':(None,'never')
+              }
+              r=s.post('https://dpaste.org/api/',files=files,timeout=35)
+              print('DPASTE_STATUS',r.status_code)
+              d=r.json(); u=d.get('url','')
+              if u and verify_html(u):
+                  results.append(['dpaste.org',u]); print('ACCEPTED_URL='+u)
+              else: print('REJECTED_DOMAIN=dpaste.org')
+          except Exception as e: print('DPASTE_ERR',repr(e))
+
+          # 3 ShipSite: anonymous static HTML site, no login
+          try:
+              body=md_to_html(arts[2]).encode('utf-8')
+              create=s.post('https://shipsite.co/api/v1/publish',json={
+                'files':[{'path':'index.html','size':len(body),'contentType':'text/html'}],
+                'viewer':{'title':titles[2],'description':'Long-form social media strategy and measurement guide.'}
+              },timeout=35)
+              print('SHIPSITE_CREATE_STATUS',create.status_code)
+              d=create.json()
+              site=d.get('siteUrl',''); claim=d.get('claimToken',''); upload=d.get('upload') or {}
+              version=upload.get('versionId',''); finalize=upload.get('finalizeUrl',''); uploads=upload.get('uploads') or []
+              if not (site and claim and version and finalize and uploads): raise RuntimeError('incomplete create response')
+              up=uploads[0]
+              headers=up.get('headers') or {'Content-Type':'text/html'}
+              put=s.put(up['url'],data=body,headers=headers,timeout=35)
+              print('SHIPSITE_UPLOAD_STATUS',put.status_code)
+              fin=s.post(finalize,json={'versionId':version,'claimToken':claim},timeout=35)
+              print('SHIPSITE_FINALIZE_STATUS',fin.status_code)
+              if fin.status_code<400 and verify_html(site):
+                  results.append(['shipsite.co',site]); print('ACCEPTED_URL='+site)
+              else: print('REJECTED_DOMAIN=shipsite.co')
+          except Exception as e: print('SHIPSITE_ERR',repr(e))
+
+          print('VALID_RESULTS_JSON='+json.dumps(results))
+          print('VALID_COUNT='+str(len(results)))
+          PY
