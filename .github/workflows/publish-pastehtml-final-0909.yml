@@ -1,0 +1,59 @@
+name: Publish PasteHTML Final 0909
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish pastehtml final 0909'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify long article on pastehtml.dev
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-10-long-backlinks-now.yml' -o /tmp/base.yml
+          python - <<'PY'
+          import re,textwrap,requests,json,html
+
+          y=open('/tmp/base.yml',encoding='utf-8').read()
+          m=re.search(r"cat > /tmp/publish\.py <<'PY'\n(.*?)\n\s*PY\n\s*python /tmp/publish\.py",y,re.S)
+          if not m: raise SystemExit('BASE_SCRIPT_NOT_FOUND')
+          code=textwrap.dedent(m.group(1)); gen=code.split('results=[]',1)[0]
+          gen=gen.replace('A Complete Social Media Growth Framework for Agencies and Brands','A Long-Form Social Media Growth Blueprint for Content, Distribution, and Conversion')
+          gen=gen.replace('agency planning, client reporting, and multi-platform execution','content operations, audience development, distribution strategy, performance measurement, and conversion optimization')
+          ns={}; exec(gen,ns)
+          a=ns['articles'][0]
+          md_to_html=ns['md_to_html']
+          wc=len(re.findall(r"\b[\w’'-]+\b",a))
+          lc=a.count('https://smmfansfaster.com')
+          print('ARTICLE_WORDS='+str(wc))
+          print('ARTICLE_TARGET_LINKS='+str(lc))
+          if wc < 1200 or lc < 6: raise SystemExit(2)
+
+          body='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>A Long-Form Social Media Growth Blueprint</title></head><body>'+md_to_html(a).replace('<html><body>','').replace('</body></html>','')+'</body></html>'
+          open('/tmp/article.html','w',encoding='utf-8').write(body)
+
+          s=requests.Session(); s.headers.update({'User-Agent':'SMMEditorial/1.0'})
+          with open('/tmp/article.html','rb') as f:
+              r=s.post('https://pastehtml.dev/api/pastes',files={'file':('social-media-growth-blueprint.html',f,'text/html')},timeout=40)
+          print('PUBLISH_STATUS='+str(r.status_code))
+          print('RESPONSE_HEAD='+r.text[:400].replace('\n',' '))
+          if r.status_code >= 400: raise SystemExit(3)
+          d=r.json()
+          # Do not print updateToken or any edit/control secret.
+          u=d.get('url') or d.get('shareUrl') or d.get('share_url') or d.get('pasteUrl') or ''
+          if not u and isinstance(d.get('paste'),dict):
+              p=d['paste']; u=p.get('url') or p.get('shareUrl') or ''
+          print('PASTEHTML_URL='+u)
+          if not u.startswith('http'): raise SystemExit(4)
+
+          v=s.get(u,timeout=40,allow_redirects=True)
+          hrefs=len(re.findall(r'href=["\']https://smmfansfaster\.com[^"\']*["\']',v.text,re.I))
+          total=v.text.count('smmfansfaster.com')
+          print('VERIFY_STATUS='+str(v.status_code))
+          print('VERIFY_HREFS='+str(hrefs))
+          print('VERIFY_TOTAL='+str(total))
+          if v.status_code >= 400 or hrefs < 6: raise SystemExit(5)
+          PY
