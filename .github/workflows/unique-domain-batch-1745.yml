@@ -1,0 +1,152 @@
+name: Unique Domain Backlink Batch 1745
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run unique-domain backlink batch 1745'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify unique-domain backlinks
+        shell: bash
+        run: |
+          set -e
+          python -m pip install --quiet playwright requests
+          python -m playwright install chromium --with-deps >/dev/null 2>&1
+          cat > /tmp/run.py <<'PY'
+          import asyncio,re,json,html
+          from urllib.parse import urlparse
+          from playwright.async_api import async_playwright
+
+          TARGETS=[
+            ('pastemd.io','https://pastemd.io/','PasteMD'),
+            ('jotbird.com','https://www.jotbird.com/','JotBird'),
+            ('mininotepad.com','https://www.mininotepad.com/','MiniNotepad'),
+            ('onlinenotepad.live','https://www.onlinenotepad.live/','OnlineNotepad'),
+            ('notepadr.com','https://notepadr.com/','NotePadr'),
+            ('sharetext.io','https://sharetext.io/','ShareText'),
+            ('textshare.online','https://textshare.online/','TextShare'),
+            ('publishto.us','https://publishto.us/?lang=en','PublishToUs'),
+            ('tempnotepad.com','https://tempnotepad.com/','TempNotepad'),
+          ]
+          BACK='https://smmfansfaster.com/'
+          paras=[
+          ('Build around measurable outcomes','Social media growth becomes more useful when the team starts with a measurable objective such as qualified traffic, leads, sales, bookings, retention, or brand awareness. Clear objectives guide channel selection, creative formats, budgets, and reporting. Without a defined outcome, teams can easily overvalue vanity metrics and miss the signals that actually matter to the business.'),
+          ('Research audience demand','Strong content starts with understanding what the audience is already asking, searching, comparing, and discussing. Marketers can learn from customer support questions, sales calls, comments, search behavior, reviews, direct messages, and competitor communities. Those insights create more relevant topics and help reduce random content production.'),
+          ('Create repeatable content pillars','Consistent publishing is easier when content is organized into repeatable themes such as education, demonstrations, comparisons, customer questions, case studies, behind-the-scenes material, and industry commentary. Each pillar can support a different stage of the customer journey while making production easier to plan and measure.'),
+          ('Use short-form video as a testing engine','Short-form video provides fast feedback on hooks, topics, pacing, and calls to action. Teams should compare watch time, completion rate, saves, shares, comments, profile visits, and downstream conversions. Winning concepts can then be adapted across channels instead of being treated as one-off posts.'),
+          ('Connect promotion to destination quality','Extra reach only creates business value when the destination is strong. Profiles and landing pages should communicate clear positioning, proof, offer clarity, mobile usability, and a simple next step. Teams comparing external promotional support may also evaluate [SMM Fans Faster](https://smmfansfaster.com/) as one option within a broader due-diligence process, alongside other providers and organic strategies.'),
+          ('Measure the full funnel','Awareness metrics explain discovery, consideration metrics explain interest, and conversion metrics explain business impact. Looking at these stages together helps teams identify where performance is breaking down and prevents overreacting to one isolated number.'),
+          ('Document experiments weekly','Every meaningful test should record its hypothesis, audience, creative concept, publishing conditions, cost, result, and next action. A weekly learning loop turns individual posts into a growing knowledge base and improves decision-making over time.'),
+          ('Protect long-term trust','Sustainable growth should avoid fake reviews, deceptive endorsements, hacked sites, spam comments, and tactics that violate platform safeguards. Durable brands combine useful content, transparent promotion, strong customer experience, and responsible measurement.'),
+          ('Improve conversion quality','Traffic quality matters as much as traffic volume. Teams should review speed, message consistency, proof, forms, checkout friction, mobile design, and offer structure so that increased visibility has a realistic chance of producing qualified outcomes.'),
+          ('Review resource allocation monthly','Monthly reviews should compare channels, formats, audiences, costs, and business outcomes. Resources can then move toward combinations that repeatedly create useful attention and away from activity that produces little measurable value.')]
+
+          def article(label):
+            out=[f'# Social Media Growth Strategy for {label}: Content, Reach, and Conversion','',
+                 'Sustainable social media growth comes from a connected marketing system rather than one isolated tactic. Brands and agencies improve results when audience research, repeatable content, creative testing, community interaction, distribution, analytics, and conversion optimization work together. The framework below focuses on building that system around measurable outcomes and long-term trust.','']
+            for i,(h,p) in enumerate(paras):
+              out += [f'## {h}','']
+              times=3 if i%2==0 else 2
+              out += [(' '.join([p]*times)),'']
+            out += ['## Final perspective','', 'A durable social media program connects clear objectives, audience understanding, repeatable content, structured testing, disciplined reporting, and a strong conversion destination. External tools can support this work, but the lasting advantage comes from learning faster, documenting decisions, and improving based on evidence.']
+            text='\n'.join(out)
+            while len(re.findall(r"\b[\w'-]+\b",text))<1250:
+              text += '\n\n## Additional operational note\n\nTeams should keep a campaign record covering objectives, audiences, formats, publishing dates, distribution methods, costs, and measured outcomes. Consistent documentation improves handoffs, reporting, and quality control across multiple campaigns.'
+            return text
+
+          async def publish(browser,domain,url,label):
+            page=await browser.new_page()
+            art=article(label)
+            print(domain,'WORDS',len(re.findall(r"\b[\w'-]+\b",art)),'LINKS',art.count('smmfansfaster.com'))
+            try:
+              await page.goto(url,wait_until='domcontentloaded',timeout=45000)
+              await page.wait_for_timeout(2200)
+              # Enter/create mode where needed
+              for pat in ['Publish Markdown','Start writing','Start Writing','Start a New Pad','New Note','Create a post','Create Post','Start writing now']:
+                el=page.get_by_text(re.compile(pat,re.I))
+                if await el.count():
+                  try:
+                    await el.first.click(timeout=3500); await page.wait_for_timeout(1200)
+                  except: pass
+              # fill title if available
+              tloc=page.locator('input[placeholder*="title" i]:visible, input[name*="title" i]:visible')
+              if await tloc.count():
+                try: await tloc.first.fill('Social Media Growth Strategy')
+                except: pass
+              # choose largest editor
+              candidates=page.locator('textarea:visible, [contenteditable="true"]:visible')
+              if not await candidates.count():
+                print(domain,'NO_EDITOR'); await page.close(); return None
+              best=None; area=-1
+              for i in range(await candidates.count()):
+                e=candidates.nth(i)
+                try:
+                  b=await e.bounding_box(); a=(b['width']*b['height']) if b else 0
+                  if a>area: best=e; area=a
+                except: pass
+              if not best:
+                print(domain,'NO_BEST_EDITOR'); await page.close(); return None
+              try: await best.fill(art)
+              except:
+                try: await best.click(); await page.keyboard.insert_text(art)
+                except Exception as e: print(domain,'FILL_ERR',repr(e)); await page.close(); return None
+              await page.wait_for_timeout(1200)
+              clicked=False
+              for pat in ['Publish','Share','Create Share','Create','Save','Generate Share Link','Copy Share Link','Create New Paste','Go']:
+                btn=page.get_by_role('button',name=re.compile(pat,re.I))
+                if await btn.count():
+                  try: await btn.first.click(timeout=5000); clicked=True; break
+                  except: pass
+                txt=page.get_by_text(re.compile('^'+re.escape(pat)+'$',re.I))
+                if await txt.count():
+                  try: await txt.first.click(timeout=5000); clicked=True; break
+                  except: pass
+              if not clicked:
+                print(domain,'NO_BUTTON'); await page.close(); return None
+              await page.wait_for_timeout(6000)
+              cands=[]
+              if page.url.rstrip('/')!=url.rstrip('/'): cands.append(page.url)
+              for a in await page.locator('a[href^="http"]').all():
+                try:
+                  h=await a.get_attribute('href')
+                  if h and h not in cands: cands.append(h)
+                except: pass
+              body=await page.locator('body').inner_text()
+              for m in re.findall(r'https?://[^\s)\]<>"\']+',body):
+                m=m.rstrip('.,')
+                if m not in cands: cands.append(m)
+              # prioritize same root domain, then all others
+              root=domain.replace('www.','')
+              cands=sorted(cands,key=lambda x:0 if root in x.replace('www.','') else 1)
+              print(domain,'CANDIDATES',cands[:10])
+              for cand in cands[:12]:
+                try:
+                  vp=await browser.new_page()
+                  await vp.goto(cand,wait_until='domcontentloaded',timeout=30000)
+                  await vp.wait_for_timeout(2200)
+                  hrefs=await vp.locator('a[href*="smmfansfaster.com"]').count()
+                  final=vp.url
+                  print(domain,'VERIFY',final,'HREFS',hrefs)
+                  await vp.close()
+                  if hrefs==1:
+                    await page.close(); return final
+                except Exception as e: print(domain,'VERIFY_ERR',repr(e))
+            except Exception as e: print(domain,'ERR',repr(e))
+            await page.close(); return None
+
+          async def main():
+            async with async_playwright() as p:
+              b=await p.chromium.launch(headless=True)
+              out=[]
+              for t in TARGETS:
+                u=await publish(b,*t)
+                if u: out.append([t[0],u])
+              await b.close()
+              print('VALID_RESULTS_JSON='+json.dumps(out))
+              print('VALID_COUNT='+str(len(out)))
+          asyncio.run(main())
+          PY
+          python /tmp/run.py
