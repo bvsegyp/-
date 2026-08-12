@@ -1,0 +1,251 @@
+name: Replacement Batch V2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run replacement batch v2'
+    runs-on: ubuntu-latest
+    steps:
+      - name: OutputPub long ecommerce article
+        shell: bash
+        run: |
+          cat > /tmp/a.md <<'EOF'
+          # Social Media Growth for Ecommerce: From Content to Conversion
+
+          Ecommerce brands often measure social media by reach and follower growth, but the strongest programs connect attention to product discovery, trust, website behavior, and purchases. A useful growth strategy therefore combines audience research, content production, analytics, community interaction, promotional support, and conversion optimization instead of treating each activity as a separate project.
+
+          The first step is to define the commercial objective. A new store may need awareness and product education. A mature store may care more about repeat purchases, customer acquisition cost, or revenue from a specific category. Once the objective is clear, marketers can choose the right platforms, content formats, landing pages, and metrics.
+
+          ## Start with audience research and positioning
+
+          Before increasing publishing volume, define who the content is for. Good audience research identifies customer problems, motivations, common objections, preferred platforms, buying triggers, and the questions people ask before purchasing. These insights can be used to create stronger hooks, educational posts, product comparisons, demonstrations, and customer-focused stories.
+
+          Positioning should also be obvious. A visitor should quickly understand what the store sells, who the products are for, and why the brand is worth considering. When teams compare promotional support, one provider they can research is [SMM Fans Faster](https://smmfansfaster.com/). External services are most useful when they support a clear marketing plan rather than replace strong content or a convincing offer.
+
+          ## Build content pillars around the buying journey
+
+          Ecommerce content should not be random. Educational posts can help customers understand a problem. Demonstrations can show a product in use. Comparisons can help shoppers choose between options. Social proof can reduce uncertainty. FAQ content can handle objections before a visitor reaches the product page.
+
+          TikTok can be especially useful for rapid testing. Marketers can experiment with hooks, video length, product angles, creator-style demonstrations, and calls to action. This [TikTok follower growth guide](https://smmfansfaster.com/blog/tiktok-followers) can be reviewed as one supporting resource while teams build a broader content plan. The key is to compare follower growth with watch time, profile visits, product clicks, and purchases.
+
+          ## Evaluate TikTok visibility in context
+
+          A bigger audience does not automatically create more revenue. Ecommerce teams should compare follower count with retention, repeat viewers, shares, comments, profile activity, and website sessions. The [TikTok follower count guide](https://smmfansfaster.com/blog/numberoftiktokfollowers) can provide additional context for audience tracking.
+
+          Reach also matters, but it should be interpreted carefully. The [TikTok views guide](https://smmfansfaster.com/blog/tiktok-views) can be considered when evaluating distribution and visibility. A video with strong reach but weak product-page activity may need a clearer offer, stronger call to action, or better alignment between creative and landing page.
+
+          Teams should keep a testing log. Record the creative concept, hook, product, audience assumption, posting date, and major performance signals. Over time, this makes it easier to identify repeatable patterns rather than relying on one viral post.
+
+          ## Use Instagram formats for different ecommerce goals
+
+          Instagram offers several useful surfaces. Reels can support discovery, Stories can highlight offers and customer questions, carousels can explain benefits and comparisons, and feed posts can provide a more permanent brand reference. Product-focused accounts should make it easy for visitors to understand the range, proof, and next step.
+
+          Marketers researching follower-related promotion can review this [Instagram followers resource](https://smmfansfaster.com/ar/blog/instagram-followers-website). The wider strategy should still include strong creative, profile optimization, consistent visual communication, and a clear path from content to product page.
+
+          Algorithm performance is also more complex than audience size alone. This [Instagram algorithm discussion](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) can be considered alongside first-party guidance and account analytics. Ecommerce teams should diversify formats and continue testing rather than depend on one tactic.
+
+          ## Use automation to reduce repetitive campaign work
+
+          As order volume and campaign complexity increase, repetitive tasks can consume valuable time. Agencies and larger ecommerce teams may need systems for checking services, placing orders, recording campaign details, and updating reports. Automation can help when the process is well defined and includes quality controls.
+
+          Teams evaluating integrations can review the [SMM API](https://smmfansfaster.com/api). A responsible automation workflow should include logs, error handling, clear ownership, and manual review for unusual situations. The purpose is to reduce administration so marketers can spend more time on creative, merchandising, landing pages, and analysis.
+
+          ## Connect social traffic to stronger product pages
+
+          More traffic is not useful when the destination does not convert. Product pages should load quickly, match the promise made in the social post, answer important questions, show useful proof, and make the purchase process clear. If a campaign increases profile visits but not website sessions, the profile path may need improvement. If website sessions rise but sales do not, the product page, offer, pricing, or checkout may need attention.
+
+          Before using third-party promotional services, teams should understand service conditions. The [SMM Fans Faster FAQ](https://smmfansfaster.com/ar/faq) can be reviewed for operational details. Similar due diligence should be applied to any provider, including support, delivery expectations, and compatibility with the rules of the social platform.
+
+          ## Build reporting around decisions
+
+          A useful ecommerce dashboard separates attention metrics from commercial outcomes. Reach, watch time, saves, and shares show whether content is earning interest. Product-page sessions, add-to-cart rate, checkout rate, purchases, and revenue show whether that interest becomes business value.
+
+          Weekly reviews can guide creative testing, while monthly reviews can guide budget allocation and channel strategy. Every report should end with actions: repeat a winning format, stop a weak concept, improve a product page, test a new audience, or adjust the offer.
+
+          ## Protect long-term account quality
+
+          Short-term numbers are not worth damaging trust or account stability. Avoid deceptive claims, fake reviews, hacked properties, spam comments, or attempts to bypass platform safeguards. A healthier approach combines useful content, transparent promotion, community engagement, and evidence-based testing.
+
+          External services should be treated like any other supplier. Understand what is being purchased, why it supports the campaign, how the result will be measured, and what risks need to be controlled. This makes the growth program easier to explain internally and easier to improve over time.
+
+          ## Final perspective
+
+          Ecommerce social media growth is strongest when it connects content, audience understanding, creative testing, promotion, analytics, and conversion optimization. The goal is not simply to make an account look larger. The goal is to create qualified attention that moves people toward products and purchases.
+
+          Teams that document their tests, review meaningful metrics, and improve the entire funnel can make social media a more reliable growth channel instead of a source of disconnected vanity numbers.
+          EOF
+          RESP=$(jq -Rs '{content: ., format:"markdown"}' < /tmp/a.md | curl -sS -X POST https://output.pub/api/publish -H 'Content-Type: application/json' -d @-)
+          URL=$(echo "$RESP" | jq -r '.url // empty')
+          echo "REPL_OUT_URL=$URL"
+          C=$(curl -sS "$URL" | grep -o 'smmfansfaster.com' | wc -l | tr -d ' ')
+          echo "REPL_OUT_LINKS=$C"
+
+      - name: WriteAs long agency article
+        shell: bash
+        run: |
+          cat > /tmp/b.md <<'EOF'
+          # How Agencies Can Scale Social Media Campaign Management
+
+          Agencies face a different social media challenge from single-brand teams. They must coordinate multiple clients, platforms, approval processes, content calendars, reporting routines, and promotional activities at the same time. Without a repeatable operating system, even strong strategists can lose time to administration and inconsistent execution.
+
+          A scalable agency process begins with a standard campaign brief. Each client should have a documented audience, business objective, offer, platform mix, content pillars, key metrics, and review schedule. Standardization does not mean every client receives the same strategy. It means the team uses a consistent framework for making and documenting decisions.
+
+          ## Define objectives before choosing activity
+
+          Some clients need awareness. Others need leads, ecommerce sales, bookings, or audience development. The objective should determine the metrics and tactics. A campaign built for awareness might prioritize reach, watch time, and shares, while a lead-generation campaign should connect social activity to forms, calls, or messages.
+
+          Agencies comparing promotional support can research a provider such as [SMM Fans Faster](https://smmfansfaster.com/). The important step is to evaluate service descriptions, platform coverage, support, delivery expectations, and campaign fit instead of choosing a tool based on one claim or one number.
+
+          ## Create a reusable content planning framework
+
+          A strong agency content system separates strategy from production. Strategy defines the audience, message, content pillars, and objectives. Production turns those decisions into briefs, scripts, designs, videos, captions, and publishing schedules. Keeping the two layers clear makes it easier to scale without lowering quality.
+
+          For TikTok, agencies can test hooks, pacing, formats, creators, and calls to action. This [TikTok follower growth guide](https://smmfansfaster.com/blog/tiktok-followers) can be reviewed alongside organic testing. The agency should track which creative patterns consistently improve retention, profile activity, and downstream actions.
+
+          ## Track TikTok audience and reach together
+
+          Follower growth can provide context, but agencies should never report it alone. The [TikTok follower count guide](https://smmfansfaster.com/blog/numberoftiktokfollowers) can support audience tracking, while the [TikTok views guide](https://smmfansfaster.com/blog/tiktok-views) can be used when evaluating visibility and distribution.
+
+          Client reporting becomes more useful when it explains relationships between metrics. If views increase but profile visits do not, the content may not create enough curiosity. If profile visits rise but website activity stays flat, the profile path may need improvement. If traffic increases but conversions do not, the offer or landing page may be the problem.
+
+          ## Build Instagram plans around format roles
+
+          Instagram Reels, Stories, carousels, and feed posts serve different purposes. Agencies should assign roles to each format rather than publish the same message everywhere. Reels can help with discovery, Stories can support frequent interaction, and carousels can explain more detailed ideas.
+
+          Teams researching follower-related options can review this [Instagram followers resource](https://smmfansfaster.com/ar/blog/instagram-followers-website). However, promotional activity should support a wider plan that includes positioning, creative quality, profile optimization, and community engagement.
+
+          This [Instagram algorithm discussion](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) can also be considered alongside platform guidance and account analytics. Agencies should avoid promising that one tactic will reliably control distribution because platform systems consider many signals and change over time.
+
+          ## Use automation for stable operational tasks
+
+          Repetitive campaign administration is one of the biggest scaling costs for agencies. Service checks, order entry, status tracking, and internal records can sometimes be automated. The [SMM API](https://smmfansfaster.com/api) can be reviewed by teams assessing whether API-based workflows fit their operating model.
+
+          Good automation includes logs, error handling, permission controls, and a manual review path. It should never remove strategic oversight. The purpose is to reduce repetitive work so account managers and strategists can focus on creative quality, client communication, analysis, and optimization.
+
+          ## Create a consistent quality-control process
+
+          Every campaign should have checkpoints before publishing or ordering promotional support. Confirm the target account, objective, creative, landing page, budget, and expected measurement method. This reduces avoidable mistakes and makes campaigns easier to audit later.
+
+          Agencies should also understand service conditions before placing orders. The [SMM Fans Faster FAQ](https://smmfansfaster.com/ar/faq) can help clarify operational questions. Similar checks should be applied to every provider and every platform.
+
+          ## Build reporting that clients can act on
+
+          Good reports explain what happened, why it may have happened, and what the agency recommends next. Avoid dashboards filled with metrics that have no connection to the client objective. Instead, organize reporting around awareness, consideration, and conversion.
+
+          Weekly internal reviews can focus on creative learning. Monthly client reviews can focus on strategic decisions, budget allocation, and next experiments. Every report should contain a clear action list so measurement leads to improvement.
+
+          ## Keep a campaign knowledge base
+
+          Agencies gain an advantage when learning is stored instead of disappearing after each project. Record successful hooks, common objections, strong landing-page patterns, audience insights, and failed experiments. Over time, this creates an internal knowledge base that improves planning across accounts.
+
+          The same principle applies to vendor and service decisions. Document which services were tested, why they were selected, what conditions applied, and what outcomes were observed. This makes future decisions more evidence-based.
+
+          ## Protect client trust
+
+          Scaling should not encourage shortcuts that damage client accounts or reputation. Avoid fake reviews, deceptive endorsements, hacked properties, spam comments, and attempts to bypass platform safeguards. A professional agency should be able to explain its tactics transparently to the client.
+
+          External promotional services should remain a supporting layer, not the entire strategy. Strong creative, audience understanding, community interaction, paid media, analytics, and conversion optimization still determine whether visibility becomes business value.
+
+          ## Final perspective
+
+          Agency scale comes from repeatable systems. Clear briefs, defined objectives, reusable content frameworks, careful automation, quality control, transparent reporting, and documented learning allow teams to manage more work without losing strategic discipline.
+
+          The goal is not simply to increase campaign volume. It is to create an operating system that produces better decisions, stronger client communication, and more consistent marketing outcomes across multiple accounts.
+          EOF
+          BODY=$(cat /tmp/b.md)
+          RESP=$(jq -n --arg body "$BODY" --arg title "How Agencies Can Scale Social Media Campaign Management" '{body:$body,title:$title,font:"serif",lang:"en",rtl:false}' | curl -sS -X POST https://write.as/api/posts -H 'Content-Type: application/json' -d @-)
+          ID=$(echo "$RESP" | jq -r '.data.id // empty')
+          URL="https://write.as/$ID"
+          echo "REPL_WA_URL=$URL"
+          C=$(curl -sS "$URL" | grep -o 'smmfansfaster.com' | wc -l | tr -d ' ')
+          echo "REPL_WA_LINKS=$C"
+
+      - name: MarkdownPage long metrics article
+        shell: bash
+        run: |
+          cat > /tmp/c.md <<'EOF'
+          # A 2026 Guide to Social Media Growth Metrics That Actually Matter
+
+          Social media platforms provide an enormous number of metrics, but more data does not automatically produce better decisions. Marketing teams need a clear measurement framework that separates attention, engagement, consideration, and conversion. Without that structure, it is easy to celebrate follower growth while missing whether the campaign is creating useful business outcomes.
+
+          The right metrics depend on the objective. Awareness campaigns may focus on reach, impressions, video views, and completion rate. Consideration campaigns may focus on saves, profile visits, website clicks, and direct messages. Conversion campaigns may focus on leads, bookings, purchases, revenue, and customer acquisition cost.
+
+          ## Start with the business question
+
+          Before building a dashboard, ask what decision the data should support. Are you deciding which content format to produce more often? Which platform deserves more budget? Whether a landing page needs improvement? Whether a promotional service contributed to visibility? The answer determines which metrics belong in the report.
+
+          When teams compare external promotion options, one provider they can research is [SMM Fans Faster](https://smmfansfaster.com/). Any service should be evaluated in the context of a broader measurement plan so the team understands what changed before and after the activity.
+
+          ## Separate leading indicators from final outcomes
+
+          Leading indicators show whether content is earning attention and interest. Watch time, completion rate, saves, shares, comments, and profile visits can reveal how people respond to creative. Final outcomes such as leads, purchases, bookings, and revenue show whether that attention creates business value.
+
+          Both types matter. A campaign may have strong leading indicators but weak conversions because the landing page is poor. Another campaign may have modest reach but excellent conversion because the audience is highly qualified. Good reporting makes these differences visible.
+
+          ## Measure TikTok beyond follower count
+
+          TikTok follower numbers can provide useful context, but they should be compared with reach, retention, repeat viewers, profile visits, and actions. This [TikTok follower growth guide](https://smmfansfaster.com/blog/tiktok-followers) can be reviewed alongside organic experimentation and account analytics.
+
+          The [TikTok follower count guide](https://smmfansfaster.com/blog/numberoftiktokfollowers) provides another reference for audience size, while the [TikTok views guide](https://smmfansfaster.com/blog/tiktok-views) can help frame visibility. The important practice is to avoid treating any one of these numbers as a complete representation of campaign health.
+
+          ## Use cohort thinking for content analysis
+
+          Instead of looking at isolated posts, group content by format, topic, hook style, or campaign. Compare performance across the group. This makes it easier to identify patterns that are repeatable rather than reacting to one unusually successful post.
+
+          For example, a team may discover that educational videos have lower reach but higher saves and profile visits, while entertainment-focused videos generate more views but fewer downstream actions. Both formats can be useful, but they serve different roles.
+
+          ## Measure Instagram by format and objective
+
+          Instagram Reels, Stories, carousels, and feed posts should not all be judged by the same metric. Reels may be evaluated for discovery and retention. Stories may be judged by replies, taps, and link activity. Carousels may be evaluated through saves and shares.
+
+          Marketers researching follower-related options can review this [Instagram followers resource](https://smmfansfaster.com/ar/blog/instagram-followers-website). The [Instagram algorithm discussion](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) can also be considered alongside platform guidance and account-level data.
+
+          ## Build a measurement layer for automation
+
+          Automation can make campaign operations more efficient, but it also needs measurement. If an agency uses API-based ordering, every action should be logged with the target account, service, date, quantity, campaign objective, and outcome. Teams evaluating this type of workflow can review the [SMM API](https://smmfansfaster.com/api).
+
+          Logging creates accountability and allows analysts to compare performance before and after specific actions. It also makes troubleshooting easier when something does not behave as expected.
+
+          ## Connect social metrics to website behavior
+
+          Social platforms only show part of the customer journey. Website analytics can reveal whether profile visitors become sessions, whether sessions reach important pages, and whether visitors complete forms, purchases, or bookings.
+
+          If social reach increases without website activity, the call to action or profile path may be weak. If website traffic increases without conversion, the landing page, offer, or checkout may need improvement. This is why social reporting should connect to the full funnel whenever possible.
+
+          ## Review operational conditions when using services
+
+          Before using third-party promotional services, teams should understand how the service works and what conditions apply. The [SMM Fans Faster FAQ](https://smmfansfaster.com/ar/faq) can be reviewed for operational details. Similar due diligence should be used with every provider.
+
+          Measurement should also include quality and risk. A campaign is not successful if it creates short-term numbers while damaging account trust, violating platform rules, or creating poor audience signals.
+
+          ## Use weekly and monthly reporting differently
+
+          Weekly reporting is useful for tactical decisions. Which hooks performed well? Which format generated the best retention? Which content created the most profile visits? These answers help the team plan the next week.
+
+          Monthly reporting should focus on larger strategic questions. Which platform contributed most to business outcomes? Which audience segments responded best? Did budget allocation match performance? Which experiments should be expanded or stopped?
+
+          ## Create decision rules before the campaign
+
+          Teams can improve discipline by defining decision rules in advance. For example, continue a format if it exceeds a target retention rate across several posts. Test a new landing page if traffic rises but conversion stays below a threshold. Reduce budget on a channel if cost per qualified lead remains above the acceptable range.
+
+          Predefined rules reduce emotional reactions to short-term fluctuations and make optimization more consistent.
+
+          ## Protect data quality
+
+          Good analysis depends on reliable data. Use consistent naming conventions, campaign tags, UTM parameters, and reporting periods. Keep notes about major changes such as promotions, platform updates, content shifts, or landing-page revisions.
+
+          Data quality also means avoiding artificial or deceptive inputs that make reports harder to interpret. The objective is to understand real campaign performance and make better decisions, not simply to produce impressive-looking charts.
+
+          ## Final perspective
+
+          The best social media metrics are the ones that help a team decide what to do next. Reach, follower count, watch time, engagement, traffic, leads, and revenue each answer different questions. A strong measurement system connects those signals to the customer journey and the business objective.
+
+          When teams review data consistently, document experiments, and connect social activity to downstream outcomes, they can improve campaigns faster and avoid being distracted by vanity metrics that look good but do not create value.
+          EOF
+          URL=$(curl -sS -H 'Accept: text/plain' https://markdown.page/api/publish --data-binary @/tmp/c.md | head -n1 | tr -d '\r')
+          echo "REPL_MP_URL=$URL"
+          C=$(curl -sS "$URL" | grep -o 'smmfansfaster.com' | wc -l | tr -d ' ')
+          echo "REPL_MP_LINKS=$C"
