@@ -1,0 +1,11 @@
+name: Run Backlink Batch 05
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run publisher
+        run: bash scripts/publish_backlinks_batch05.sh
