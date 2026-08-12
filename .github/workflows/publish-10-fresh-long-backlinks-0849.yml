@@ -1,0 +1,57 @@
+name: Publish 10 Fresh Long Backlinks 0849
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish 10 fresh long backlinks 0849'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build fresh long articles and publish
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-10-long-backlinks-now.yml' -o /tmp/base.yml
+          python - <<'PY'
+          import re, textwrap
+          y=open('/tmp/base.yml',encoding='utf-8').read()
+          m=re.search(r"cat > /tmp/publish\.py <<'PY'\n(.*?)\n\s*PY\n\s*python /tmp/publish\.py", y, re.S)
+          if not m:
+              raise SystemExit('BASE_SCRIPT_NOT_FOUND')
+          code=textwrap.dedent(m.group(1))
+          replacements={
+          'A Complete Social Media Growth Framework for Agencies and Brands':'Social Media Growth Architecture for Agencies: Strategy, Systems, and Measurement',
+          'How to Build a Sustainable TikTok Growth System in 2026':'TikTok Growth Operations in 2026: Testing, Retention, Reach, and Conversion',
+          'Instagram Growth Strategy: From Reach to Real Conversions':'Instagram Growth Playbook: Reels, Stories, Trust, and Conversion Paths',
+          'How to Evaluate an SMM Panel Without Losing Sight of Strategy':'How Marketing Teams Can Evaluate SMM Services with Better Quality Controls',
+          'A Practical Social Media Analytics and Promotion Playbook':'Social Media Analytics Framework: Turning Campaign Signals into Decisions',
+          'Multi-Platform Campaign Operations for Modern Marketing Teams':'Multi-Platform Social Campaign Management for Agencies and In-House Teams',
+          'Combining Organic Content, Paid Media, and SMM Support':'Balancing Organic Content, Paid Distribution, and External SMM Support',
+          'How to Build a Social Media Funnel That Converts Attention':'Building a Social Media Funnel from Discovery to Qualified Conversion',
+          'A Content Testing Framework for Faster Social Media Learning':'Creative Testing Systems for Faster Social Media Learning and Growth',
+          'Agency Automation and the Role of an SMM API in Campaign Workflows':'Agency Workflow Automation: SMM APIs, Governance, Reporting, and Scale',
+          'agency planning, client reporting, and multi-platform execution':'agency operating models, client communication, multi-channel planning, and measurable delivery',
+          'TikTok content experimentation, retention, reach, and audience development':'TikTok creative iteration, viewer retention, distribution signals, audience quality, and conversion paths',
+          'Instagram positioning, Reels, Stories, profile optimization, and conversion':'Instagram account positioning, Reels discovery, Stories engagement, profile trust, and conversion design',
+          'provider evaluation, service quality, campaign fit, and risk control':'supplier due diligence, service fit, quality assurance, campaign governance, and responsible risk management',
+          'measurement, reporting, attribution, and data-driven campaign decisions':'measurement architecture, attribution limits, reporting discipline, and evidence-based marketing decisions',
+          'process design, scheduling, quality assurance, and team coordination':'campaign operations, editorial calendars, QA workflows, ownership, and cross-team coordination',
+          'channel mix, budget decisions, audience trust, and campaign balance':'channel strategy, budget tradeoffs, audience trust, promotional balance, and sustainable growth',
+          'awareness, consideration, conversion, landing pages, and measurement':'full-funnel planning, awareness signals, consideration behavior, landing-page quality, and conversion measurement',
+          'creative hypotheses, structured experiments, learning loops, and iteration':'creative research, hypothesis design, controlled testing, documented learning, and faster iteration',
+          'automation, order management, reporting, governance, and agency scale':'workflow automation, order controls, audit trails, reporting standards, governance, and scalable agency operations'
+          }
+          for a,b in replacements.items():
+              code=code.replace(a,b)
+
+          marker="parts.append(f'''## Final perspective"
+          injected="""parts.append(f'''## Build a campaign decision log and learning archive\n\nA mature social media program should preserve the reasoning behind important decisions, not just the final numbers. For a campaign focused on {angle}, teams can keep a compact decision log covering the hypothesis, target audience, creative variation, distribution method, expected outcome, observed result, and next action. This prevents valuable learning from disappearing when a team member changes roles or when a client campaign moves into a new phase.\n\nThe archive becomes especially useful when several platforms are being managed at once. Patterns that appear on TikTok may inspire a new Instagram test, while landing-page behavior may reveal that the problem is not reach but message continuity after the click. Keeping these observations in one place helps teams distinguish platform-specific effects from broader marketing issues.\n\nA decision log also creates accountability. When a tactic is repeated, the team can explain why it was chosen and what evidence supported it. When a tactic is stopped, the reason is documented. This makes optimization more disciplined and reduces the tendency to change direction based only on the most recent post.\n''')\n\n              parts.append(f'''## Improve campaign resilience through diversified acquisition\n\nNo social platform should be treated as a permanent source of predictable reach. Algorithms, audience behavior, creative trends, and competitive pressure change. A resilient strategy therefore spreads learning and acquisition across multiple formats and channels while keeping a consistent brand promise. This is especially important for {angle}, where overdependence on one source of visibility can make performance unstable.\n\nTeams can protect long-term performance by building owned destinations, improving website conversion paths, collecting first-party data where appropriate, and creating repeatable content systems that can be adapted from one platform to another. External promotional support can contribute to distribution, but it should sit inside this broader structure rather than replace it.\n\nThe practical advantage of diversification is that a weak week on one channel does not stop the entire marketing system. Strong teams continually compare channel quality, acquisition cost, engagement depth, and downstream value, then reallocate effort based on evidence.\n''')\n\n              "+marker
+          if marker in code:
+              code=code.replace(marker,injected,1)
+          else:
+              raise SystemExit('FINAL_MARKER_NOT_FOUND')
+          open('/tmp/publish.py','w',encoding='utf-8').write(code)
+          PY
+          python /tmp/publish.py
