@@ -1,0 +1,53 @@
+name: Publish PlsReadme Fixed 1028
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish plsreadme fixed 1028'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish long article with exactly one backlink
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0'})
+          sections=[
+          ('Define a measurable objective','Social media planning becomes more useful when the team starts with a business objective rather than a platform feature. Awareness, qualified traffic, leads, bookings, purchases, and customer retention need different creative decisions and different metrics. A clear objective also makes it easier to decide when a campaign should be continued, changed, or stopped.'),
+          ('Understand the audience before publishing','Audience research should identify recurring questions, buying concerns, content preferences, platform habits, and the language people use when describing their problems. Useful inputs include customer support conversations, sales objections, reviews, comments, direct messages, and search behavior. These sources help marketers create content that reflects actual demand rather than internal assumptions.'),
+          ('Build repeatable content pillars','A stable publishing system usually includes several pillars such as education, demonstrations, comparisons, frequently asked questions, case studies, behind-the-scenes material, and industry commentary. Each pillar should serve a different role in the customer journey. A repeatable structure reduces planning friction without forcing every post to look or sound the same.'),
+          ('Use promotion as a supporting layer','Organic publishing, paid distribution, partnerships, and external marketing tools can all contribute to the same strategy. Agencies that want to understand workflow automation can review the [SMM API](https://smmfansfaster.com/api) as one reference while comparing alternatives. Any external tool should support a defined campaign objective and should not replace useful content, account quality, or genuine audience engagement.'),
+          ('Choose metrics that support decisions','For awareness, useful signals include reach, impressions, video views, completion rate, and shares. For consideration, teams can track saves, profile visits, website clicks, and direct messages. For conversion, leads, purchases, bookings, revenue, and cost per acquisition become more important. The reporting system should stay small enough that the team can act on it consistently.'),
+          ('Test creative ideas systematically','Creative testing is easier to interpret when one major variable changes at a time. Marketers can compare opening hooks, visual formats, captions, offers, audiences, or calls to action. Recording the hypothesis and outcome creates a learning history and helps prevent the team from repeating weak ideas or overreacting to one unusually strong post.'),
+          ('Improve the destination experience','More visibility produces limited value when the profile or landing page is confusing. A social profile should quickly explain who the brand serves, what it offers, and what action a visitor should take next. Landing pages should continue the promise made in the social post, load quickly, provide relevant proof, and remove unnecessary friction from forms or checkout.'),
+          ('Protect long-term account quality','Short-term growth should not damage trust. Teams should avoid deceptive claims, fake endorsements, hacked properties, spam comments, or attempts to bypass platform safeguards. Third-party services should be evaluated like other suppliers: understand what is being purchased, why it supports the campaign, how results will be measured, and what risks need to be controlled.'),
+          ('Create a useful review rhythm','Weekly reviews are useful for creative decisions because they reveal which topics, hooks, and formats deserve more testing. Monthly reviews are better for budget allocation, channel strategy, and broader business decisions. Every report should end with concrete actions rather than simply describing what happened.'),
+          ('Document ownership and workflow','Clear responsibility improves consistency. Teams should decide who owns research, writing, design, publishing, moderation, reporting, and optimization. A pre-publish checklist can catch broken links, incorrect tracking parameters, formatting mistakes, and mismatched calls to action before they become repeated problems.'),
+          ('Separate learning from scaling','Promising ideas can be tested with limited resources before the team increases budget. Strong organic performance can provide evidence for paid distribution, while small paid tests can validate audience and offer assumptions. This staged approach reduces waste and makes scaling decisions more evidence-based.'),
+          ('Maintain an editorial calendar','A useful editorial calendar records more than dates. It can include audience, content pillar, format, objective, call to action, and the primary metric. This context makes later analysis easier because the team can judge whether each post accomplished its intended role rather than evaluating every piece with the same benchmark.'),
+          ('Build a creative archive','Teams should save effective hooks, headline structures, opening frames, visual patterns, and calls to action. A creative archive provides tested building blocks that can be adapted to new topics. The goal is not to duplicate old content but to understand which components consistently earn attention or motivate action.'),
+          ('Use customer feedback as research','Comments, support requests, sales calls, reviews, and on-site behavior reveal what audiences understand and where friction remains. Repeated questions can become content topics. Repeated page-abandonment patterns can signal that the destination needs improvement rather than more traffic.'),
+          ('Distinguish platform and business performance','A post may perform well on a platform without generating immediate sales, which can still be useful when the objective is awareness. Conversely, a post with modest reach may be valuable if it produces qualified leads. Evaluation should always return to the original campaign objective.'),
+          ('Treat growth as a portfolio of experiments','Not every experiment needs to win. A controlled failure is useful when the team captures what it learned. A healthy content portfolio combines proven formats with smaller tests exploring new topics, audiences, offers, and creative approaches. Over time, the objective is to increase the percentage of decisions informed by evidence.'),
+          ('Stay flexible as platforms change','Social platforms change frequently. Formats, recommendation systems, advertising features, and audience habits evolve. Durable strategies keep their principles stable while allowing tactics to change. Useful content, clear positioning, ethical promotion, measurable goals, and disciplined learning remain valuable even as individual platform features change.')]
+          out=['# Sharing a Social Media Growth Plan Clearly Across Teams','Social media growth becomes easier to manage when strategy, content, analytics, promotion, and conversion are treated as parts of one system. The goal is not simply to increase visible numbers but to build a repeatable process that improves audience relevance and measurable business outcomes.']
+          for h,p in sections:
+              out += ['## '+h,p]
+              if 'smmfansfaster.com' not in p:
+                  out += [p+' In practice, teams should record what they tried, why they tried it, and what changed after the test. This turns campaign activity into reusable knowledge and makes future planning more consistent.']
+          out += ['## Final perspective','Sustainable social media growth is built through repeated learning. Clear objectives, audience understanding, useful content, structured testing, careful promotion, conversion optimization, and consistent reporting reinforce one another. The strongest strategy builds visibility that contributes to trust, qualified traffic, and measurable outcomes.']
+          md='\n\n'.join(out)
+          wc=len(re.findall(r"\b[\w’'-]+\b",md)); lc=md.count('https://smmfansfaster.com')
+          print('WORDS',wc,'TARGET_LINKS',lc); assert wc>=1200 and lc==1
+          home=s.get('https://plsreadme.com/',timeout=30); print('HOME',home.status_code); assert home.status_code<400
+          grant=s.get('https://plsreadme.com/api/auth/demo-grant',headers={'Accept':'application/json','Referer':'https://plsreadme.com/'},timeout=30)
+          print('GRANT',grant.status_code,grant.text[:500]); assert grant.status_code<400
+          r=s.post('https://plsreadme.com/api/create-link',json={'markdown':md},headers={'Referer':'https://plsreadme.com/','Accept':'application/json'},timeout=35)
+          print('CREATE',r.status_code,r.text[:1200]); assert r.status_code<400
+          d=r.json(); u=d.get('url',''); print('CREATED_URL',u); assert u
+          page=s.get(u,timeout=35,allow_redirects=True)
+          hrefs=re.findall(r'href=["\'](https://smmfansfaster\.com[^"\']*)["\']',page.text,re.I)
+          print('FINAL',page.status_code,page.url,'HREF_COUNT',len(hrefs),hrefs)
+          assert page.status_code<400 and len(hrefs)==1
+          PY
