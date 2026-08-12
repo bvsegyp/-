@@ -1,0 +1,146 @@
+name: Publish NAREX anonymous backlinks batch 5
+
+on:
+  push:
+    branches:
+      - narex-publish-batch5-20260812
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Publish Telegraph WriteAs and WriteFreely
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import requests,json,csv,time,re,html
+          HOME='https://narexx.com/'
+          PRODUCT='https://narexx.com/ar/easy-wash/p754364761'
+          WHY='https://narexx.com/en/%D9%84%D9%85%D8%A7%D8%B0%D8%A7-%D8%AA%D8%B3%D8%AA%D8%AE%D8%AF%D9%85-%D8%A7%D9%84%D9%85%D9%86%D8%AA%D8%AC/page-833898435'
+          WHOLESALE='https://narexx.com/en/%D8%B7%D9%84%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AC%D9%85%D9%84%D9%87/page-768158116'
+          COMPLAINTS='https://narexx.com/%D9%84%D9%84%D8%B4%D9%83%D8%A7%D9%88%D9%89-%D9%88-%D8%A7%D9%84%D8%A7%D9%82%D8%AA%D8%B1%D8%A7%D8%AD%D8%A7%D8%AA/page-50408011'
+          RETURNS='https://narexx.com/ar/%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%A8%D8%AF%D8%A7%D9%84-%D9%88%D8%A7%D9%84%D8%A5%D8%B3%D8%AA%D8%B1%D8%AC%D8%A7%D8%B9/page-1592231750'
+          EN='https://narexx.com/en/'
+          links=[
+            ('Easy Wash من NAREX',PRODUCT),('متجر NAREX',HOME),('لماذا تستخدم المنتج',WHY),
+            ('صفحة Easy Wash الرسمية',PRODUCT),('NAREX السعودية',HOME),('سياسة الاستبدال والاسترجاع',RETURNS),
+            ('الشكاوى والاقتراحات',COMPLAINTS),('طلبات الجملة',WHOLESALE),('NAREX English',EN),
+            ('منتج منع انتقال الألوان',PRODUCT),('الموقع الرسمي NAREX',HOME),('Easy Wash للملابس الملونة',PRODUCT),
+            ('حلول NAREX للغسيل',HOME),('خدمة عملاء NAREX',COMPLAINTS),('متجر NAREX للعناية بالملابس',HOME),('Easy Wash الرسمي',PRODUCT)
+          ]
+          paragraphs=[
+            'انتقال الألوان بين الملابس أثناء الغسيل مشكلة شائعة خصوصًا مع القطع الجديدة أو الأقمشة ذات الدرجات القوية. عندما تتحرر الصبغة داخل الماء قد تلتصق بقطعة أخرى وتغيّر مظهرها، ولذلك تبدأ الحماية الجيدة بقراءة تعليمات الغسيل واختيار درجة حرارة مناسبة وعدم خلط القطع التي يُعرف عنها نزيف اللون بصورة قوية.',
+            'الفرز يظل خطوة مهمة، لكن تقسيم كل درجة لونية إلى دورة مستقلة ليس عمليًا دائمًا. لهذا يمكن الاستفادة من حلول مساعدة مصممة لالتقاط الصبغات المتسربة داخل الغسالة. الهدف هو تقليل احتمال انتقال اللون مع الاستمرار في اتباع قواعد العناية الأساسية وعدم اعتبار أي منتج بديلًا كاملًا عن التعامل الحذر مع الملابس الحساسة.',
+            'مناديل التقاط الألوان تعمل أثناء دورة الغسيل داخل الماء. توضع الورقة مع الملابس، ومع حركة الماء تلتقط جزءًا من الصبغات الزائدة التي قد تنفصل عن بعض الأقمشة. بعد انتهاء الدورة يتم التخلص منها. عدد المناديل المطلوب قد يختلف بحسب حجم الحمولة وقوة الألوان، لذلك من الأفضل مراجعة تعليمات المنتج قبل الاستخدام.',
+            'Easy Wash من NAREX يقدم هذا المفهوم للمستخدم الذي يريد روتين غسيل أكثر تنظيمًا. يمكن أن يكون مناسبًا للأسر التي تغسل الملابس الملونة بصورة متكررة وتريد تقليل القلق من انتقال الصبغة، مع الاستمرار في فصل القطع الجديدة جدًا أو شديدة الحساسية عند الحاجة.',
+            'هناك خطوات إضافية تساعد على المحافظة على مظهر الملابس، مثل عدم تحميل الغسالة فوق طاقتها، واختيار برنامج مناسب لنوع القماش، وتجنب الحرارة العالية عندما لا تكون ضرورية، وقلب بعض الملابس من الداخل إلى الخارج. كما يفضل إخراج الملابس بعد انتهاء الدورة بدل تركها مبللة لفترة طويلة.',
+            'الملابس الداكنة الجديدة تستحق اهتمامًا أكبر في أولى مرات الغسيل لأنها قد تطلق صبغة أكثر من المعتاد. إذا كان هناك شك في ثبات اللون يمكن غسل القطعة منفردة أول مرة أو اختبارها قبل إدخالها مع حمولة أخرى، ثم الانتقال إلى روتين أكثر مرونة بعد التأكد من سلوك القماش.',
+            'بالنسبة للمستخدم في السعودية، من المفيد مراجعة صفحة المنتج وسياسات المتجر وقنوات التواصل قبل الطلب. وجود معلومات واضحة عن الاستبدال والاسترجاع وخدمة العملاء وطلبات الجملة يساعد على اتخاذ قرار شراء أكثر وعيًا ومعرفة القنوات المتاحة في حال وجود استفسار.',
+            'الخلاصة أن حماية ألوان الملابس تعتمد على روتين متكامل: فرز منطقي، برنامج غسيل مناسب، كمية منظف صحيحة، وتعامل جيد مع القطع الجديدة، مع الاستفادة من منتج يساعد على التقاط الصبغات عند الحاجة. بهذه الطريقة يصبح الغسيل الملون أكثر راحة وتنظيمًا وتقل المفاجآت الناتجة عن انتقال اللون.'
+          ]
+          topics=[
+            'مناديل منع انتقال الألوان في الغسالة بالسعودية',
+            'طريقة حماية الملابس الملونة من الصبغات المتسربة',
+            'حل مشكلة اختلاط ألوان الملابس في الغسيل',
+            'أفضل طريقة للحفاظ على ألوان الملابس أثناء الغسيل',
+            'ورق التقاط الصبغات للغسالات الأوتوماتيك',
+            'مناديل حماية الملابس البيضاء من الألوان',
+            'طريقة تقليل نزيف لون الملابس الجديدة',
+            'غسيل الملابس الملونة بدون انتقال الصبغة',
+            'منتج لالتقاط الألوان الزائدة داخل الغسالة',
+            'روتين غسل الملابس متعددة الألوان في السعودية',
+            'حماية الأقمشة من تداخل الألوان أثناء الغسيل',
+            'حلول العناية بألوان الملابس مع NAREX',
+            'Easy Wash لمنع اختلاط ألوان الملابس',
+            'مناديل امتصاص الألوان للغسيل اليومي',
+            'كيف تحافظ على لون الملابس مع تكرار الغسيل',
+            'منع انتقال اللون بين قطع الملابس في الغسالة'
+          ]
+          def md(title):
+            out=[f'# {title}']
+            li=0
+            heads=['فهم انتقال الألوان','الفرز الذكي','مناديل التقاط الصبغات','Easy Wash من NAREX','نصائح للعناية','الملابس الجديدة','التسوق في السعودية','الخلاصة']
+            for head,p in zip(heads,paragraphs):
+              a,b=links[li%len(links)],links[(li+1)%len(links)];li+=2
+              out += [f'## {head}',p+f' للمزيد راجع [{a[0]}]({a[1]}) و[{b[0]}]({b[1]}).']
+            out += [f'مصادر إضافية: [Easy Wash]({PRODUCT}) و[متجر NAREX]({HOME}).']
+            return '\n\n'.join(out)
+          def tele_nodes(title):
+            nodes=[];li=0
+            heads=['فهم انتقال الألوان','الفرز الذكي','مناديل التقاط الصبغات','Easy Wash من NAREX','نصائح للعناية','الملابس الجديدة','التسوق في السعودية','الخلاصة']
+            for head,p in zip(heads,paragraphs):
+              a,b=links[li%len(links)],links[(li+1)%len(links)];li+=2
+              nodes.append({'tag':'h3','children':[head]})
+              nodes.append({'tag':'p','children':[p+' للمزيد راجع ',{'tag':'a','attrs':{'href':a[1]},'children':[a[0]]},' و',{'tag':'a','attrs':{'href':b[1]},'children':[b[0]]},'.']})
+            nodes.append({'tag':'p','children':['مصادر إضافية: ',{'tag':'a','attrs':{'href':PRODUCT},'children':['Easy Wash']},' و',{'tag':'a','attrs':{'href':HOME},'children':['متجر NAREX']},'.']})
+            return nodes
+          def verify(url):
+            if not url: return False
+            try:
+              r=requests.get(url,timeout=30,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0'})
+              return r.status_code < 400 and 'narexx.com' in r.text.lower()
+            except: return False
+          rows=[]
+          # Telegraph
+          title=topics[0]
+          try:
+            acc=requests.get('https://api.telegra.ph/createAccount',params={'short_name':'narexseo','author_name':'NAREX','author_url':HOME},timeout=30).json()
+            tok=acc.get('result',{}).get('access_token')
+            res=requests.post('https://api.telegra.ph/createPage',data={'access_token':tok,'title':title,'author_name':'NAREX','author_url':HOME,'content':json.dumps(tele_nodes(title),ensure_ascii=False),'return_content':'true'},timeout=45).json()
+            u=res.get('result',{}).get('url',''); c=18
+            rows.append(['telegra.ph',u,title,c,'published' if verify(u) else 'FAILED verify'])
+            print('RESULT|telegra.ph|'+u+'|links='+str(c)+'|'+rows[-1][-1])
+          except Exception as e: rows.append(['telegra.ph','',title,18,'FAILED '+repr(e)]);print('FAIL|telegra.ph|'+repr(e))
+          # Write.as official
+          title=topics[1]; body=md(title); c=body.count('https://narexx.com')
+          try:
+            r=requests.post('https://write.as/api/posts',json={'body':body,'title':title,'font':'sans','lang':'ar','rtl':True},timeout=45,headers={'User-Agent':'Mozilla/5.0'})
+            d=r.json(); pid=d.get('data',{}).get('id','');u='https://write.as/'+pid if pid else ''
+            rows.append(['write.as',u,title,c,'published' if verify(u) else 'FAILED verify '+str(r.status_code)])
+            print('RESULT|write.as|'+u+'|links='+str(c)+'|'+rows[-1][-1])
+          except Exception as e: rows.append(['write.as','',title,c,'FAILED '+repr(e)]);print('FAIL|write.as|'+repr(e))
+          # WriteFreely community instances - anonymous endpoint only; failures are skipped
+          instances=[
+            'https://text.tchncs.de','https://paper.wf','https://rant.li','https://prra.xyz','https://blog.dtth.ch',
+            'https://benert.pl','https://bilog.tr','https://blog.rollenspiel.monster','https://wordsmith.social',
+            'https://writefreely.debian.social','https://write.c7.io','https://write.tedomum.net','https://escritura.social','https://infosec.press'
+          ]
+          for idx,base in enumerate(instances,start=2):
+            title=topics[idx];body=md(title);c=body.count('https://narexx.com');host=re.sub(r'^https?://','',base).rstrip('/')
+            try:
+              r=requests.post(base.rstrip('/')+'/api/posts',json={'body':body,'title':title,'font':'sans','lang':'ar','rtl':True},timeout=35,headers={'User-Agent':'Mozilla/5.0'})
+              d=r.json() if r.headers.get('content-type','').startswith('application/json') else {}
+              pid=(d.get('data') or {}).get('id','') if isinstance(d,dict) else ''
+              u=base.rstrip('/')+'/'+pid if pid else ''
+              ok=verify(u)
+              rows.append([host,u,title,c,'published' if ok else 'FAILED '+str(r.status_code)])
+              print('RESULT|'+host+'|'+u+'|links='+str(c)+'|'+rows[-1][-1])
+            except Exception as e:
+              rows.append([host,'',title,c,'FAILED '+repr(e)]);print('FAIL|'+host+'|'+repr(e))
+            time.sleep(1)
+          # retry www variants of no-auth permanent hosts
+          extra=[
+            ('www.pagedrop.dev','https://www.pagedrop.dev/api/v1/sites',topics[2]),
+            ('www.freekit.dev','https://www.freekit.dev/api/v1/sites',topics[3])
+          ]
+          for host,url,title in extra:
+            body=md(title);c=body.count('https://narexx.com')
+            try:
+              r=requests.post(url,json={'markdown':body},timeout=40,headers={'User-Agent':'Mozilla/5.0'})
+              try:d=r.json()
+              except:d={}
+              u=(d.get('data') or {}).get('url','') if isinstance(d.get('data'),dict) else (d.get('url') or '')
+              rows.append([host,u,title,c,'published' if verify(u) else 'FAILED '+str(r.status_code)])
+              print('RESULT|'+host+'|'+u+'|links='+str(c)+'|'+rows[-1][-1])
+            except Exception as e:rows.append([host,'',title,c,'FAILED '+repr(e)]);print('FAIL|'+host+'|'+repr(e))
+          with open('narex-batch5.csv','w',newline='',encoding='utf-8-sig') as f:
+            w=csv.writer(f);w.writerow(['platform','published_url','title','narex_links','status']);w.writerows(rows)
+          print('SUCCESS_COUNT='+str(len([r for r in rows if r[1] and r[-1]=='published'])))
+          PY
+      - name: Upload batch 5 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: narex-batch5-results
+          path: narex-batch5.csv
