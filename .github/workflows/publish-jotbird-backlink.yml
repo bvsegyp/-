@@ -1,0 +1,69 @@
+name: Publish JotBird Backlink
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish JotBird backlink article'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish anonymous JotBird article
+        shell: bash
+        run: |
+          cat > /tmp/article.md <<'EOF'
+          # A Practical Guide to Building a Multi-Platform Social Media Growth System
+
+          Growing a social media presence is rarely the result of one trick. Sustainable progress usually comes from combining content quality, audience research, consistent publishing, analytics, community management, and carefully selected promotional tools. For creators, agencies, ecommerce brands, and local businesses, the biggest challenge is often coordinating all of these activities across several platforms at the same time.
+
+          A good social media system starts with a clear objective. One account may be focused on awareness, another on website traffic, and another on direct sales. Before adding any promotional service, define the metric that matters most for the campaign. Depending on the goal, that could be reach, video completion rate, profile visits, clicks, leads, or purchases. This makes it easier to judge whether a tactic is actually contributing to growth instead of simply increasing a visible number.
+
+          ## Build the strategy around content first
+
+          The foundation should always be useful content. A strong post gives the audience a reason to stop, watch, save, share, or click. On TikTok, this often means opening with a clear hook and delivering value quickly. On Instagram, a mix of Reels, carousels, and Stories can help reach both new viewers and existing followers. On YouTube, watch time and audience retention usually matter more than raw upload volume.
+
+          Marketers who are researching additional promotional support can compare multi-platform providers such as [SMM Fans Faster](https://smmfansfaster.com/) with other available options. The useful comparison points are not limited to price. Service descriptions, delivery conditions, platform coverage, support, refill policies, order minimums, and campaign fit all matter.
+
+          For TikTok specifically, SMM Fans Faster publishes a guide about [increasing TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) that can be used alongside organic tactics such as trend research, stronger hooks, better editing, and consistent posting. Another useful resource covers practical ideas for getting [more TikTok views, followers, and likes](https://smmfansfaster.com/blog/tiktok-views), which is relevant for marketers who want to think beyond follower count alone.
+
+          ## Separate discovery from conversion
+
+          A common mistake is treating every social media activity as if it has the same purpose. Discovery content and conversion content often need different formats. A short entertaining video may be excellent for reach but weak for generating leads. A detailed carousel or product demonstration may have lower reach but stronger buying intent.
+
+          Create different content buckets for awareness, trust, and conversion. Awareness content should be easy to consume and share. Trust content can include tutorials, comparisons, case studies, and behind-the-scenes information. Conversion content should make the next action obvious, whether that is visiting a website, requesting a quote, or purchasing a product.
+
+          Instagram-focused teams can review this guide to an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) while building their broader plan. It is also worth reading the discussion about whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow), because follower numbers alone do not guarantee healthy engagement or distribution.
+
+          ## Use analytics to decide what to repeat
+
+          Without measurement, social media growth becomes guesswork. Review performance at the post level and at the campaign level. Useful metrics include reach, impressions, average watch time, completion rate, saves, shares, comments, profile visits, link clicks, leads, and revenue.
+
+          The goal is not to maximize every metric at once. Instead, identify which content and distribution methods are producing the outcomes that match the campaign objective. If educational videos generate profile visits and product demonstrations generate sales, each format has a different role in the system.
+
+          It can also help to compare follower growth with engagement quality. The SMM Fans Faster article about whether [buying Instagram followers affects engagement](https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement) highlights why marketers should look at real interaction signals rather than judging account health only by the headline follower number.
+
+          ## Organize agency workflows with automation carefully
+
+          Agencies that manage many client accounts often need a more structured workflow. A typical process might include campaign planning, content approval, publishing, reporting, and external service management. When repetitive tasks are involved, API-based integrations can reduce manual work.
+
+          SMM Fans Faster provides public [SMM API documentation](https://smmfansfaster.com/api) that describes service-list, order, status, refill, cancellation, and balance operations. For teams working with WordPress or WooCommerce, the company also has a page on [SMM API integration](https://smmfansfaster.com/smm-api-integration), including examples of connecting provider data and order workflows.
+
+          Automation should still be used with controls. Agencies need to document which services are being used, confirm that the target URL and quantity are correct before an order is sent, and monitor results after delivery. Automated ordering without checks can create avoidable mistakes.
+
+          ## Avoid over-optimizing for follower count
+
+          Follower count is visible, so it naturally gets attention, but it is only one part of account performance. A smaller audience that watches, comments, saves, and buys can be more valuable than a larger passive audience. For TikTok campaigns, this article on the [number of TikTok followers](https://smmfansfaster.com/blog/numberoftiktokfollowers) provides additional context on follower milestones and why views and engagement need to be considered separately.
+
+          The healthiest approach is to combine audience growth with better content and better conversion paths. If a campaign increases reach but the profile is unclear, the extra exposure may not translate into results. If a profile looks strong but the content has weak hooks, discovery may remain limited. Each stage of the funnel needs attention.
+
+          ## Final checklist for a balanced growth plan
+
+          Before scaling a social media campaign, confirm five things. First, the target audience is clearly defined. Second, the content has a repeatable structure and publishing schedule. Third, analytics are being reviewed consistently. Fourth, promotional tools are being compared based on quality and suitability rather than price alone. Fifth, the profile or website has a clear next step for visitors.
+
+          A multi-platform provider can be one supporting component of that system, but it should not replace content strategy, audience research, or real engagement. The strongest long-term approach is to use each tool for a specific purpose, measure the result, and keep improving the parts of the campaign that produce meaningful outcomes.
+          EOF
+          BODY=$(jq -Rs --arg title 'A Practical Guide to Building a Multi-Platform Social Media Growth System' '{markdown:.,title:$title}' < /tmp/article.md)
+          RESP=$(curl -sS -X POST 'https://api.jotbird.com/trial/publish' -H 'Content-Type: application/json' -H 'User-Agent: jotbird-vscode/1.0.0' -d "$BODY")
+          echo "JOTBIRD_RESPONSE=$RESP"
+          echo "JOTBIRD_URL=$(echo "$RESP" | jq -r '.url // empty')"
