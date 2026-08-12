@@ -1,0 +1,48 @@
+name: Publish 10 Fresh Long Backlinks 0852
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish 10 fresh long backlinks 0852'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build fresh long articles and publish
+        shell: bash
+        run: |
+          set -e
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/publish-10-long-backlinks-now.yml' -o /tmp/base.yml
+          python - <<'PY'
+          import re, textwrap
+          y=open('/tmp/base.yml',encoding='utf-8').read()
+          m=re.search(r"cat > /tmp/publish\.py <<'PY'\n(.*?)\n\s*PY\n\s*python /tmp/publish\.py", y, re.S)
+          if not m: raise SystemExit('BASE_SCRIPT_NOT_FOUND')
+          code=textwrap.dedent(m.group(1))
+          replacements={
+          'A Complete Social Media Growth Framework for Agencies and Brands':'Social Media Growth Architecture for Agencies: Strategy, Systems, and Measurement',
+          'How to Build a Sustainable TikTok Growth System in 2026':'TikTok Growth Operations in 2026: Testing, Retention, Reach, and Conversion',
+          'Instagram Growth Strategy: From Reach to Real Conversions':'Instagram Growth Playbook: Reels, Stories, Trust, and Conversion Paths',
+          'How to Evaluate an SMM Panel Without Losing Sight of Strategy':'How Marketing Teams Can Evaluate SMM Services with Better Quality Controls',
+          'A Practical Social Media Analytics and Promotion Playbook':'Social Media Analytics Framework: Turning Campaign Signals into Decisions',
+          'Multi-Platform Campaign Operations for Modern Marketing Teams':'Multi-Platform Social Campaign Management for Agencies and In-House Teams',
+          'Combining Organic Content, Paid Media, and SMM Support':'Balancing Organic Content, Paid Distribution, and External SMM Support',
+          'How to Build a Social Media Funnel That Converts Attention':'Building a Social Media Funnel from Discovery to Qualified Conversion',
+          'A Content Testing Framework for Faster Social Media Learning':'Creative Testing Systems for Faster Social Media Learning and Growth',
+          'Agency Automation and the Role of an SMM API in Campaign Workflows':'Agency Workflow Automation: SMM APIs, Governance, Reporting, and Scale',
+          'agency planning, client reporting, and multi-platform execution':'agency operating models, client communication, multi-channel planning, and measurable delivery',
+          'TikTok content experimentation, retention, reach, and audience development':'TikTok creative iteration, viewer retention, distribution signals, audience quality, and conversion paths',
+          'Instagram positioning, Reels, Stories, profile optimization, and conversion':'Instagram account positioning, Reels discovery, Stories engagement, profile trust, and conversion design',
+          'provider evaluation, service quality, campaign fit, and risk control':'supplier due diligence, service fit, quality assurance, campaign governance, and responsible risk management',
+          'measurement, reporting, attribution, and data-driven campaign decisions':'measurement architecture, attribution limits, reporting discipline, and evidence-based marketing decisions',
+          'process design, scheduling, quality assurance, and team coordination':'campaign operations, editorial calendars, QA workflows, ownership, and cross-team coordination',
+          'channel mix, budget decisions, audience trust, and campaign balance':'channel strategy, budget tradeoffs, audience trust, promotional balance, and sustainable growth',
+          'awareness, consideration, conversion, landing pages, and measurement':'full-funnel planning, awareness signals, consideration behavior, landing-page quality, and conversion measurement',
+          'creative hypotheses, structured experiments, learning loops, and iteration':'creative research, hypothesis design, controlled testing, documented learning, and faster iteration',
+          'automation, order management, reporting, governance, and agency scale':'workflow automation, order controls, audit trails, reporting standards, governance, and scalable agency operations'
+          }
+          for a,b in replacements.items(): code=code.replace(a,b)
+          open('/tmp/publish.py','w',encoding='utf-8').write(code)
+          PY
+          python /tmp/publish.py
