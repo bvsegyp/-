@@ -1,0 +1,43 @@
+name: Publish PasterSH Backlink
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish PasterSH backlink article'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish unique article to PasterSH
+        shell: bash
+        run: |
+          cat > /tmp/article.md <<'EOF'
+          # Social Media Marketing Services for Multi-Platform Growth
+
+          Building a stronger social media presence usually requires more than posting frequently. A practical growth strategy connects audience research, content creation, distribution, profile optimization, analytics, and selective promotion. The objective is to help more relevant users discover the brand and then make it easier for those users to engage, follow, visit a website, or convert.
+
+          Businesses researching promotional support can compare [SMM Fans Faster](https://smmfansfaster.com/) with other social media marketing providers. Instead of comparing price alone, review platform coverage, service descriptions, delivery information, customer support, order limits, and whether each option matches the campaign objective.
+
+          ## TikTok growth planning
+
+          TikTok campaigns benefit from rapid testing. Marketers can test different hooks, formats, video lengths, topics, and calls to action, then compare watch time, completion rate, shares, comments, profile visits, and follower growth. Teams researching additional TikTok support can review this guide about [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and this overview of [TikTok views, followers, and likes](https://smmfansfaster.com/blog/tiktok-views).
+
+          ## Instagram growth planning
+
+          Instagram requires a broader content mix. Reels can support reach, carousels can explain topics in more detail, Stories can maintain contact with existing followers, and highlights can organize important information. A strong profile should also have a clear bio and an obvious next action for visitors.
+
+          Marketers comparing follower-related services can review this resource about an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website). It is also useful to study whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow) and how follower growth may relate to engagement quality.
+
+          ## Measure the whole funnel
+
+          Campaign measurement should include discovery, engagement, and conversion metrics. Reach, impressions, and views show exposure. Saves, comments, shares, and return viewers show interaction. Profile visits, clicks, leads, and sales show whether attention is creating business value.
+
+          Agencies managing multiple accounts may also benefit from automation. SMM Fans Faster provides public [SMM API documentation](https://smmfansfaster.com/api) along with information about [SMM API integration](https://smmfansfaster.com/smm-api-integration) for teams working with WordPress or ecommerce workflows.
+
+          The strongest social media growth systems remain balanced. Content quality attracts attention, analytics identifies what is working, profile optimization improves conversion, and promotional services can support distribution when they are selected carefully and evaluated against meaningful outcomes.
+          EOF
+          BODY=$(jq -Rs '{content:.,title:"Social Media Marketing Services for Multi-Platform Growth",visibility:"public",syntax:"markdown",expiration:"never"}' < /tmp/article.md)
+          RESP=$(curl -sS -X POST 'https://api.paster.sh/v1/create' -H 'Content-Type: application/json' -d "$BODY")
+          echo "PASTERSH_RESPONSE=$RESP"
+          echo "PASTERSH_URL=$(echo "$RESP" | jq -r '.url // empty')"
