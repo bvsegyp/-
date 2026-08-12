@@ -1,0 +1,26 @@
+name: Verify PasteHTML Live 0911
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Verify pastehtml live 0911'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify published live HTML
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re
+          u='https://jibb26oaq4dfh7w95q317tprvrn0fkvj.pastehtml.dev/'
+          r=requests.get(u,timeout=35,headers={'User-Agent':'Mozilla/5.0'},allow_redirects=True)
+          hrefs=len(re.findall(r'href=["\']https://smmfansfaster\.com[^"\']*["\']',r.text,re.I))
+          total=r.text.count('smmfansfaster.com')
+          print('LIVE_URL='+u)
+          print('STATUS='+str(r.status_code))
+          print('HREFS='+str(hrefs))
+          print('TOTAL='+str(total))
+          if r.status_code>=400 or hrefs<6: raise SystemExit(1)
+          PY
