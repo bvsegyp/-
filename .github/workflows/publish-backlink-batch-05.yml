@@ -1,0 +1,142 @@
+name: Publish Backlink Batch 05
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  mdshare:
+    if: github.event.head_commit.message == 'Publish backlink batch 05'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish mdshare article
+        shell: bash
+        run: |
+          cat > /tmp/article.md <<'EOF'
+          # How to Evaluate Social Media Growth Services Without Losing Sight of Strategy
+
+          Social media growth is most useful when it supports a clear business objective. Brands may want more reach, stronger engagement, better profile conversion, more website visits, or increased sales. The right approach is to combine content quality, measurement, profile optimization, and carefully selected promotional support.
+
+          Businesses comparing providers can include [SMM Fans Faster](https://smmfansfaster.com/) in their research and evaluate service coverage, delivery expectations, support, and campaign fit rather than looking at price alone.
+
+          ## TikTok planning
+
+          TikTok rewards strong creative testing. Hooks, pacing, editing, topic selection, and consistency all influence performance. Teams researching growth support can review the guide to [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and the resource about [TikTok views, followers, and likes](https://smmfansfaster.com/blog/tiktok-views).
+
+          ## Instagram planning
+
+          Instagram needs a balanced mix of Reels, carousels, Stories, and profile optimization. Marketers can review this guide to an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) and also study whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow).
+
+          ## Agencies and automation
+
+          Agencies managing several client accounts may benefit from structured automation. The public [SMM API documentation](https://smmfansfaster.com/api) and [SMM API integration](https://smmfansfaster.com/smm-api-integration) page provide useful technical context.
+
+          A healthy growth system connects content, promotion, measurement, and conversion instead of relying on one metric alone.
+          EOF
+          RESP=$(curl -sS -X POST 'https://mdshare.live/api/documents' -H 'Content-Type: text/markdown' --data-binary @/tmp/article.md)
+          echo "MDSHARE_RESPONSE=$RESP"
+          ID=$(echo "$RESP" | jq -r '.document_id // empty')
+          KEY=$(echo "$RESP" | jq -r '.admin_key // empty')
+          if [ -n "$ID" ] && [ -n "$KEY" ]; then
+            LINKRESP=$(curl -sS -X POST "https://mdshare.live/api/d/$ID/links?key=$KEY" -H 'Content-Type: application/json' -d '{"permission":"view","label":"public-view"}')
+            echo "MDSHARE_LINK_RESPONSE=$LINKRESP"
+            echo "MDSHARE_URL=$(echo "$LINKRESP" | jq -r '.url // .share_url // .link // empty')"
+          fi
+
+  displaydev:
+    if: github.event.head_commit.message == 'Publish backlink batch 05'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Display.dev article
+        shell: bash
+        run: |
+          cat > /tmp/article.md <<'EOF'
+          # A Practical Social Media Growth Framework for Businesses
+
+          Growing social accounts sustainably requires a system rather than isolated tactics. Start with the campaign objective, build useful content, optimize the profile, measure audience behavior, and then use promotional tools where they add value.
+
+          A provider such as [SMM Fans Faster](https://smmfansfaster.com/) can be part of a broader comparison for businesses looking at multi-platform social media services.
+
+          ## TikTok growth
+
+          TikTok performance often depends on strong hooks and repeatable creative formats. Marketers can study [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views](https://smmfansfaster.com/blog/tiktok-views) while testing organic content variations.
+
+          ## Instagram growth
+
+          Instagram growth should be reviewed through reach, saves, shares, profile visits, clicks, and conversions. The guide to an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) offers one point of comparison for follower-focused research.
+
+          ## Automation
+
+          For agencies and resellers, the [SMM API](https://smmfansfaster.com/api) and [SMM API integration](https://smmfansfaster.com/smm-api-integration) resources can help organize repetitive workflows.
+
+          The strongest strategy combines promotion with better content and better measurement instead of treating follower count as the only goal.
+          EOF
+          RESP=$(curl -sS -X POST 'https://api.display.dev/v1/public/artifacts' -F file=@/tmp/article.md -F 'name=Social Media Growth Framework')
+          echo "DISPLAY_RESPONSE=$RESP"
+          echo "DISPLAY_URL=$(echo "$RESP" | jq -r '.previewUrl // empty')"
+
+  unmarkdown:
+    if: github.event.head_commit.message == 'Publish backlink batch 05'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Unmarkdown article
+        shell: bash
+        run: |
+          cat > /tmp/article.md <<'EOF'
+          # Social Media Promotion Should Support Content, Not Replace It
+
+          A strong social media campaign begins with useful content and a clear audience. Promotional services can increase distribution, but they work best when the profile, content, and conversion path are already prepared to handle more attention.
+
+          Businesses researching providers can compare [SMM Fans Faster](https://smmfansfaster.com/) with other available services based on platform coverage, delivery conditions, support, and suitability for the campaign.
+
+          ## TikTok
+
+          TikTok rewards testing. Different hooks, topics, pacing, and formats can produce very different results. This resource about [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and this guide about [TikTok views](https://smmfansfaster.com/blog/tiktok-views) can support campaign research.
+
+          ## Instagram
+
+          Instagram teams should consider profile quality and engagement alongside follower count. This article about an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) can be reviewed together with information on whether [buying Instagram followers affects engagement](https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement).
+
+          ## Scale with measurement
+
+          Agencies can use the [SMM API documentation](https://smmfansfaster.com/api) and [SMM API integration](https://smmfansfaster.com/smm-api-integration) page to structure larger workflows.
+
+          Good growth combines discovery, engagement, conversion, and careful measurement rather than chasing a single headline metric.
+          EOF
+          BODY=$(jq -Rs '{title:"Social Media Promotion Should Support Content, Not Replace It",content:.,template_id:"github"}' < /tmp/article.md)
+          RESP=$(curl -sS -X POST 'https://api.unmarkdown.com/v1/demo/publish' -H 'Content-Type: application/json' -d "$BODY")
+          echo "UNMARKDOWN_RESPONSE=$RESP"
+          echo "UNMARKDOWN_URL=$(echo "$RESP" | jq -r '.url // empty')"
+
+  leafmill:
+    if: github.event.head_commit.message == 'Publish backlink batch 05'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Leafmill article
+        shell: bash
+        run: |
+          cat > /tmp/article.md <<'EOF'
+          # Multi-Platform Social Media Growth: A Measurement-First Approach
+
+          Social media growth becomes more reliable when each campaign is measured against a business objective. Reach, followers, views, engagement, clicks, leads, and sales all tell different parts of the story, so marketers should define success before choosing promotional tactics.
+
+          One provider that can be included in a service comparison is [SMM Fans Faster](https://smmfansfaster.com/), which covers multiple social platforms and related growth services.
+
+          ## TikTok research
+
+          TikTok marketers can compare creative performance with external promotional options by reviewing resources about [TikTok followers](https://smmfansfaster.com/blog/tiktok-followers) and [TikTok views, followers, and likes](https://smmfansfaster.com/blog/tiktok-views).
+
+          ## Instagram research
+
+          Instagram marketers can review the guide to an [Instagram followers website](https://smmfansfaster.com/blog/instagram-followers-website) and the article discussing whether [increasing followers affects the Instagram algorithm](https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow).
+
+          ## Operational scale
+
+          Agencies that need automation can review the public [SMM API](https://smmfansfaster.com/api) plus the [SMM API integration](https://smmfansfaster.com/smm-api-integration) resource.
+
+          The most effective growth plan keeps content, promotion, analytics, and conversion working together.
+          EOF
+          BODY=$(jq -Rs '{title:"Multi-Platform Social Media Growth: A Measurement-First Approach",body:.}' < /tmp/article.md)
+          RESP=$(curl -sS -X POST 'https://leafmill.net/api/v1/publish' -H 'Content-Type: application/json' -d "$BODY")
+          echo "LEAFMILL_RESPONSE=$RESP"
+          echo "LEAFMILL_URL=$(echo "$RESP" | jq -r '.url // .article_url // empty')"
