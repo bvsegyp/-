@@ -1,0 +1,26 @@
+name: Verify MarkdownPage 0914
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Verify markdown page 0914'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify published page
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re
+          u='https://markdown.page/0DiJxS2J'
+          r=requests.get(u,headers={'Accept':'text/html','User-Agent':'Mozilla/5.0'},timeout=30)
+          hrefs=len(re.findall(r'href=["\']https://smmfansfaster\.com[^"\']*["\']',r.text,re.I))
+          total=r.text.count('smmfansfaster.com')
+          print('URL='+u)
+          print('STATUS='+str(r.status_code))
+          print('HREFS='+str(hrefs))
+          print('TOTAL='+str(total))
+          if r.status_code>=400 or hrefs<6: raise SystemExit(2)
+          PY
