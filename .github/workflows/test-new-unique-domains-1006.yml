@@ -1,0 +1,29 @@
+name: Retry Unique Domains One Link 1006
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    if: github.event.head_commit.message == 'Retry unique domains one link 1006'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fix one-link generator and retry
+        shell: bash
+        run: |
+          python -m pip install -q beautifulsoup4
+          curl -fsSL 'https://raw.githubusercontent.com/bvsegyp/-/main/.github/workflows/test-new-unique-domains-1002.yml' -o /tmp/src.yml
+          python - <<'PY'
+          import textwrap
+          src=open('/tmp/src.yml',encoding='utf-8').read()
+          start=src.index("cat > /tmp/test.py <<'PY'")+len("cat > /tmp/test.py <<'PY'")
+          end=src.index("\n          PY\n          python /tmp/test.py",start)
+          code=textwrap.dedent(src[start:end].lstrip('\n'))
+          old="out += ['## '+h,p,p+' In practice, teams should document what they tried, why they tried it, and what they learned. That small discipline turns campaign activity into reusable knowledge instead of a series of disconnected posts.']"
+          new="out += (['## '+h,p] if 'smmfansfaster.com' in p else ['## '+h,p,p+' In practice, teams should document what they tried, why they tried it, and what they learned. That small discipline turns campaign activity into reusable knowledge instead of a series of disconnected posts.'])"
+          if old not in code: raise SystemExit('PATCH_TARGET_NOT_FOUND')
+          code=code.replace(old,new)
+          open('/tmp/test.py','w',encoding='utf-8').write(code)
+          PY
+          python /tmp/test.py
