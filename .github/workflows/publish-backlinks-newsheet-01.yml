@@ -9,5 +9,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run publisher
-        run: bash scripts/publish_backlinks_newsheet_01.sh
-# batch-trigger-19
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/publish_backlinks_newsheet_01.sh | tee backlink-run.log
+      - name: Extract successful URLs
+        if: always()
+        shell: bash
+        run: |
+          grep '^RESULT_URL=https://' backlink-run.log | sed 's/^RESULT_URL=//' > backlink_urls.txt || true
+          echo "URL_COUNT=$(wc -l < backlink_urls.txt)"
+      - name: Upload URL results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backlink-urls-${{ github.run_id }}
+          path: backlink_urls.txt
+          retention-days: 7
