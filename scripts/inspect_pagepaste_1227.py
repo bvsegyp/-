@@ -11,9 +11,17 @@ for s in scripts:
     try:
         t=requests.get(su,timeout=30).text
         print('SCRIPT',su,'LEN',len(t))
-        for pat in [r'https://[^"\' ]+',r'/api/[A-Za-z0-9_?&=./:-]+',r'fetch\([^)]{0,300}\)',r'axios\.[a-z]+\([^)]{0,300}\)']:
-            vals=re.findall(pat,t,re.I)
-            if vals:
-                print('MATCHES',pat,vals[:30])
+        if su.endswith('app.js'):
+            for key in ['fetch(', 'upload', 'publish', 'shareable', 'FormData', 'POST', 'endpoint']:
+                print('\nKEY',key)
+                start=0
+                shown=0
+                low=t.lower(); k=key.lower()
+                while shown<20:
+                    i=low.find(k,start)
+                    if i<0: break
+                    print(t[max(0,i-350):min(len(t),i+700)].replace('\n',' '))
+                    print('---')
+                    start=i+len(k); shown+=1
     except Exception as e:
         print('ERR',su,repr(e))
