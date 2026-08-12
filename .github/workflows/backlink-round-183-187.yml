@@ -1,0 +1,87 @@
+name: Backlink Round 183-187
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish backlink round 183-187'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish five verified markdown articles
+        shell: bash
+        run: |
+          cat > /tmp/publish.py <<'PY'
+          import requests,re
+          HOME='https://smmfansfaster.com/'
+          urls_target=[
+            ('SMM Fans Faster',HOME),
+            ('SMM API','https://smmfansfaster.com/api'),
+            ('TikTok growth strategies','https://smmfansfaster.com/blog/tiktok-followers'),
+            ('TikTok follower metrics','https://smmfansfaster.com/blog/numberoftiktokfollowers'),
+            ('Instagram growth resource','https://smmfansfaster.com/ar/blog/instagram-followers-website'),
+            ('Instagram algorithm resource','https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow'),
+            ('SMM service FAQ','https://smmfansfaster.com/ar/faq')]
+          titles=[
+            'Social Media Growth for New Brands: From Discovery to Conversion',
+            'How Marketing Teams Can Build a Repeatable TikTok Testing System',
+            'Instagram Growth Planning for Brands That Need Better Conversion Paths',
+            'A Social Media Reporting Framework for Agencies and In-House Teams',
+            'How to Evaluate SMM Services Within a Responsible Marketing Strategy']
+          angles=[
+            'new brands building awareness while creating a path toward qualified traffic and sales',
+            'teams that want to learn from hooks, retention, audience signals, and creative iteration',
+            'brands that need Reels, Stories, profile positioning, and landing pages to work together',
+            'agencies and internal teams that need reporting to lead to clear campaign decisions',
+            'marketers comparing external promotional support without losing focus on content and measurement']
+          def article(i):
+            a=angles[i]; t=titles[i]
+            sections=[
+              f'''# {t}\n\nSocial media becomes easier to manage when it is treated as a connected marketing system. This guide is written for {a}. The objective is not to maximize one visible number in isolation. The objective is to understand how discovery, attention, profile activity, website traffic, trust, and conversion work together. A campaign that increases reach but produces no useful downstream action still needs optimization.\n\nA practical plan begins with one measurable business goal. That may be qualified website sessions, messages, leads, purchases, or repeat audience growth. Once the goal is clear, teams can choose the content formats, promotion methods, destination pages, and metrics that actually matter.''',
+              f'''## Build content around customer intent\n\nFor {a}, customer questions provide a strong starting point. Search behavior, reviews, comments, support requests, sales objections, and competitor content can reveal recurring themes. Those themes can become educational posts, demonstrations, comparisons, proof, objection-handling content, and direct-response creative.\n\nThis structure makes consistency easier because the team is not inventing a completely new strategy every week. Instead, it rotates proven content pillars while testing new hooks, formats, calls to action, and visual approaches. The result is a repeatable content engine rather than random posting.''',
+              f'''## Add promotion only after the destination is ready\n\nSome marketers compare external promotional providers when they want another distribution layer. [SMM Fans Faster]({urls_target[0][1]}) is one service that can be researched during that comparison. The useful questions include which platforms are supported, what each service is designed to do, what the delivery expectations are, and how the activity will be measured.\n\nTeams managing frequent campaigns may also review the [SMM API]({urls_target[1][1]}). API-based workflows can reduce repetitive administration, but they should include campaign naming, destination validation, ownership, error handling, and reporting. Automation is most useful when it supports a strong process instead of replacing strategic judgment.''',
+              f'''## Use TikTok to test creative hypotheses\n\nTikTok can provide fast feedback on opening hooks, pacing, video length, demonstrations, storytelling, captions, and calls to action. For {a}, each test should begin with a hypothesis. A team might compare problem-first hooks with benefit-first hooks, or short demonstrations with longer explanations.\n\nMarketers researching audience development can review these [TikTok growth strategies]({urls_target[2][1]}). The [TikTok follower metrics]({urls_target[3][1]}) resource can also help teams keep follower count in context with watch time, repeat viewers, shares, profile visits, and conversions. A larger audience is more valuable when it also contributes to useful behavior.''',
+              f'''## Plan Instagram as a journey across formats\n\nInstagram works best when formats are assigned different responsibilities. Reels can support discovery, Stories can maintain interaction, carousels can educate, Highlights can organize important information, and pinned posts can introduce the offer. This helps a new visitor understand the brand without relying on a single post.\n\nBusinesses comparing follower-focused options can review this [Instagram growth resource]({urls_target[4][1]}). Teams can also read this [Instagram algorithm resource]({urls_target[5][1]}) alongside their own analytics. Distribution depends on multiple signals, so campaign decisions should not depend on one simplified assumption about follower count or reach.''',
+              f'''## Measure awareness, consideration, and conversion separately\n\nA clear dashboard separates the customer journey into stages. Awareness metrics can include reach, impressions, video views, watch time, and shares. Consideration metrics can include saves, profile visits, direct messages, product views, and website clicks. Conversion metrics can include leads, bookings, purchases, subscriptions, or revenue where attribution is reliable.\n\nFor {a}, weekly reviews can focus on creative learning and monthly reviews can focus on broader allocation decisions. If one content pillar consistently generates retention and profile actions, create more variations. If traffic improves but conversions remain weak, review the offer, landing page, page speed, proof, and call to action.''',
+              f'''## Create a learning archive for future campaigns\n\nCampaign data becomes much more valuable when the team records the reasoning behind decisions. A simple decision log can include the objective, target audience, creative concept, platform, destination URL, promotion method, date, expected outcome, result, and next action. Over time, this becomes a practical knowledge base that reduces repeated mistakes.\n\nThe archive also makes cross-platform learning easier. A TikTok hook that improves retention may inspire an Instagram Reel. A landing-page issue discovered through Instagram traffic may affect users from other channels as well. Documenting these patterns makes optimization more consistent and less dependent on memory.''',
+              f'''## Review service details before scaling\n\nAny third-party marketing supplier should be understood before it becomes part of a recurring workflow. The [SMM service FAQ]({urls_target[6][1]}) can provide operational context before an order is placed. Similar diligence should be applied to any provider: understand the service, define the objective, decide how results will be measured, and keep quality controls in place.\n\nSustainable growth comes from combining useful content, audience understanding, careful distribution, analytics, and conversion optimization. For {a}, the strongest strategy is the one that creates a repeatable connection between attention and measurable business value.''']
+            return '\n\n'.join(sections)
+          arts=[article(i) for i in range(5)]
+          for i,a in enumerate(arts):
+            wc=len(re.findall(r"\b[\w'-]+\b",a)); lc=a.count('smmfansfaster.com')
+            print('ARTICLE',i+1,'WORDS',wc,'LINKS',lc)
+            if not (800<=wc<=1200 and lc>=7): raise SystemExit('ARTICLE_VALIDATION_FAILED')
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'})
+          final=[]
+          def verify(u):
+            try:
+              r=s.get(u,timeout=30,allow_redirects=True); c=r.text.count('smmfansfaster.com')
+              print('VERIFY',r.status_code,c,u); return r.status_code<400 and c>=6
+            except Exception as e: print('VERIFY_ERR',repr(e)); return False
+          try:
+            r=s.post('https://md.page/api/publish',json={'markdown':arts[0]},timeout=30); u=r.json().get('url','')
+            if u and verify(u): final.append(u)
+          except Exception as e: print('MDPAGE_ERR',repr(e))
+          try:
+            r=s.post('https://markdown.page/api/publish',data=arts[1].encode(),headers={'Accept':'text/plain'},timeout=30); u=r.text.strip().splitlines()[0] if r.ok else ''
+            if u and verify(u): final.append(u)
+          except Exception as e: print('MARKDOWN_ERR',repr(e))
+          try:
+            r=s.post('https://yeet.md/api/share',json={'content':arts[2]},timeout=30); u=r.json().get('url','')
+            if u and verify(u): final.append(u)
+          except Exception as e: print('YEET_ERR',repr(e))
+          try:
+            r=s.post('https://mdview.io/api/public/publish',json={'title':titles[3],'content':arts[3],'expiresInDays':30},timeout=30); d=r.json(); u=d.get('shareUrl') or d.get('viewerUrl','')
+            if u and verify(u): final.append(u)
+          except Exception as e: print('MDVIEW_ERR',repr(e))
+          try:
+            r=s.post('https://output.pub/api/publish',json={'content':arts[4],'format':'markdown'},timeout=30); u=r.json().get('url','')
+            if u and verify(u): final.append(u)
+          except Exception as e: print('OUTPUT_ERR',repr(e))
+          if len(final)<3: raise SystemExit('TOO_FEW_VERIFIED')
+          print('URLS_BEGIN')
+          for u in final: print(u)
+          print('URLS_END')
+          PY
+          python /tmp/publish.py
