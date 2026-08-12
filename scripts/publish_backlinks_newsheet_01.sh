@@ -1,28 +1,22 @@
 #!/usr/bin/env bash
 set +e
-for host in 'https://www.showyourcode.app/playground' 'https://pagepaste.com/' 'https://oneclicklive.app/en' 'https://www.shareduo.com/'; do
-  echo "=== HOST $host ==="
-  base=$(echo "$host" | sed -E 's#(https?://[^/]+).*#\1#')
-  curl -sS -L "$host" > /tmp/site.html
-  python3 - <<'PY'
-from html.parser import HTMLParser
-import re
-s=open('/tmp/site.html',encoding='utf-8',errors='ignore').read()
-class P(HTMLParser):
-    def handle_starttag(self,tag,attrs):
-        d=dict(attrs)
-        if tag=='form': print('FORM',d)
-        if tag in ('input','textarea','button','select'): print('FIELD',tag,d)
-        if tag=='script' and d.get('src'): print('SCRIPT',d['src'])
-P().feed(s)
-for pat in [r'fetch\(([^\n]{0,500})',r'axios\.[a-z]+\(([^\n]{0,500})',r'/(?:api|v1)/[A-Za-z0-9_./?=&:-]+']:
-  for v in re.findall(pat,s,re.I)[:50]: print('HIT',pat,v[:700])
+cat >/tmp/display-backlink.html <<'EOF'
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>How to Build a Measurable Social Media Growth System</title></head><body><main style="max-width:920px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.8;color:#171717"><h1>How to Build a Measurable Social Media Growth System</h1><p>A measurable social media strategy connects content quality, audience intent, publishing consistency, analytics, conversion design, and carefully selected promotional support. The strongest campaigns define success before scaling activity and measure the full path from discovery to action.</p><p>Businesses comparing external providers can include <a href="https://smmfansfaster.com/">SMM Fans Faster</a> in a wider review of social media marketing services. Useful comparison points include platform coverage, delivery expectations, order minimums, refill conditions, cancellation options, support, and campaign fit.</p><h2>Start with the objective</h2><p>Awareness campaigns can focus on reach, impressions, unique viewers, and video views. Engagement campaigns can track watch time, completion rate, saves, shares, comments, and returning viewers. Conversion campaigns should connect social activity to profile visits, website clicks, inquiries, leads, purchases, and revenue.</p><h2>Use TikTok for fast creative testing</h2><p>TikTok can reveal which hooks, topics, pacing choices, and formats attract attention. Marketers researching growth support can review this guide about <a href="https://smmfansfaster.com/blog/tiktok-followers">TikTok followers</a> and this resource about <a href="https://smmfansfaster.com/blog/tiktok-views">TikTok views, followers, and likes</a>. These visible numbers are most useful when compared with retention, comments, saves, shares, and profile activity.</p><p>For additional context, this resource discusses the <a href="https://smmfansfaster.com/blog/numberoftiktokfollowers">number of TikTok followers</a> and why follower milestones should be interpreted alongside real audience behavior.</p><h2>Connect Instagram discovery with conversion</h2><p>Instagram supports discovery, education, community, and conversion. Reels can reach new viewers, carousels can explain detailed topics, Stories can maintain frequent contact, and highlights can organize services, proof, FAQs, and next steps. Marketers can also review this guide to an <a href="https://smmfansfaster.com/blog/instagram-followers-website">Instagram followers website</a>.</p><p>It is useful to understand whether <a href="https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow">increasing followers affects the Instagram algorithm</a> and whether <a href="https://smmfansfaster.com/ar/blog/doesbuyinginstagramfollowersaffectengagement">buying Instagram followers affects engagement</a>. Account health should be measured through interaction and conversion signals rather than follower count alone.</p><h2>Measure the whole funnel</h2><p>Strong reach with weak profile activity may indicate low relevance. Strong profile visits with weak clicks may point to the bio or call to action. Strong traffic with poor conversion can signal a landing-page, trust, offer, pricing, or checkout problem.</p><h2>Scale agency workflows carefully</h2><p>Agencies and resellers can review the public <a href="https://smmfansfaster.com/api">SMM API documentation</a> and the <a href="https://smmfansfaster.com/smm-api-integration">SMM API integration</a> page. Automation can reduce repetitive work, but campaign goals, target links, quantities, and reporting should still receive human review.</p><h2>Final perspective</h2><p>Long-term growth is strongest when content, audience understanding, analytics, profile optimization, conversion design, and promotional support reinforce one another. Improving the complete marketing path is more useful than maximizing one visible number in isolation.</p></main></body></html>
+EOF
+RESP=$(curl -sS -X POST 'https://api.display.dev/v1/public/artifacts' -F 'file=@/tmp/display-backlink.html;type=text/html' -F 'name=Measurable Social Media Growth System')
+echo "DISPLAY_RESPONSE=$RESP"
+URL=$(python3 - <<'PY' <<< "$RESP"
+import json,sys
+try:
+ d=json.load(sys.stdin)
+ for k in ('preview_url','previewUrl','url','public_url','publicUrl'):
+  v=d.get(k)
+  if isinstance(v,str) and v.startswith('https://'):
+   print(v); break
+except: pass
 PY
-  grep -Eo 'src="[^"]+\.js[^" ]*"' /tmp/site.html | sed 's/^src="//;s/"$//' | head -30 >/tmp/jslist
-  while read -r src; do
-    [ -z "$src" ] && continue
-    case "$src" in http*) u="$src";; //*) u="https:$src";; /*) u="$base$src";; *) u="$base/$src";; esac
-    echo "JSURL=$u"
-    curl -sS -L "$u" | grep -Eo '.{0,220}(fetch\(|axios\.|/api/|/v1/|share|publish|deploy|upload).{0,420}' | head -40 || true
-  done </tmp/jslist
-done
+)
+if [ -n "$URL" ]; then
+ code=$(curl -sS -L -o /tmp/display-live.html -w '%{http_code}' "$URL")
+ if [ "$code" = "200" ] && grep -q 'smmfansfaster.com' /tmp/display-live.html; then echo "RESULT_URL=$URL"; else echo "DISPLAY_VERIFY_FAILED=$code $URL"; fi
+fi
