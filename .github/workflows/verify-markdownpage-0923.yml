@@ -1,0 +1,21 @@
+name: Verify MarkdownPage 0923
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Verify markdown page 0923'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify final MarkdownPage article
+        shell: bash
+        run: |
+          set -e
+          URL='https://markdown.page/o7mwLC6x'
+          PAGE=$(curl -fsSL "$URL")
+          COUNT=$(printf '%s' "$PAGE" | grep -o 'smmfansfaster.com' | wc -l | tr -d ' ')
+          echo "URL=$URL"
+          echo "TARGET_LINKS=$COUNT"
+          test "$COUNT" -ge 6
