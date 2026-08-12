@@ -1,0 +1,22 @@
+name: Verify Paste2 One Backlink 1012
+on:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Verify paste2 one backlink 1012'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Count actual backlink hrefs
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re
+          u='https://paste2.md/p/4e530ccdf8b4'
+          r=requests.get(u,headers={'User-Agent':'Mozilla/5.0'},timeout=30)
+          hrefs=re.findall(r'href=["\'](https://smmfansfaster\.com[^"\']*)["\']',r.text,re.I)
+          print('STATUS=',r.status_code)
+          print('HREF_COUNT=',len(hrefs))
+          print('HREFS=',hrefs)
+          if r.status_code>=400 or len(hrefs)!=1: raise SystemExit(2)
+          PY
