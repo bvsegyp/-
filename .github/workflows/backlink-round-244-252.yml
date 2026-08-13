@@ -1,0 +1,91 @@
+name: Backlink Round 244-252
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish backlink round 244-252'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish verify nine domains
+        shell: bash
+        run: |
+          cat > /tmp/publish.py <<'PY'
+          import requests,re,secrets,html,json
+          H='https://smmfansfaster.com/'
+          refs=[('SMM Fans Faster',H),('SMM API','https://smmfansfaster.com/api'),('TikTok growth guide','https://smmfansfaster.com/blog/tiktok-followers'),('TikTok follower count guide','https://smmfansfaster.com/blog/numberoftiktokfollowers'),('TikTok views guide','https://smmfansfaster.com/blog/tiktok-views'),('Instagram followers guide','https://smmfansfaster.com/ar/blog/instagram-followers-website'),('Instagram algorithm guide','https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow'),('FAQ','https://smmfansfaster.com/ar/faq')]
+          titles=['Social Media Growth Planning for Brands with Limited Marketing Resources','How Teams Can Improve TikTok Reach Through Better Creative Testing','Instagram Content and Promotion Strategy for Growing Businesses','How Agencies Can Build More Reliable Social Media Reporting Systems','A Practical Social Media Growth Framework for Online Stores','How Service Brands Can Turn Social Media Attention into Qualified Leads','A Better Method for Comparing Social Media Growth Tactics','How Marketing Teams Can Improve Multi-Channel Social Campaigns','Social Media Promotion and Conversion Optimization for Growing Brands']
+          angles=['brands working with limited time and budget','teams improving TikTok creative testing','businesses building Instagram discovery and conversion paths','agencies improving reporting quality','online stores connecting social attention with purchase intent','service brands generating qualified inquiries','marketers comparing growth tactics with consistent metrics','teams coordinating campaigns across social channels','brands connecting promotion with conversion optimization']
+          def article(i):
+            a=angles[i]; t=titles[i]
+            blocks=[f'''# {t}\n\nA strong social media strategy connects attention with a measurable business outcome. This guide focuses on {a}. Reach, views, followers, profile visits, website sessions, inquiries, and purchases should be read as stages in one journey rather than isolated statistics.\n\nThe first decision is the action that matters after discovery. It may be a follow, profile visit, message, product view, booking, quote request, or purchase. That decision should influence creative, distribution, destination pages, and reporting.''',
+            f'''## Build content around audience intent\n\nFor {a}, useful content begins with real questions and needs. Search behavior, customer reviews, comments, support requests, sales conversations, and competitor content can reveal recurring themes. Teams can organize them into education, demonstrations, comparisons, proof, objection handling, and conversion-focused posts.\n\nA repeatable content engine makes experimentation easier. Marketers can vary hooks, formats, examples, creative styles, and calls to action while preserving a consistent strategic purpose.''',
+            f'''## Add promotion as a measured layer\n\nSome marketers evaluate third-party promotional services as one distribution option. [SMM Fans Faster]({refs[0][1]}) can be researched during that comparison. A useful evaluation reviews supported platforms, service descriptions, delivery expectations, support, and how the selected option fits the campaign objective.\n\nTeams with recurring operational requirements can also review the [SMM API]({refs[1][1]}). Automation may reduce repetitive work, but naming standards, destination checks, ownership, error handling, and reporting remain important.''',
+            f'''## Use TikTok for structured experimentation\n\nTikTok can provide quick feedback on hooks, pacing, video length, demonstrations, captions, storytelling, and calls to action. A test is more useful when it starts with a hypothesis and changes only a few variables at once.\n\nMarketers can review the [TikTok growth guide]({refs[2][1]}), the [TikTok follower count guide]({refs[3][1]}), and the [TikTok views guide]({refs[4][1]}). These references should be compared with first-party analytics such as retention, repeat viewing, shares, profile actions, website traffic, and conversion.''',
+            f'''## Plan Instagram across several formats\n\nInstagram gives brands multiple surfaces with different roles. Reels can support discovery, Stories can maintain interaction, carousels can educate, Highlights can organize important information, and pinned posts can explain the offer quickly.\n\nBusinesses researching audience-growth options can review the [Instagram followers guide]({refs[5][1]}). Teams can also consider the [Instagram algorithm guide]({refs[6][1]}) alongside account-level analytics instead of assuming follower count alone determines reach.''',
+            f'''## Improve the experience after the click\n\nVisibility creates value only when the next step is prepared. Landing pages, profile bios, product pages, contact paths, and checkout flows should continue the promise made in social content. They should load quickly, communicate value clearly, show appropriate trust signals, and make the desired action obvious.\n\nFor {a}, measuring the full path helps distinguish a reach problem from a conversion problem. If traffic rises but meaningful actions do not, review audience fit, offer clarity, page speed, message continuity, proof, and calls to action.''',
+            f'''## Report by funnel stage\n\nAwareness metrics can include reach, impressions, views, watch time, and shares. Consideration metrics can include saves, profile visits, direct messages, product views, and link clicks. Conversion metrics can include leads, bookings, purchases, subscriptions, and revenue where attribution is reliable.\n\nWeekly reviews can focus on creative learning and monthly reviews can focus on resource allocation. Every report should end with a decision about what to repeat, change, stop, or test next.''',
+            f'''## Keep a decision archive\n\nA campaign log can record the objective, audience, creative concept, platform, destination URL, promotion method, date, expected outcome, actual result, and next step. This turns individual campaigns into reusable learning.\n\nCross-platform insights also become easier to reuse. A TikTok hook that improves retention may inspire an Instagram Reel, while a landing-page issue found through one channel may affect visitors from others.''',
+            f'''## Review operational details before scaling\n\nAny external marketing supplier should be understood before it becomes part of a recurring process. The [FAQ]({refs[7][1]}) can help marketers review common operational questions before ordering. Similar diligence should be applied to any provider: define the role, understand the service, decide how results will be measured, and keep quality controls in place.\n\nSustainable growth combines audience understanding, useful content, careful distribution, analytics, and conversion optimization. For {a}, the strongest system is repeatable, measurable, and connected to meaningful business outcomes.''']
+            return '\n\n'.join(blocks)
+          arts=[article(i) for i in range(9)]
+          for i,a in enumerate(arts):
+            wc=len(re.findall(r"\b[\w'-]+\b",a)); lc=a.count('smmfansfaster.com'); print('ARTICLE',i+1,'WORDS',wc,'LINKS',lc)
+            if not (800<=wc<=1200 and lc>=8): raise SystemExit('VALIDATION_FAIL')
+          def mdhtml(md):
+            out=[]
+            for p in re.split(r'\n\s*\n',md):
+              p=p.strip()
+              if not p: continue
+              if p.startswith('# '): out.append('<h1>'+html.escape(p[2:])+'</h1>'); continue
+              if p.startswith('## '): out.append('<h2>'+html.escape(p[3:])+'</h2>'); continue
+              e=html.escape(p); e=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',lambda m:f'<a href="{html.escape(m.group(2),quote=True)}">{html.escape(m.group(1))}</a>',e); out.append('<p>'+e.replace('\n',' ')+'</p>')
+            return '<html><body>'+''.join(out)+'</body></html>'
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'}); final=[]
+          def verify(u):
+            try:
+              r=s.get(u,timeout=30,allow_redirects=True); c=r.text.count('smmfansfaster.com'); print('VERIFY',r.status_code,c,u); return r.status_code<400 and c>=6
+            except Exception as e: print('VERIFY_ERR',u,repr(e)); return False
+          try:
+            acc=s.post('https://api.telegra.ph/createAccount',data={'short_name':'SMMRound244','author_name':'Marketing Editorial'},timeout=30).json(); tok=(acc.get('result') or {}).get('access_token',''); nodes=[]
+            for p in re.split(r'\n\s*\n',arts[0]):
+              p=p.strip();
+              if not p: continue
+              tag='p'; txt=p
+              if p.startswith('# '): tag='h3'; txt=p[2:]
+              elif p.startswith('## '): tag='h4'; txt=p[3:]
+              children=[]; pos=0
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',txt):
+                if m.start()>pos: children.append(txt[pos:m.start()])
+                children.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]}); pos=m.end()
+              if pos<len(txt): children.append(txt[pos:])
+              nodes.append({'tag':tag,'children':children})
+            d=s.post('https://api.telegra.ph/createPage',data={'access_token':tok,'title':titles[0],'content':json.dumps(nodes)},timeout=30).json(); path=(d.get('result') or {}).get('path',''); u='https://telegra.ph/'+path if path else ''
+            if u and verify(u): final.append(u)
+          except Exception as e: print('TEL_ERR',repr(e))
+          endpoints=[
+            ('ship',lambda: s.post('https://shippage.ai/v1/publish',json={'html':mdhtml(arts[1]),'title':titles[1],'public':True},timeout=30).json().get('url','')),
+            ('rentry',None),
+            ('mdpage',lambda: s.post('https://md.page/api/publish',json={'markdown':arts[3]},timeout=30).json().get('url','')),
+            ('markdown',lambda: (lambda r:r.text.strip().splitlines()[0] if r.ok else '')(s.post('https://markdown.page/api/publish',data=arts[4].encode(),headers={'Accept':'text/plain'},timeout=30))),
+            ('yeet',lambda: s.post('https://yeet.md/api/share',json={'content':arts[5]},timeout=30).json().get('url','')),
+            ('mdview',lambda: (lambda d:d.get('shareUrl') or d.get('viewerUrl',''))(s.post('https://mdview.io/api/public/publish',json={'title':titles[6],'content':arts[6],'expiresInDays':30},timeout=30).json())),
+            ('output',lambda: s.post('https://output.pub/api/publish',json={'content':arts[7],'format':'markdown'},timeout=30).json().get('url','')),
+            ('quicky',lambda: (lambda d:d.get('url') or d.get('pageUrl',''))(s.post('https://quicky.page/api/v1/publish',json={'title':titles[8],'content':arts[8]},timeout=30).json()))]
+          try:
+            u=endpoints[0][1]();
+            if u and verify(u): final.append(u)
+          except Exception as e: print('SHIP_ERR',repr(e))
+          try:
+            rs=requests.Session(); rs.headers.update({'User-Agent':'Mozilla/5.0'}); rs.get('https://rentry.co/',timeout=30); csrf=rs.cookies.get('csrftoken',''); r=rs.post('https://rentry.co/api/new',data={'csrfmiddlewaretoken':csrf,'text':arts[2],'edit_code':secrets.token_urlsafe(12),'url':''},headers={'Referer':'https://rentry.co/'},timeout=30); u=r.json().get('url','');
+            if u and verify(u): final.append(u)
+          except Exception as e: print('RENTRY_ERR',repr(e))
+          for name,fn in endpoints[2:]:
+            try:
+              u=fn();
+              if u and verify(u): final.append(u)
+            except Exception as e: print(name.upper()+'_ERR',repr(e))
+          if len(final)<6: raise SystemExit('TOO_FEW_VERIFIED')
+          print('URLS_BEGIN'); [print(u) for u in final]; print('URLS_END')
+          PY
+          python /tmp/publish.py
