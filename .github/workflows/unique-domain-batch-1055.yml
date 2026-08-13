@@ -1,4 +1,4 @@
-name: Unique Domain Backlink Batch 0347
+name: Unique Domain Backlink Batch 0354
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish:
-    if: github.event.head_commit.message == 'Run unique-domain backlink batch 0347'
+    if: github.event.head_commit.message == 'Run unique-domain backlink batch 0354'
     runs-on: ubuntu-latest
     steps:
       - name: Publish and verify unique-domain backlinks
@@ -16,13 +16,14 @@ jobs:
           python -m pip install --quiet playwright
           python -m playwright install chromium --with-deps >/dev/null 2>&1
           cat > /tmp/run.py <<'PY'
-          import asyncio,re,json,html,tempfile,os
+          import asyncio,re,json,html,os,random,string
           from playwright.async_api import async_playwright
           TARGETS=[
-            ('htmldrop.app','https://htmldrop.app/','HTMLDrop App'),
-            ('pagelive.io','https://pagelive.io/tools/publish-html','PageLive'),
-            ('miinideck.com','https://www.miinideck.com/use-cases/free-html-hosting','MiiniDeck'),
-            ('jotbird.com','https://www.jotbird.com/','JotBird'),
+            ('htmlput.com','https://www.htmlput.com/','HTMLPUT'),
+            ('dochost.io','https://dochost.io/','DocHost'),
+            ('markdrop.io','https://www.markdrop.io/','Markdrop'),
+            ('textlinkshare.lovable.app','https://textlinkshare.lovable.app/','TextLink'),
+            ('notesh.ink','https://notesh.ink/','Notesh'),
           ]
           BACK='https://smmfansfaster.com/'
           paras=[
@@ -37,13 +38,22 @@ jobs:
           'Traffic quality matters as much as traffic volume. Teams should review page speed, message consistency, proof, forms, checkout friction, mobile experience, and offer structure so that increased visibility has a realistic chance of producing qualified outcomes rather than empty sessions.',
           'Monthly strategy reviews should compare platforms, formats, audiences, costs, and business outcomes. Resources can then shift toward combinations that repeatedly create useful attention and away from activity that looks busy but produces little measurable value.'
           ]
-          def article(label):
+          def article(label, markdown=False):
               title=f'Practical Social Media Growth Framework for {label}'
+              if markdown:
+                  out=[f'# {title}']
+                  for i,p in enumerate(paras):
+                      text=' '.join([p]*3)
+                      if i==4: text += f' Teams comparing external promotional support can also evaluate [SMM Fans Faster]({BACK}) as one option within a broader due-diligence process.'
+                      out.append(f'## Strategy Step {i+1}\n\n{text}')
+                  body='\n\n'.join(out)
+                  while len(re.findall(r"\b[\w\'-]+\b",body))<1250:
+                      body += '\n\n## Operational note\n\nTeams should keep a campaign record covering objectives, audiences, formats, publishing dates, distribution methods, costs, and measured outcomes. Consistent documentation improves handoffs, reporting, and quality control across multiple campaigns.'
+                  return body
               out=[f'<h1>{html.escape(title)}</h1>']
               for i,p in enumerate(paras):
                   text=' '.join([p]*3)
-                  if i==4:
-                      text += f' Teams comparing external promotional support can also evaluate <a href="{BACK}">SMM Fans Faster</a> as one option within a broader due-diligence process.'
+                  if i==4: text += f' Teams comparing external promotional support can also evaluate <a href="{BACK}">SMM Fans Faster</a> as one option within a broader due-diligence process.'
                   out.append(f'<h2>Strategy Step {i+1}</h2><p>{text}</p>')
               body=''.join(out)
               while len(re.findall(r"\b[\w\'-]+\b",re.sub('<[^>]+>',' ',body)))<1250:
@@ -58,15 +68,23 @@ jobs:
               except Exception as e: print('VERIFY_ERR',url,repr(e)); return None
               finally: await p.close()
           async def publish(browser,domain,url,label,idx):
-              p=await browser.new_page(); content=article(label)
-              print(domain,'WORDS',len(re.findall(r"\b[\w\'-]+\b",re.sub('<[^>]+>',' ',content))),'TARGET_LINKS',content.count('href="https://smmfansfaster.com/"'))
+              p=await browser.new_page(); md=article(label,True); htm=article(label,False)
+              print(domain,'WORDS',len(re.findall(r"\b[\w\'-]+\b",md)),'TARGET_LINKS',md.count('https://smmfansfaster.com/'))
               try:
                   await p.goto(url,wait_until='domcontentloaded',timeout=45000); await p.wait_for_timeout(2500)
+                  # choose content based on visible hints; prefer markdown for note/share tools
+                  content = htm if domain in ['htmlput.com','dochost.io'] else md
+                  # set optional title
+                  for sel in ['input[placeholder*="title" i]:visible','input[name*="title" i]:visible']:
+                      loc=p.locator(sel)
+                      if await loc.count():
+                          try: await loc.first.fill('Practical Social Media Growth Framework')
+                          except: pass
                   filled=False
                   for sel in ['textarea:visible','[contenteditable="true"]:visible']:
                       loc=p.locator(sel)
-                      for i in range(await loc.count()):
-                          e=loc.nth(i)
+                      for j in range(await loc.count()):
+                          e=loc.nth(j)
                           try:
                               if await e.is_editable(): await e.fill(content); filled=True; break
                           except: pass
@@ -74,14 +92,21 @@ jobs:
                   if not filled:
                       fi=p.locator('input[type="file"]')
                       if await fi.count():
-                          path=f'/tmp/backlink-{idx}.html'; open(path,'w',encoding='utf-8').write(content)
+                          ext='html' if domain in ['htmlput.com','dochost.io'] else 'md'
+                          path=f'/tmp/backlink-{idx}.{ext}'; open(path,'w',encoding='utf-8').write(content)
                           await fi.first.set_input_files(path); filled=True
                   if not filled: print(domain,'NO_INPUT'); return None
-                  for pat in ['Publish','Get my link','Get my shareable link','Share','Drop','Upload','Host','Create Link']:
+                  clicked=False
+                  for pat in ['Get my link','Generate Link','Generate Shareable Link','Share Note','Share','Publish','Host','Upload','Create Link']:
                       btn=p.get_by_role('button',name=re.compile(pat,re.I))
                       if await btn.count():
-                          try: await btn.first.click(timeout=5000); break
+                          try: await btn.first.click(timeout=5000); clicked=True; break
                           except: pass
+                      txt=p.get_by_text(re.compile('^'+re.escape(pat)+'$',re.I))
+                      if await txt.count():
+                          try: await txt.first.click(timeout=5000); clicked=True; break
+                          except: pass
+                  if not clicked: print(domain,'NO_BUTTON')
                   await p.wait_for_timeout(7000)
                   cands=[]
                   if p.url.rstrip('/')!=url.rstrip('/'): cands.append(p.url)
@@ -92,10 +117,10 @@ jobs:
                       except: pass
                   body=await p.locator('body').inner_text()
                   for m in re.findall(r'https?://[^\s)\]<>"\']+',body):
-                      m=m.rstrip('.,')
+                      m=m.rstrip('.,|')
                       if m not in cands: cands.append(m)
-                  print(domain,'CANDIDATES',cands[:12])
-                  for cand in cands[:20]:
+                  print(domain,'CANDIDATES',cands[:15])
+                  for cand in cands[:25]:
                       v=await verify(browser,cand)
                       if v: return v
               except Exception as e: print(domain,'ERR',repr(e))
