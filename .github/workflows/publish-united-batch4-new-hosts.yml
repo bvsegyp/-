@@ -1,0 +1,123 @@
+name: Publish United Batch4 New Hosts
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish United batch4 new hosts'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests markdown
+      - name: Publish and verify new backlink hosts
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,tempfile,os
+          from urllib.parse import urlparse
+          import markdown
+
+          files=[
+            'united-batch2-20260815/03-stage-av-production.md',
+            'united-batch2-20260815/04-conference-attendee-journey.md',
+            'united-batch2-20260815/05-national-day-events.md',
+            'united-batch2-20260815/07-event-budget-management.md'
+          ]
+          titles=[
+            'إدارة المنصة والصوت والإضاءة في الفعاليات باحتراف',
+            'تصميم رحلة حضور احترافية للمؤتمرات والملتقيات',
+            'تخطيط فعاليات اليوم الوطني السعودي للشركات باحتراف',
+            'إدارة ميزانية الفعاليات في السعودية دون التضحية بالجودة'
+          ]
+          arts=[open(f,encoding='utf-8').read() for f in files]
+          def html_page(text,title):
+            body=markdown.markdown(text,extensions=['extra','sane_lists'])
+            return f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title><meta name="description" content="دليل عملي احترافي لتنظيم وإنتاج الفعاليات في السعودية"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:2;color:#202020}}h1,h2{{line-height:1.5}}a{{color:#54208f;text-decoration:underline}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'''
+          pages=[html_page(arts[i],titles[i]) for i in range(4)]
+          for i,(a,h) in enumerate(zip(arts,pages),1):
+            hh=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',h,re.I))
+            print(f'ARTICLE_{i}_WORDS={len(a.split())} LINKS={a.count("unitedevent.net")} HREFS={hh}')
+            if len(a.split())<650 or hh<8: raise SystemExit('ARTICLE_INVALID')
+
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/5.0'})
+          used={'output.pub','yeet.md','markdown.page','rentry.co','draftmark.app','telegra.ph','ht-ml.app','pitchey.app','sshgrid.com','aired.sh'}
+          results=[]
+          def root_provider(host):
+            host=host.lower().removeprefix('www.')
+            known=['sitebin.io','zerodeploy.dev','yeetit.site','stacktr.ee','stacktree.app','stacktr.ee']
+            for p in known:
+              if host==p or host.endswith('.'+p): return p
+            for p in used:
+              if host==p or host.endswith('.'+p): return p
+            parts=host.split('.')
+            return '.'.join(parts[-2:]) if len(parts)>1 else host
+          def get_urls(x):
+            out=[]
+            def walk(v):
+              if isinstance(v,str): out.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():walk(z)
+              elif isinstance(v,list):
+                for z in v:walk(z)
+            walk(x);return [u.rstrip('.,);}') for u in out]
+          def choose(x,need=()):
+            us=get_urls(x)
+            for d in need:
+              for u in us:
+                if d in u:return u
+            return us[0] if us else ''
+          def verify(name,u):
+            if not u: print(name+'_NO_URL');return False
+            try:
+              r=s.get(u,timeout=40,allow_redirects=True)
+              host=urlparse(r.url).netloc.lower().removeprefix('www.');prov=root_provider(host)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HOST={host} PROVIDER={prov} HREFS={hrefs} DOMAINS={r.text.count("unitedevent.net")} NOINDEX={int(noindex)}')
+              if r.status_code<400 and hrefs>=6 and not noindex and prov not in used:
+                used.add(prov);results.append({'platform':name,'url':r.url,'provider':prov,'hrefs':hrefs});print(f'VALID_{name}={r.url}');return True
+            except Exception as e:print(f'VERIFY_{name}_ERR={type(e).__name__}:{e}')
+            return False
+
+          # Sitebin - multipart index.html
+          try:
+            r=s.post('https://app.sitebin.io/api/sites',files={'files':('index.html',pages[0],'text/html')},timeout=60)
+            print('SITEBIN_POST',r.status_code,r.text[:1200].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify('SITEBIN',choose(d,('app.sitebin.io','sitebin.io')))
+          except Exception as e:print('SITEBIN_ERR',type(e).__name__,e)
+
+          # ZeroDeploy - multipart HTML
+          try:
+            r=s.post('https://api.zerodeploy.dev/drop',files={'file':('index.html',pages[1],'text/html')},timeout=60)
+            print('ZERODEPLOY_POST',r.status_code,r.text[:1200].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify('ZERODEPLOY',choose(d,('zerodeploy.dev',)))
+          except Exception as e:print('ZERODEPLOY_ERR',type(e).__name__,e)
+
+          # YeetIt
+          try:
+            r=s.post('https://yeetit.site/v1/publish',json={'html':pages[2],'title':titles[2]},timeout=60)
+            print('YEETIT_POST',r.status_code,r.text[:1200].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify('YEETIT',choose(d,('yeetit.site',)))
+          except Exception as e:print('YEETIT_ERR',type(e).__name__,e)
+
+          # Stacktree anonymous multipart
+          try:
+            r=s.post('https://api.stacktr.ee/sites',files={'file':('index.html',pages[3],'text/html')},timeout=60)
+            print('STACKTREE_POST',r.status_code,r.text[:1200].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify('STACKTREE',choose(d,('stacktr.ee','stacktree')))
+          except Exception as e:print('STACKTREE_ERR',type(e).__name__,e)
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
