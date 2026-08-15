@@ -1,0 +1,52 @@
+name: Discover United Final Hosts
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Run United final host discovery'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect anonymous publishing surfaces
+        shell: bash
+        run: |
+          pip install requests beautifulsoup4 >/dev/null 2>&1
+          python - <<'PY'
+          import requests,re
+          from bs4 import BeautifulSoup
+          from urllib.parse import urljoin
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0'})
+          targets=[
+            ('HTMLPUT','https://www.htmlput.com/'),
+            ('STATICRUN','https://static.run/'),
+            ('DEPLOYPAGES','https://deploypages.com/'),
+            ('YAPP','https://yapp.page/host-html-file')
+          ]
+          for name,u in targets:
+            print('\n===',name,u,'===')
+            try:
+              r=s.get(u,timeout=40,allow_redirects=True);print('STATUS',r.status_code,r.url,'LEN',len(r.text))
+              soup=BeautifulSoup(r.text,'html.parser')
+              for i,f in enumerate(soup.find_all('form')[:10]):
+                print('FORM',i,'method=',f.get('method'),'action=',f.get('action'),'fields=',[(x.name,x.get('name'),x.get('type')) for x in f.find_all(['input','textarea','select'])])
+              scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',r.text,re.I)
+              print('SCRIPTS',scripts[:20])
+              cand=set()
+              for src in scripts[:25]:
+                try:
+                  js=s.get(urljoin(r.url,src),timeout=25).text
+                  for m in re.findall(r'["\']([^"\']{1,180})["\']',js):
+                    ml=m.lower()
+                    if ('/api/' in ml or 'api.' in ml) and any(k in ml for k in ('host','publish','deploy','upload','site','page')):
+                      cand.add(m)
+                except Exception as ee:print('JS_ERR',src,type(ee).__name__)
+              print('ENDPOINT_CANDIDATES')
+              for c in list(cand)[:80]:print(c)
+              # also print nearby raw html mentions
+              for pat in ['/api/','upload','publish','host now','deploy']:
+                idx=r.text.lower().find(pat.lower())
+                if idx>=0: print('HTML_NEAR',pat,r.text[max(0,idx-300):idx+600].replace('\n',' ')[:1000])
+            except Exception as e:print('ERR',type(e).__name__,e)
+          PY
