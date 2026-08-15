@@ -1,0 +1,41 @@
+name: Publish United TheThings
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run United TheThings publish'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests markdown
+      - name: Publish and verify TheThings
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json
+          import markdown
+          a=open('united-batch9-20260815/01-event-contingency-plan.md',encoding='utf-8').read()
+          t='خطة الطوارئ التشغيلية للفعاليات وكيف تحافظ على استمرارية الحدث'
+          body=markdown.markdown(a,extensions=['extra','sane_lists'])
+          html=f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{t}</title><meta name="description" content="دليل عملي لخطة الطوارئ والتشغيل الاحترافي للفعاليات والمعارض في السعودية"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:2;color:#222}}h1,h2{{line-height:1.5}}a{{color:#54208f;text-decoration:underline}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'''
+          hrefs=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',html,re.I))
+          print('WORDS',len(a.split()),'LINKS',a.count('unitedevent.net'),'HREFS',hrefs)
+          if len(a.split())<650 or hrefs<8:raise SystemExit('BAD_ARTICLE')
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/12.0'})
+          payload={'content':html,'content_type':'text/html','title':t,'summary':'دليل عملي لإدارة الطوارئ واستمرارية التشغيل في الفعاليات السعودية'}
+          r=s.post('https://thethings.ai/api/scratch/publish',json=payload,timeout=60)
+          print('POST',r.status_code,r.text[:2500].replace('\n',' '));r.raise_for_status();d=r.json()
+          u=d.get('url') or d.get('public_url') or d.get('publicUrl')
+          print('RETURNED_URL',u)
+          if not u:raise SystemExit('NO_URL')
+          rr=s.get(u,timeout=50,allow_redirects=True)
+          hh=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?unitedevent\.net',rr.text,re.I))
+          noindex=('noindex' in rr.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',rr.text,re.I))
+          print('VERIFY',rr.url,rr.status_code,'HREFS',hh,'COUNT',rr.text.count('unitedevent.net'),'NOINDEX',int(noindex))
+          if rr.status_code<400 and hh>=6 and not noindex:
+            print('VALID_THETHINGS='+rr.url)
+          else:
+            raise SystemExit('VERIFY_FAILED')
+          PY
