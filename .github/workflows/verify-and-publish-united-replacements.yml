@@ -1,0 +1,85 @@
+name: Verify And Publish United Replacements
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Verify United backlink hrefs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify hrefs and publish replacements
+        shell: bash
+        run: |
+          cat > /tmp/v.py <<'PY'
+          import requests,re,json
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/1.0'})
+          existing={
+            'OUTPUTPUB':'https://output.pub/sbztughf',
+            'WRITEAS':'https://write.as/z8w1xbgj4u1i9',
+            'MARKDOWNPAGE':'https://markdown.page/CNvOWLZi',
+            'TELEGRAPH':'https://telegra.ph/%D8%AA%D8%AC%D9%87%D9%8A%D8%B2%D8%A7%D8%AA-%D8%A7%D9%84%D8%B5%D9%88%D8%AA-%D9%88%D8%A7%D9%84%D8%A5%D8%B6%D8%A7%D8%A1%D8%A9-%D9%88%D8%A7%D9%84%D9%87%D9%88%D9%8A%D8%A9-%D9%81%D9%8A-%D8%A7%D9%84%D9%81%D8%B9%D8%A7%D9%84%D9%8A%D8%A7%D8%AA-08-15'
+          }
+          def check(name,u):
+            try:
+              r=s.get(u,timeout=30,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',r.text,re.I))
+              domains=r.text.count('unitedevent.net')
+              ctype=r.headers.get('content-type','')
+              print(f'HREFCHECK_{name} URL={r.url} STATUS={r.status_code} HREFS={hrefs} DOMAINS={domains} CTYPE={ctype}')
+              if r.status_code<400 and hrefs>=6:
+                print(f'VALID_{name}={r.url}')
+                return r.url
+            except Exception as e: print('CHECK_ERR',name,type(e).__name__,e)
+            return ''
+          for n,u in existing.items(): check(n,u)
+          arts=[]
+          for p in ['united-long-20260815/04-conference-management-saudi.md','united-long-20260815/05-corporate-product-launch-events.md','united-long-20260815/02-exhibition-booth-riyadh.md']:
+            arts.append(open(p,encoding='utf-8').read())
+          def ex(d):
+            if isinstance(d,str):
+              m=re.search(r'https?://[^\s"\'<>]+',d); return m.group(0).rstrip('.,);') if m else ''
+            if isinstance(d,dict):
+              for k in ('url','link','public_url','publicUrl','viewerUrl','shareUrl'):
+                v=d.get(k)
+                if isinstance(v,str) and v.startswith('http'): return v
+              for v in d.values():
+                if isinstance(v,(dict,list)):
+                  u=ex(v)
+                  if u:return u
+            if isinstance(d,list):
+              for v in d:
+                u=ex(v)
+                if u:return u
+            return ''
+          # Rentry
+          try:
+            r=s.post('https://rentry.co/api/new',data={'text':arts[0],'metadata':'PAGE_TITLE = تنظيم المؤتمرات والملتقيات في السعودية\nCONTENT_TEXT_DIRECTION = rtl'},timeout=45)
+            print('RENTRY_POST',r.status_code,r.text[:900].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            u=ex(d)
+            if u and not u.startswith('https://rentry.co'): u=''
+            check('RENTRY',u)
+          except Exception as e: print('RENTRY_ERR',type(e).__name__,e)
+          # mdlib
+          try:
+            r=s.post('https://mdlib.dev/v1/docs',json={'markdown':arts[1],'title':'تنظيم فعاليات الشركات وإطلاق المنتجات في السعودية','is_public':True},timeout=45)
+            print('MDLIB_POST',r.status_code,r.text[:900].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            check('MDLIB',ex(d))
+          except Exception as e: print('MDLIB_ERR',type(e).__name__,e)
+          # Pastepile fallback
+          try:
+            r=s.post('https://pastepile.com/api/public/pastes',json={'title':'تجهيز المعارض وتصميم الأجنحة في الرياض','content':arts[2],'language':'markdown','expiry':'never','visibility':'public'},timeout=45)
+            print('PASTEPILE_POST',r.status_code,r.text[:900].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            check('PASTEPILE',ex(d))
+          except Exception as e: print('PASTEPILE_ERR',type(e).__name__,e)
+          PY
+          python /tmp/v.py
