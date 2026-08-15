@@ -1,0 +1,168 @@
+name: Publish United Batch6 More Domains
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run United batch6 more domains'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests markdown beautifulsoup4
+      - name: Publish and verify
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,time
+          from urllib.parse import urlparse,urljoin
+          from bs4 import BeautifulSoup
+          import markdown
+
+          files=[
+            'united-batch6-20260815/01-booth-visitor-flow.md',
+            'united-batch6-20260815/02-stage-rehearsal.md',
+            'united-batch6-20260815/03-promotional-print-plan.md',
+            'united-batch6-20260815/04-sponsor-branding.md'
+          ]
+          titles=[
+            'تصميم حركة الزوار داخل جناح المعرض لزيادة التفاعل مع العلامة',
+            'البروفة التقنية للمنصة قبل الفعالية ولماذا تمنع أغلب مشاكل يوم الحدث',
+            'تخطيط المطبوعات الدعائية للفعاليات من الدعوة حتى نقطة الخروج',
+            'إدارة ظهور الرعاة في المؤتمرات والفعاليات بدون إرباك الهوية الرئيسية'
+          ]
+          arts=[open(f,encoding='utf-8').read() for f in files]
+          def html_page(md,t):
+            body=markdown.markdown(md,extensions=['extra','sane_lists'])
+            return f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{t}</title><meta name="description" content="دليل احترافي للمعارض والفعاليات والطباعة والتجهيز في السعودية"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:2;color:#222}}h1,h2{{line-height:1.5}}a{{color:#54208f;text-decoration:underline}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'''
+          pages=[html_page(arts[i],titles[i]) for i in range(4)]
+          for i,(a,h) in enumerate(zip(arts,pages),1):
+            hh=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',h,re.I))
+            print(f'ARTICLE_{i}_WORDS={len(a.split())} LINKS={a.count("unitedevent.net")} HREFS={hh}')
+            if len(a.split())<650 or hh<8: raise SystemExit('ARTICLE_INVALID')
+
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/7.0'})
+          used={'output.pub','yeet.md','markdown.page','rentry.co','draftmark.app','telegra.ph','ht-ml.app','pitchey.app','sshgrid.com','aired.sh','yeetit.site','sitebin.io','zerodeploy.app','zerodeploy.dev','yourwebs.app'}
+          results=[]
+          def root(host):
+            host=host.lower().removeprefix('www.')
+            known=['htmlshare.net','dochost.io','dochost.co','demoit.live','media-flow.cc','p.media-flow.cc']
+            for p in known:
+              if host==p or host.endswith('.'+p):return p
+            for p in used:
+              if host==p or host.endswith('.'+p):return p
+            ps=host.split('.')
+            return '.'.join(ps[-2:]) if len(ps)>=2 else host
+          def urls(x):
+            out=[]
+            def walk(v):
+              if isinstance(v,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():walk(z)
+              elif isinstance(v,list):
+                for z in v:walk(z)
+            walk(x);return [u.rstrip('.,);}') for u in out]
+          def choose(x,domains=()):
+            us=urls(x)
+            for d in domains:
+              for u in us:
+                if d in u:return u
+            return us[0] if us else ''
+          def verify(name,u):
+            if not u:print(name+'_NO_URL');return False
+            try:
+              r=s.get(u,timeout=45,allow_redirects=True)
+              host=urlparse(r.url).netloc.lower().removeprefix('www.');prov=root(host)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HOST={host} PROVIDER={prov} HREFS={hrefs} DOMAINS={r.text.count("unitedevent.net")} NOINDEX={int(noindex)}')
+              if r.status_code<400 and hrefs>=6 and not noindex and prov not in used:
+                used.add(prov);results.append({'platform':name,'url':r.url,'provider':prov,'hrefs':hrefs});print(f'VALID_{name}={r.url}');return True
+            except Exception as e:print(f'VERIFY_{name}_ERR={type(e).__name__}:{e}')
+            return False
+
+          # HTMLShare direct official API
+          try:
+            r=s.post('https://api.htmlshare.net/v1/publish',json={'html':pages[0]},timeout=50)
+            print('HTMLSHARE_POST',r.status_code,r.text[:900].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify('HTMLSHARE',choose(d,('htmlshare.net',)))
+          except Exception as e:print('HTMLSHARE_ERR',type(e).__name__,e)
+
+          def smart_form(home,page,title,name,prefer,extra=None):
+            try:
+              r=s.get(home,timeout=40);print(name+'_GET',r.status_code,r.url)
+              soup=BeautifulSoup(r.text,'html.parser')
+              forms=soup.find_all('form')
+              print(name+'_FORMS',len(forms))
+              for f in forms:
+                method=(f.get('method') or 'post').lower();action=urljoin(r.url,f.get('action') or r.url)
+                if method!='post':continue
+                data={};fls={}
+                for el in f.find_all(['input','textarea','select']):
+                  n=el.get('name')
+                  if not n:continue
+                  typ=(el.get('type') or '').lower()
+                  if typ in ('submit','button','image'):continue
+                  ln=n.lower()
+                  if typ=='file':fls[n]=('united-events.html',page,'text/html')
+                  elif el.name=='select':
+                    opts=el.find_all('option'); picked=None
+                    for op in opts:
+                      text=(op.get_text(' ',strip=True)+' '+str(op.get('value',''))).lower()
+                      if any(k in text for k in ('public','discover','html')):picked=op;break
+                    picked=picked or (opts[0] if opts else None);data[n]=picked.get('value','') if picked else ''
+                  elif any(k in ln for k in ('html','content','code','text','body')):data[n]=page
+                  elif 'title' in ln:data[n]=title
+                  elif any(k in ln for k in ('visibility','public')):data[n]='public'
+                  else:data[n]=el.get('value','')
+                if extra:data.update(extra)
+                if not fls and page not in data.values():continue
+                try:
+                  resp=s.post(action,data=data,files=fls or None,timeout=55,allow_redirects=True)
+                  print(name+'_POST',resp.status_code,resp.url,resp.text[:1000].replace('\n',' '))
+                  try:d=resp.json()
+                  except:d=resp.text
+                  cand=choose(d,prefer)
+                  if not cand and resp.url!=action:cand=resp.url
+                  if verify(name,cand):return True
+                  # inspect all returned urls if first choice is management page
+                  for u in urls(d):
+                    if verify(name,u):return True
+                except Exception as ee:print(name+'_FORM_ERR',type(ee).__name__,ee)
+            except Exception as e:print(name+'_ERR',type(e).__name__,e)
+            return False
+
+          # dochost public/discoverable form/API discovery
+          if not smart_form('https://dochost.io/html-link-generator',pages[1],titles[1],'DOCHOST',('dochost.co','dochost.io'),{'visibility':'public'}):
+            try:
+              h=s.get('https://dochost.io/',timeout=35).text
+              scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',h,re.I)
+              for src in scripts[:15]:
+                js=s.get(urljoin('https://dochost.io/',src),timeout=30).text
+                for ep in set(re.findall(r'["\']([^"\']*(?:/api/|api\.)[^"\']*)["\']',js)):
+                  if 'publish' not in ep.lower() and 'document' not in ep.lower() and 'page' not in ep.lower():continue
+                  endpoint=urljoin('https://dochost.io/',ep)
+                  try:
+                    rr=s.post(endpoint,json={'html':pages[1],'content':pages[1],'format':'html','visibility':'public','title':titles[1]},timeout=45)
+                    print('DOCHOST_API',endpoint,rr.status_code,rr.text[:700].replace('\n',' '))
+                    try:d=rr.json()
+                    except:d=rr.text
+                    if verify('DOCHOST',choose(d,('dochost.co','dochost.io'))):raise SystemExit
+                  except SystemExit:raise
+                  except Exception as ee:print('DOCHOST_API_ERR',type(ee).__name__,ee)
+            except SystemExit:pass
+            except Exception as e:print('DOCHOST_DISCOVERY_ERR',type(e).__name__,e)
+
+          # demoit.live browser form
+          smart_form('https://www.demoit.live/',pages[2],titles[2],'DEMOIT',('demoit.live',))
+
+          # Media Flow 30-day host
+          smart_form('https://media-flow.cc/en/html-to-url/',pages[3],titles[3],'MEDIAFLOW',('p.media-flow.cc','media-flow.cc'))
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
