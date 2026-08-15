@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Python dependencies
+        run: pip install beautifulsoup4 requests
       - name: Publish and verify new domains
         shell: bash
         run: |
@@ -41,21 +43,18 @@ jobs:
             if wc<500 or links<8: raise SystemExit('ARTICLE_INVALID')
 
           s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/2.0'})
-          results=[]
-          used=set()
+          results=[]; used=set()
           old={'output.pub','yeet.md','markdown.page','rentry.co','draftmark.app','telegra.ph','write.as','brewpage.app'}
 
           def find_url(obj, prefer_domains=()):
             vals=[]
             def walk(x):
-              if isinstance(x,str):
-                vals.extend(re.findall(r'https?://[^\s\"\'<>]+',x))
+              if isinstance(x,str): vals.extend(re.findall(r'https?://[^\s\"\'<>]+',x))
               elif isinstance(x,dict):
                 for v in x.values(): walk(v)
               elif isinstance(x,list):
                 for v in x: walk(v)
-            walk(obj)
-            vals=[u.rstrip('.,);}') for u in vals]
+            walk(obj); vals=[u.rstrip('.,);}') for u in vals]
             for d in prefer_domains:
               for u in vals:
                 if d in u: return u
@@ -67,43 +66,30 @@ jobs:
               r=s.get(u,timeout=35,allow_redirects=True)
               host=urlparse(r.url).netloc.lower().removeprefix('www.')
               hrefs=len(re.findall(r'href=[\"\'][^\"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
-              domains=r.text.count('unitedevent.net')
               noindex=bool(re.search(r'<meta[^>]+name=[\"\']robots[\"\'][^>]+content=[\"\'][^\"\']*noindex',r.text,re.I))
-              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HOST={host} HREFS={hrefs} DOMAINS={domains} NOINDEX={int(noindex)}')
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HOST={host} HREFS={hrefs} NOINDEX={int(noindex)}')
               if r.status_code<400 and hrefs>=6 and not noindex and host not in old and host not in used:
                 used.add(host); results.append({'platform':name,'url':r.url,'host':host,'hrefs':hrefs}); print(f'VALID_{name}={r.url}'); return True
             except Exception as e: print(f'VERIFY_{name}_ERR={type(e).__name__}:{e}')
             return False
 
-          # 1 FreeKit permanent
           try:
             r=s.post('https://freekit.dev/api/v1/sites',json={'markdown':arts[0],'title':titles[0]},timeout=45)
-            print('FREEKIT_POST',r.status_code,r.text[:700].replace('\n',' '))
-            d=r.json() if r.text else {}; u=((d.get('data') or {}).get('url') or find_url(d,('freekit.dev',)))
-            verify('FREEKIT',u)
+            print('FREEKIT_POST',r.status_code,r.text[:700].replace('\n',' ')); d=r.json() if r.text else {}; verify('FREEKIT',((d.get('data') or {}).get('url') or find_url(d,('freekit.dev',))))
           except Exception as e: print('FREEKIT_ERR',type(e).__name__,e)
 
-          # 2 PageDrop retry correct www host
-          try:
-            for endpoint in ['https://www.pagedrop.dev/api/v1/sites','https://pagedrop.dev/api/v1/sites']:
-              try:
-                r=s.post(endpoint,json={'markdown':arts[1],'title':titles[1]},timeout=40)
-                print('PAGEDROP_POST',endpoint,r.status_code,r.text[:700].replace('\n',' '))
-                try:d=r.json()
-                except:d=r.text
-                if verify('PAGEDROP',find_url(d,('pagedrop.dev',))): break
-              except Exception as ee: print('PAGEDROP_ENDPOINT_ERR',endpoint,type(ee).__name__,ee)
-          except Exception as e: print('PAGEDROP_ERR',type(e).__name__,e)
+          for endpoint in ['https://www.pagedrop.dev/api/v1/sites','https://pagedrop.dev/api/v1/sites']:
+            try:
+              r=s.post(endpoint,json={'markdown':arts[1],'title':titles[1]},timeout=40); print('PAGEDROP_POST',endpoint,r.status_code,r.text[:700].replace('\n',' '));
+              try:d=r.json()
+              except:d=r.text
+              if verify('PAGEDROP',find_url(d,('pagedrop.dev',))): break
+            except Exception as e: print('PAGEDROP_ENDPOINT_ERR',endpoint,type(e).__name__,e)
 
-          # 3 mdshare.live create + view link
           try:
-            r=s.post('https://mdshare.live/api/documents',data=arts[2].encode('utf-8'),headers={'Content-Type':'text/markdown','User-Agent':s.headers['User-Agent']},timeout=45)
-            print('MDSHARELIVE_POST',r.status_code,r.text[:900].replace('\n',' '))
-            d=r.json() if r.text else {}; did=d.get('document_id') or d.get('id'); key=d.get('admin_key') or d.get('adminKey')
-            u=''
+            r=s.post('https://mdshare.live/api/documents',data=arts[2].encode('utf-8'),headers={'Content-Type':'text/markdown','User-Agent':s.headers['User-Agent']},timeout=45); print('MDSHARELIVE_POST',r.status_code,r.text[:900].replace('\n',' ')); d=r.json() if r.text else {}; did=d.get('document_id') or d.get('id'); key=d.get('admin_key') or d.get('adminKey'); u=''
             if did and key:
-              lr=s.post(f'https://mdshare.live/api/d/{did}/links?key={key}',json={'permission':'view','label':'public'},timeout=35)
-              print('MDSHARELIVE_LINK',lr.status_code,lr.text[:900].replace('\n',' '))
+              lr=s.post(f'https://mdshare.live/api/d/{did}/links?key={key}',json={'permission':'view','label':'public'},timeout=35); print('MDSHARELIVE_LINK',lr.status_code,lr.text[:900].replace('\n',' '));
               try:ld=lr.json()
               except:ld=lr.text
               u=find_url(ld,('mdshare.live',))
@@ -111,75 +97,49 @@ jobs:
             verify('MDSHARELIVE',u)
           except Exception as e: print('MDSHARELIVE_ERR',type(e).__name__,e)
 
-          def post_form(base_url, title, content, name):
+          def post_form(base_url,title,content,name):
             try:
-              r=s.get(base_url,timeout=35); print(name+'_GET',r.status_code,r.url)
-              soup=BeautifulSoup(r.text,'html.parser'); forms=soup.find_all('form')
-              candidates=[]
-              for f in forms:
+              r=s.get(base_url,timeout=35); print(name+'_GET',r.status_code,r.url); soup=BeautifulSoup(r.text,'html.parser'); candidates=[]
+              for f in soup.find_all('form'):
                 names={x.get('name') for x in f.find_all(['input','textarea','select']) if x.get('name')}
                 if any('title' in (n or '').lower() for n in names) and any(any(k in (n or '').lower() for k in ('content','body','text','markdown')) for n in names): candidates.append((f,names))
               if not candidates: print(name+'_NO_FORM'); return False
               f,names=candidates[0]; action=urljoin(r.url,f.get('action') or r.url); data={}
               for el in f.find_all(['input','textarea','select']):
-                n=el.get('name');
+                n=el.get('name')
                 if not n: continue
                 typ=(el.get('type') or '').lower()
                 if typ in ('submit','button','file','image'): continue
                 if el.name=='select':
                   op=el.find('option',selected=True) or el.find('option'); data[n]=op.get('value','') if op else ''
                 else: data[n]=el.get('value','') if el.name=='input' else el.text
-              tn=next(n for n in names if 'title' in n.lower())
-              bn=next(n for n in names if any(k in n.lower() for k in ('content','body','text','markdown')))
-              data[tn]=title; data[bn]=content
-              resp=s.post(action,data=data,allow_redirects=True,timeout=45)
-              print(name+'_POST',resp.status_code,resp.url,resp.text[:500].replace('\n',' '))
-              if verify(name,resp.url): return True
-              # sometimes success URL is embedded in response
-              return verify(name,find_url(resp.text,(urlparse(base_url).netloc,)))
+              tn=next(n for n in names if 'title' in n.lower()); bn=next(n for n in names if any(k in n.lower() for k in ('content','body','text','markdown'))); data[tn]=title; data[bn]=content
+              resp=s.post(action,data=data,allow_redirects=True,timeout=45); print(name+'_POST',resp.status_code,resp.url,resp.text[:500].replace('\n',' '))
+              return verify(name,resp.url) or verify(name,find_url(resp.text,(urlparse(base_url).netloc,)))
             except Exception as e: print(name+'_ERR',type(e).__name__,e); return False
 
-          # 4 PostEasy
           post_form('https://post-easy.org/post',titles[3],arts[3],'POSTEASY')
-
-          # 5 PublishToUs
           post_form('https://publishto.us/new?lang=en',titles[4],arts[4],'PUBLISHTOUS')
 
-          # 6 plsreadme anonymous API guesses grounded by public demo
           try:
-            home=s.get('https://plsreadme.com/',timeout=30)
-            eps=set(re.findall(r'[\"\'](/api/[a-zA-Z0-9_\-/]+)[\"\']',home.text))
-            eps.update(['/api/create-link','/api/share','/api/links'])
-            ok=False
+            home=s.get('https://plsreadme.com/',timeout=30); eps=set(re.findall(r'[\"\'](/api/[a-zA-Z0-9_\-/]+)[\"\']',home.text)); eps.update(['/api/create-link','/api/share','/api/links']); ok=False
             for ep in eps:
               if ok: break
-              for payload in [
-                {'content':arts[5],'title':titles[5]},
-                {'markdown':arts[5],'title':titles[5]},
-                {'text':arts[5],'title':titles[5]}
-              ]:
+              for payload in [{'content':arts[5],'title':titles[5]},{'markdown':arts[5],'title':titles[5]},{'text':arts[5],'title':titles[5]}]:
                 try:
                   rr=s.post(urljoin('https://plsreadme.com',ep),json=payload,timeout=30)
                   if rr.status_code>=500: continue
-                  print('PLSREADME_TRY',ep,rr.status_code,rr.text[:500].replace('\n',' '))
+                  print('PLSREADME_TRY',ep,rr.status_code,rr.text[:500].replace('\n',' '));
                   try:dd=rr.json()
                   except:dd=rr.text
-                  u=find_url(dd,('plsrd.me','plsreadme.com'))
-                  if verify('PLSREADME',u): ok=True; break
-                except Exception as ee: print('PLSREADME_TRY_ERR',ep,type(ee).__name__,ee)
+                  if verify('PLSREADME',find_url(dd,('plsrd.me','plsreadme.com'))): ok=True; break
+                except Exception as e: print('PLSREADME_TRY_ERR',ep,type(e).__name__,e)
           except Exception as e: print('PLSREADME_ERR',type(e).__name__,e)
 
-          # fallback: mdshare CLI (typically mdshare.link) if fewer than 6
           if len(results)<6:
             try:
-              open('/tmp/mdshare.md','w',encoding='utf-8').write(arts[5])
-              subprocess.run(['npm','install','-g','mdshare'],check=False,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=90)
-              p=subprocess.run(['mdshare','/tmp/mdshare.md'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=60)
-              print('MDSHARECLI_OUT',p.returncode,p.stdout[:1400].replace('\n',' '))
-              u=find_url(p.stdout,('mdshare.link','mdshare.live'))
-              verify('MDSHARECLI',u)
+              open('/tmp/mdshare.md','w',encoding='utf-8').write(arts[5]); subprocess.run(['npm','install','-g','mdshare'],check=False,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=90); p=subprocess.run(['mdshare','/tmp/mdshare.md'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=60); print('MDSHARECLI_OUT',p.returncode,p.stdout[:1400].replace('\n',' ')); verify('MDSHARECLI',find_url(p.stdout,('mdshare.link','mdshare.live')))
             except Exception as e: print('MDSHARECLI_ERR',type(e).__name__,e)
 
-          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
-          print('FINAL_COUNT='+str(len(results)))
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False)); print('FINAL_COUNT='+str(len(results)))
           PY
