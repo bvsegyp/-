@@ -1,0 +1,176 @@
+name: Publish United Batch7 Static Hosts
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run United batch7 static hosts'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests markdown beautifulsoup4
+      - name: Publish and verify fresh static hosts
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,time,hashlib
+          from urllib.parse import urlparse,urljoin
+          from bs4 import BeautifulSoup
+          import markdown
+
+          files=[
+            'united-batch5-20260815/01-wayfinding-signage.md',
+            'united-batch5-20260815/02-supplier-coordination.md',
+            'united-batch5-20260815/03-print-quality-control.md',
+            'united-batch5-20260815/04-post-event-measurement.md'
+          ]
+          titles=[
+            'أنظمة التوجيه واللافتات داخل المعارض والفعاليات في السعودية',
+            'تنسيق الموردين في الفعاليات الكبرى ومنع التعارضات يوم التنفيذ',
+            'ضبط جودة الطباعة للمعارض والفعاليات قبل يوم التنفيذ',
+            'قياس نجاح الفعاليات بعد انتهائها وتحويل النتائج إلى قرارات أفضل'
+          ]
+          arts=[open(f,encoding='utf-8').read() for f in files]
+          def html_page(md,t):
+            body=markdown.markdown(md,extensions=['extra','sane_lists'])
+            return f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{t}</title><meta name="description" content="دليل احترافي في تنظيم وتجهيز المعارض والفعاليات بالسعودية"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:2;color:#222}}h1,h2{{line-height:1.5}}a{{color:#54208f;text-decoration:underline}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'''
+          pages=[html_page(arts[i],titles[i]) for i in range(4)]
+          for i,(a,h) in enumerate(zip(arts,pages),1):
+            hh=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',h,re.I))
+            print(f'ARTICLE_{i}_WORDS={len(a.split())} LINKS={a.count("unitedevent.net")} HREFS={hh}')
+            if len(a.split())<650 or hh<8: raise SystemExit('ARTICLE_INVALID')
+
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/8.0'})
+          used={'output.pub','yeet.md','markdown.page','rentry.co','draftmark.app','telegra.ph','ht-ml.app','pitchey.app','sshgrid.com','aired.sh','yeetit.site','sitebin.io','zerodeploy.app','zerodeploy.dev','yourwebs.app','htmlshare.net'}
+          results=[]
+          def root(host):
+            host=host.lower().removeprefix('www.')
+            known=['ship.page','shipped.page','here.now','shipsite.co','htmlhost.co']
+            for p in known:
+              if host==p or host.endswith('.'+p):return p
+            for p in used:
+              if host==p or host.endswith('.'+p):return p
+            ps=host.split('.')
+            return '.'.join(ps[-2:]) if len(ps)>=2 else host
+          def urls(x):
+            out=[]
+            def walk(v):
+              if isinstance(v,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():walk(z)
+              elif isinstance(v,list):
+                for z in v:walk(z)
+            walk(x);return [u.rstrip('.,);}') for u in out]
+          def choose(x,domains=()):
+            us=urls(x)
+            for d in domains:
+              for u in us:
+                if d in u:return u
+            return us[0] if us else ''
+          def verify(name,u):
+            if not u:print(name+'_NO_URL');return False
+            try:
+              r=s.get(u,timeout=50,allow_redirects=True)
+              host=urlparse(r.url).netloc.lower().removeprefix('www.');prov=root(host)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HOST={host} PROVIDER={prov} HREFS={hrefs} DOMAINS={r.text.count("unitedevent.net")} NOINDEX={int(noindex)}')
+              if r.status_code<400 and hrefs>=6 and not noindex and prov not in used:
+                used.add(prov);results.append({'platform':name,'url':r.url,'provider':prov,'hrefs':hrefs});print(f'VALID_{name}={r.url}');return True
+            except Exception as e:print(f'VERIFY_{name}_ERR={type(e).__name__}:{e}')
+            return False
+
+          # 1 ship.page - direct POST HTML
+          try:
+            r=s.post('https://ship.page/deploy',data=pages[0].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8','User-Agent':s.headers['User-Agent']},timeout=60)
+            print('SHIPPAGE_POST',r.status_code,r.text[:1200].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify('SHIPPAGE',choose(d,('shipped.page','ship.page')))
+          except Exception as e:print('SHIPPAGE_ERR',type(e).__name__,e)
+
+          # helper for here.now/shipsite 3-step publish
+          def three_step(base,page,title,name,provider_domains,client_header=None,claim_finalize=False):
+            try:
+              data=page.encode('utf-8');payload={'files':[{'path':'index.html','size':len(data),'contentType':'text/html; charset=utf-8'}],'viewer':{'title':title,'description':'دليل احترافي للفعاليات والمعارض والطباعة في السعودية'}}
+              hdr={'Content-Type':'application/json'}
+              if client_header:hdr.update(client_header)
+              r=s.post(base+'/api/v1/publish',json=payload,headers=hdr,timeout=55)
+              print(name+'_CREATE',r.status_code,r.text[:1600].replace('\n',' '))
+              d=r.json(); site=d.get('siteUrl') or d.get('url'); upload=d.get('upload') or {}; ups=upload.get('uploads') or []; ver=upload.get('versionId'); fin=upload.get('finalizeUrl'); claim=d.get('claimToken')
+              if not ups or not fin or not ver:print(name+'_MISSING_UPLOAD');return False
+              up=ups[0]; uh=up.get('headers') or {'Content-Type':'text/html; charset=utf-8'}
+              rr=requests.put(up['url'],data=data,headers=uh,timeout=60);print(name+'_UPLOAD',rr.status_code,rr.text[:300].replace('\n',' '))
+              fp={'versionId':ver}
+              if claim_finalize and claim:fp['claimToken']=claim
+              fr=s.post(fin,json=fp,headers={'Content-Type':'application/json'},timeout=55)
+              print(name+'_FINALIZE',fr.status_code,fr.text[:1200].replace('\n',' '))
+              try:fd=fr.json()
+              except:fd=fr.text
+              live=(fd.get('siteUrl') if isinstance(fd,dict) else None) or site or choose(fd,provider_domains)
+              ok=verify(name,live)
+              if d.get('claimUrl'):print(name+'_CLAIM_URL='+d['claimUrl'])
+              return ok
+            except Exception as e:print(name+'_ERR',type(e).__name__,e);return False
+
+          # 2 here.now anonymous
+          three_step('https://here.now',pages[1],titles[1],'HERENOW',('here.now',),{'X-HereNow-Client':'united-events/direct-api'},False)
+
+          # 3 ShipSite anonymous
+          three_step('https://shipsite.co',pages[2],titles[2],'SHIPSITE',('shipsite.co',),None,True)
+
+          # 4 htmlhost.co anonymous browser route discovery
+          try:
+            home=s.get('https://htmlhost.co/',timeout=45);print('HTMLHOST_GET',home.status_code,home.url)
+            soup=BeautifulSoup(home.text,'html.parser');done=False
+            # try HTML forms first
+            for f in soup.find_all('form'):
+              if done:break
+              action=urljoin(home.url,f.get('action') or home.url);method=(f.get('method') or 'post').lower()
+              if method!='post':continue
+              data={};fls={}
+              for el in f.find_all(['input','textarea','select']):
+                n=el.get('name')
+                if not n:continue
+                typ=(el.get('type') or '').lower();ln=n.lower()
+                if typ in ('submit','button'):continue
+                if typ=='file':fls[n]=('index.html',pages[3],'text/html')
+                elif any(k in ln for k in ('html','content','code','text')):data[n]=pages[3]
+                elif 'ttl' in ln:data[n]='7d'
+                elif 'title' in ln:data[n]=titles[3]
+                else:data[n]=el.get('value','')
+              if not fls and pages[3] not in data.values():continue
+              resp=s.post(action,data=data,files=fls or None,timeout=60,allow_redirects=True);print('HTMLHOST_FORM',resp.status_code,resp.url,resp.text[:900].replace('\n',' '))
+              try:dd=resp.json()
+              except:dd=resp.text
+              live=choose(dd,('htmlhost.co',))
+              if not live and resp.url!=action:live=resp.url
+              if verify('HTMLHOST',live):done=True;break
+            # inspect JS for anonymous publish endpoints if no form
+            if not done:
+              scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',home.text,re.I)
+              candidates=set()
+              for src in scripts[:30]:
+                try:
+                  js=s.get(urljoin(home.url,src),timeout=30).text
+                  for ep in re.findall(r'["\']([^"\']*(?:/api/)[^"\']*)["\']',js):
+                    if any(k in ep.lower() for k in ('site','deploy','publish','anonymous')):candidates.add(urljoin(home.url,ep))
+                except:pass
+              print('HTMLHOST_ENDPOINTS',list(candidates)[:30])
+              for ep in list(candidates)[:20]:
+                if done:break
+                for payload in ({'html':pages[3],'title':titles[3],'ttl':'7d'},{'content':pages[3],'title':titles[3],'ttl':'7d'}):
+                  try:
+                    rr=s.post(ep,json=payload,timeout=45);print('HTMLHOST_API_TRY',ep,rr.status_code,rr.text[:700].replace('\n',' '))
+                    try:dd=rr.json()
+                    except:dd=rr.text
+                    if verify('HTMLHOST',choose(dd,('htmlhost.co',))):done=True;break
+                  except Exception as ee:print('HTMLHOST_API_ERR',type(ee).__name__,ee)
+          except Exception as e:print('HTMLHOST_ERR',type(e).__name__,e)
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
