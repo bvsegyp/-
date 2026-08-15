@@ -1,0 +1,145 @@
+name: Publish United Batch2 HTML Hosts
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish United batch2 HTML hosts'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests markdown
+      - name: Publish six long articles to six new domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,time
+          from urllib.parse import urlparse
+          import markdown
+
+          files=[
+            'united-batch2-20260815/01-event-branding.md',
+            'united-batch2-20260815/02-event-printing-guide.md',
+            'united-batch2-20260815/03-stage-av-production.md',
+            'united-batch2-20260815/04-conference-attendee-journey.md',
+            'united-batch2-20260815/05-national-day-events.md',
+            'united-batch2-20260815/06-event-photography-content.md'
+          ]
+          titles=[
+            'بناء هوية بصرية متكاملة للفعاليات في السعودية',
+            'دليل الطباعة والإنتاج الإعلاني للمعارض والفعاليات',
+            'إدارة المنصة والصوت والإضاءة في الفعاليات',
+            'تصميم رحلة حضور احترافية للمؤتمرات والملتقيات',
+            'تخطيط فعاليات اليوم الوطني السعودي للشركات',
+            'تصوير الفعاليات وصناعة محتوى طويل الأثر'
+          ]
+          md=[open(f,encoding='utf-8').read() for f in files]
+          def to_html(text,title):
+            body=markdown.markdown(text,extensions=['extra','sane_lists'])
+            return f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:900px;margin:40px auto;padding:0 24px;line-height:2;color:#222}}h1,h2{{line-height:1.5}}a{{color:#5b21b6}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'''
+          htmls=[to_html(md[i],titles[i]) for i in range(6)]
+          for i,(m,h) in enumerate(zip(md,htmls),1):
+            print(f'ARTICLE_{i}_WORDS={len(m.split())} MD_LINKS={m.count("unitedevent.net")} HTML_HREFS={len(re.findall(r"href=[\"\'][^\"\']*unitedevent\.net",h,re.I))}')
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/3.0'})
+          old={'output.pub','yeet.md','markdown.page','rentry.co','draftmark.app','telegra.ph','write.as','brewpage.app','mdshare.live'}
+          results=[]; used=set()
+          def deep_url(x):
+            if isinstance(x,dict):
+              for k in ('url','public_url','publicUrl','live_url','liveUrl','pageUrl','site_url','siteUrl'):
+                v=x.get(k)
+                if isinstance(v,str) and v.startswith('http'): return v
+              for v in x.values():
+                u=deep_url(v)
+                if u:return u
+            elif isinstance(x,list):
+              for v in x:
+                u=deep_url(v)
+                if u:return u
+            elif isinstance(x,str):
+              m=re.search(r'https?://[^\s\"\'<>]+',x)
+              if m:return m.group(0).rstrip('.,);}')
+            return ''
+          def verify(name,u,retries=1):
+            if not u: print(name+'_NO_URL'); return False
+            for attempt in range(retries):
+              try:
+                r=s.get(u,timeout=35,allow_redirects=True)
+                host=urlparse(r.url).netloc.lower().removeprefix('www.')
+                hrefs=len(re.findall(r'href=[\"\'][^\"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
+                noindex=bool(re.search(r'(?:<meta[^>]+name=[\"\']robots[\"\'][^>]+content=[\"\'][^\"\']*noindex|x-robots-tag[^\n]*noindex)',r.text,re.I)) or 'noindex' in r.headers.get('x-robots-tag','').lower()
+                print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HOST={host} HREFS={hrefs} DOMAINS={r.text.count("unitedevent.net")} NOINDEX={int(noindex)}')
+                if r.status_code<400 and hrefs>=6 and not noindex and host not in old and host not in used:
+                  used.add(host); results.append({'platform':name,'url':r.url,'host':host,'hrefs':hrefs}); print(f'VALID_{name}={r.url}'); return True
+              except Exception as e: print(f'VERIFY_{name}_ERR={type(e).__name__}:{e}')
+              if attempt+1<retries: time.sleep(12)
+            return False
+
+          # 1 HTML Docs - anonymous, raw HTML
+          try:
+            r=s.post('https://www.html-docs.com/api/v1/docs',data=htmls[0].encode(),headers={'Content-Type':'text/html','x-agent-name':'United Events Editorial'},timeout=45)
+            print('HTMLDOCS_POST',r.status_code,r.text[:700].replace('\n',' '));
+            try:d=r.json()
+            except:d=r.text
+            verify('HTMLDOCS',deep_url(d))
+          except Exception as e: print('HTMLDOCS_ERR',type(e).__name__,e)
+
+          # 2 ht-ml.app
+          try:
+            r=s.post('https://api.ht-ml.app/v1/sites',json={'html_content':htmls[1]},timeout=45)
+            print('HTMLAPP_POST',r.status_code,r.text[:700].replace('\n',' '));
+            try:d=r.json()
+            except:d=r.text
+            verify('HTMLAPP',deep_url(d))
+          except Exception as e: print('HTMLAPP_ERR',type(e).__name__,e)
+
+          # 3 meethtml / meetmarkdown
+          try:
+            r=s.post('https://api.meethtml.com/api/v1/publish',json={'html':htmls[2]},timeout=45)
+            print('MEETHTML_POST',r.status_code,r.text[:700].replace('\n',' '));
+            try:d=r.json()
+            except:d=r.text
+            verify('MEETHTML',deep_url(d))
+          except Exception as e: print('MEETHTML_ERR',type(e).__name__,e)
+
+          # 4 hurl.page
+          try:
+            r=s.post('https://hurl.page/deploy?ttl=7d',data=htmls[3].encode(),headers={'Content-Type':'text/html'},timeout=45)
+            print('HURL_POST',r.status_code,r.text[:700].replace('\n',' '));
+            try:d=r.json()
+            except:d=r.text
+            verify('HURL',deep_url(d))
+          except Exception as e: print('HURL_ERR',type(e).__name__,e)
+
+          # 5 ShipPage
+          try:
+            r=s.post('https://shippage.ai/v1/publish',json={'html':htmls[4]},timeout=45)
+            print('SHIPPAGE_POST',r.status_code,r.text[:700].replace('\n',' '));
+            try:d=r.json()
+            except:d=r.text
+            verify('SHIPPAGE',deep_url(d))
+          except Exception as e: print('SHIPPAGE_ERR',type(e).__name__,e)
+
+          # 6 Pitchey, max anonymous TTL
+          try:
+            r=s.post('https://pitchey.app/api/pages',json={'html':htmls[5],'ttl':'30d'},timeout=45)
+            print('PITCHEY_POST',r.status_code,r.text[:700].replace('\n',' '));
+            try:d=r.json()
+            except:d=r.text
+            verify('PITCHEY',deep_url(d))
+          except Exception as e: print('PITCHEY_ERR',type(e).__name__,e)
+
+          # 7 SSHGrid fallback; may need DNS provisioning
+          if len(results)<6:
+            try:
+              r=s.post('https://sshgrid.com/api/v1/deploy',json={'files':[{'path':'index.html','content':htmls[5]}],'label':'United Events article'},timeout=45)
+              print('SSHGRID_POST',r.status_code,r.text[:700].replace('\n',' '));
+              try:d=r.json()
+              except:d=r.text
+              verify('SSHGRID',deep_url(d),retries=4)
+            except Exception as e: print('SSHGRID_ERR',type(e).__name__,e)
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False)); print('FINAL_COUNT='+str(len(results)))
+          PY
