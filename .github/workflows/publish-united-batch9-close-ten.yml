@@ -1,0 +1,119 @@
+name: Publish United Batch9 Close Ten
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run United batch9 close ten'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests markdown
+      - name: Publish Draftlet Hurl Display and verify
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,tempfile,os
+          from urllib.parse import urlparse
+          import markdown
+
+          specs=[
+            ('united-batch6-20260815/02-stage-rehearsal.md','البروفة التقنية للمنصة قبل الفعالية ولماذا تمنع أغلب مشاكل يوم الحدث'),
+            ('united-batch9-20260815/01-event-contingency-plan.md','خطة الطوارئ التشغيلية للفعاليات وكيف تحافظ على استمرارية الحدث'),
+            ('united-batch6-20260815/03-promotional-print-plan.md','تخطيط المطبوعات الدعائية للفعاليات من الدعوة حتى نقطة الخروج')
+          ]
+          arts=[open(f,encoding='utf-8').read() for f,_ in specs]
+          titles=[t for _,t in specs]
+          def page(a,t):
+            body=markdown.markdown(a,extensions=['extra','sane_lists'])
+            return f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{t}</title><meta name="description" content="دليل احترافي للفعاليات والمعارض والطباعة والتجهيز في السعودية"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:2;color:#222}}h1,h2{{line-height:1.5}}a{{color:#54208f;text-decoration:underline}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'''
+          pages=[page(arts[i],titles[i]) for i in range(3)]
+          for i,(a,h) in enumerate(zip(arts,pages),1):
+            hh=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',h,re.I))
+            print(f'ARTICLE_{i}_WORDS={len(a.split())} LINKS={a.count("unitedevent.net")} HREFS={hh}')
+            if len(a.split())<650 or hh<8: raise SystemExit('ARTICLE_INVALID')
+
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/10.0'})
+          old={'output.pub','yeet.md','markdown.page','rentry.co','draftmark.app','telegra.ph','ht-ml.app','pitchey.app','sshgrid.com','aired.sh','yeetit.site','sitebin.io','zerodeploy.app','yourwebs.app','htmlshare.net','shipped.page','here.now','shipsite.co','xdr.no','based.page'}
+          results=[]
+          def provider(host):
+            host=host.lower().removeprefix('www.')
+            known=['draftlet.io','hurled.page','hurl.page','display.dev']
+            for p in known:
+              if host==p or host.endswith('.'+p):return p
+            for p in old:
+              if host==p or host.endswith('.'+p):return p
+            parts=host.split('.')
+            return '.'.join(parts[-2:]) if len(parts)>=2 else host
+          def urls(x):
+            out=[]
+            def walk(v):
+              if isinstance(v,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():walk(z)
+              elif isinstance(v,list):
+                for z in v:walk(z)
+            walk(x);return [u.rstrip('.,);}') for u in out]
+          def choose(x,domains=()):
+            us=urls(x)
+            for d in domains:
+              for u in us:
+                if d in u:return u
+            return us[0] if us else ''
+          def verify(name,u):
+            if not u:print(name+'_NO_URL');return False
+            try:
+              r=s.get(u,timeout=50,allow_redirects=True)
+              host=urlparse(r.url).netloc.lower().removeprefix('www.');prov=provider(host)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HOST={host} PROVIDER={prov} HREFS={hrefs} DOMAINS={r.text.count("unitedevent.net")} NOINDEX={int(noindex)}')
+              if r.status_code<400 and hrefs>=6 and not noindex and prov not in old:
+                old.add(prov);results.append({'platform':name,'url':r.url,'provider':prov,'hrefs':hrefs});print(f'VALID_{name}={r.url}');return True
+            except Exception as e:print(f'VERIFY_{name}_ERR={type(e).__name__}:{e}')
+            return False
+
+          # Draftlet exact documented 3-step
+          try:
+            data=pages[0].encode('utf-8')
+            r=s.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','contentType':'text/html','size':len(data)}]},timeout=55)
+            print('DRAFTLET_CREATE',r.status_code,r.text[:1800].replace('\n',' '));d=r.json()
+            slug=d['slug'];ver=d['versionId'];tok=d['editToken'];up=d['uploads'][0]['uploadUrl'];live=d['url']
+            rr=requests.put(up,data=data,headers={'content-type':'text/html','content-length':str(len(data))},timeout=60)
+            print('DRAFTLET_UPLOAD',rr.status_code,rr.text[:300].replace('\n',' '))
+            fr=s.post(f'https://api.draftlet.io/api/v1/publish/{slug}/finalize',json={'versionId':ver,'editToken':tok},timeout=55)
+            print('DRAFTLET_FINALIZE',fr.status_code,fr.text[:1000].replace('\n',' '))
+            verify('DRAFTLET',live)
+          except Exception as e:print('DRAFTLET_ERR',type(e).__name__,e)
+
+          # Hurl raw HTML
+          try:
+            r=s.post('https://hurl.page/deploy',data=pages[1].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=60)
+            print('HURL_POST',r.status_code,r.text[:1200].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify('HURL',choose(d,('hurled.page','hurl.page')))
+          except Exception as e:print('HURL_ERR',type(e).__name__,e)
+
+          # Display.dev anonymous public artifact multipart
+          try:
+            fn='/tmp/united-promotional-print.html';open(fn,'w',encoding='utf-8').write(pages[2])
+            with open(fn,'rb') as fh:
+              r=s.post('https://api.display.dev/v1/public/artifacts',files={'file':('united-promotional-print.html',fh,'text/html')},data={'name':titles[2]},timeout=65)
+            print('DISPLAY_POST',r.status_code,r.text[:1600].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            # prefer preview/live/public URL over claim URL
+            us=urls(d);live=''
+            for u in us:
+              if 'claim' not in u.lower() and 'display.dev' in u:
+                live=u;break
+            verify('DISPLAY',live)
+          except Exception as e:print('DISPLAY_ERR',type(e).__name__,e)
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
