@@ -1,0 +1,28 @@
+name: Verify United Sitebin ZeroDeploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Verify United Sitebin ZeroDeploy'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify public rendered backlinks
+        run: |
+          python - <<'PY'
+          import requests,re
+          urls={
+            'SITEBIN':'https://pnhvpeey6cchfdsuop4zjh7sho.app.sitebin.io',
+            'ZERODEPLOY':'https://lingering-voice-3621.zerodeploy.app'
+          }
+          for name,u in urls.items():
+            try:
+              r=requests.get(u,timeout=40,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0 UnitedEventsVerifier/1.0'})
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HREFS={hrefs} DOMAINS={r.text.count("unitedevent.net")} NOINDEX={int(noindex)}')
+              if r.status_code<400 and hrefs>=6 and not noindex: print(f'VALID_{name}={r.url}')
+            except Exception as e: print(f'{name}_ERR={type(e).__name__}:{e}')
+          PY
