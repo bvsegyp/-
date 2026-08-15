@@ -1,0 +1,195 @@
+name: Publish United Batch5 Fresh Domains
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run United batch5 fresh domains'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests markdown beautifulsoup4
+      - name: Publish and verify fresh domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,time,os
+          from urllib.parse import urlparse,urljoin
+          from bs4 import BeautifulSoup
+          import markdown
+
+          files=[
+            'united-batch5-20260815/01-wayfinding-signage.md',
+            'united-batch5-20260815/02-supplier-coordination.md',
+            'united-batch5-20260815/03-print-quality-control.md',
+            'united-batch5-20260815/04-post-event-measurement.md',
+            'united-batch5-20260815/05-event-sustainability.md'
+          ]
+          titles=[
+            'أنظمة التوجيه واللافتات داخل المعارض والفعاليات في السعودية',
+            'تنسيق الموردين في الفعاليات الكبرى ومنع التعارضات يوم التنفيذ',
+            'ضبط جودة الطباعة للمعارض والفعاليات قبل يوم التنفيذ',
+            'قياس نجاح الفعاليات بعد انتهائها وتحويل النتائج إلى قرارات أفضل',
+            'تقليل الهدر في تجهيز الفعاليات دون التأثير على الشكل الاحترافي'
+          ]
+          arts=[open(f,encoding='utf-8').read() for f in files]
+          def make_html(md,title):
+            body=markdown.markdown(md,extensions=['extra','sane_lists'])
+            return f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title><meta name="description" content="دليل عملي للمعارض والفعاليات والطباعة والتجهيز في السعودية"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:2;color:#222}}h1,h2{{line-height:1.5}}a{{color:#54208f;text-decoration:underline}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'''
+          pages=[make_html(arts[i],titles[i]) for i in range(5)]
+          for i,(a,h) in enumerate(zip(arts,pages),1):
+            hrefs=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',h,re.I))
+            print(f'ARTICLE_{i}_WORDS={len(a.split())} LINKS={a.count("unitedevent.net")} HREFS={hrefs}')
+            if len(a.split())<650 or hrefs<8: raise SystemExit('ARTICLE_INVALID')
+
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/6.0'})
+          used={'output.pub','yeet.md','markdown.page','rentry.co','draftmark.app','telegra.ph','ht-ml.app','pitchey.app','sshgrid.com','aired.sh','yeetit.site','sitebin.io','zerodeploy.app','zerodeploy.dev'}
+          results=[]
+
+          def provider(host):
+            host=host.lower().removeprefix('www.')
+            known=['pagedrop.dev','freekit.dev','pastehtml.com','sharable.link','yourwebs.app','yourwebs.cc','paste.page','htmlshare.page']
+            for p in known:
+              if host==p or host.endswith('.'+p): return p
+            for p in used:
+              if host==p or host.endswith('.'+p): return p
+            ps=host.split('.')
+            return '.'.join(ps[-2:]) if len(ps)>=2 else host
+
+          def find_urls(x):
+            out=[]
+            def walk(v):
+              if isinstance(v,str): out.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values(): walk(z)
+              elif isinstance(v,list):
+                for z in v: walk(z)
+            walk(x)
+            return [u.rstrip('.,);}') for u in out]
+
+          def choose(x, domains=()):
+            us=find_urls(x)
+            for d in domains:
+              for u in us:
+                if d in u:return u
+            return us[0] if us else ''
+
+          def verify(name,u,retries=1):
+            if not u: print(name+'_NO_URL');return False
+            for attempt in range(retries):
+              try:
+                r=s.get(u,timeout=45,allow_redirects=True)
+                host=urlparse(r.url).netloc.lower().removeprefix('www.');prov=provider(host)
+                hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
+                noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+                print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HOST={host} PROVIDER={prov} HREFS={hrefs} DOMAINS={r.text.count("unitedevent.net")} NOINDEX={int(noindex)}')
+                if r.status_code<400 and hrefs>=6 and not noindex and prov not in used:
+                  used.add(prov);results.append({'platform':name,'url':r.url,'provider':prov,'hrefs':hrefs});print(f'VALID_{name}={r.url}');return True
+              except Exception as e: print(f'VERIFY_{name}_ERR={type(e).__name__}:{e}')
+              if attempt+1<retries: time.sleep(8)
+            return False
+
+          # 1 PageDrop - official permanent anonymous API
+          try:
+            r=s.post('https://pagedrop.dev/api/v1/sites',json={'html':pages[0],'title':titles[0]},timeout=50)
+            print('PAGEDROP_POST',r.status_code,r.text[:1000].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            u=((d.get('data') or {}).get('url') if isinstance(d,dict) else '') or choose(d,('pagedrop.dev',))
+            verify('PAGEDROP',u)
+          except Exception as e:print('PAGEDROP_ERR',type(e).__name__,e)
+
+          # 2 FreeKit - official permanent anonymous API
+          try:
+            r=s.post('https://freekit.dev/api/v1/sites',json={'html':pages[1],'title':titles[1]},timeout=50)
+            print('FREEKIT_POST',r.status_code,r.text[:1000].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            u=((d.get('data') or {}).get('url') if isinstance(d,dict) else '') or choose(d,('freekit.dev',))
+            verify('FREEKIT',u)
+          except Exception as e:print('FREEKIT_ERR',type(e).__name__,e)
+
+          # 3 PasteHTML official API
+          try:
+            r=s.post('https://pastehtml.com/upload/create?input_type=html&result=address',data={'txt':pages[2]},timeout=50,allow_redirects=True)
+            print('PASTEHTML_POST',r.status_code,r.url,r.text[:1000].replace('\n',' '))
+            u=r.text.strip() if r.text.strip().startswith('http') else choose(r.text,('pastehtml.com',))
+            if not u and r.url!='https://pastehtml.com/upload/create?input_type=html&result=address':u=r.url
+            verify('PASTEHTML',u)
+          except Exception as e:print('PASTEHTML_ERR',type(e).__name__,e)
+
+          # 4 sharable.link - discover anonymous form/skill endpoint and publish
+          def form_publish(home_url,page,title,name,prefer_domains):
+            try:
+              r=s.get(home_url,timeout=40);print(name+'_GET',r.status_code,r.url)
+              soup=BeautifulSoup(r.text,'html.parser')
+              for f in soup.find_all('form'):
+                action=urljoin(r.url,f.get('action') or r.url); method=(f.get('method') or 'post').lower()
+                names=[x.get('name') for x in f.find_all(['input','textarea']) if x.get('name')]
+                if method!='post':continue
+                data={};files={}
+                for el in f.find_all(['input','textarea']):
+                  n=el.get('name');typ=(el.get('type') or '').lower()
+                  if not n or typ in ('submit','button'):continue
+                  if typ=='file':files[n]=('united-events.html',page,'text/html')
+                  elif 'title' in n.lower() or 'name'==n.lower():data[n]=title
+                  elif any(k in n.lower() for k in ('html','content','code','text')):data[n]=page
+                  else:data[n]=el.get('value','')
+                if not files and not any(page==v for v in data.values()):continue
+                try:
+                  resp=s.post(action,data=data,files=files or None,timeout=55,allow_redirects=True)
+                  print(name+'_FORM_POST',resp.status_code,resp.url,resp.text[:700].replace('\n',' '))
+                  try:d=resp.json()
+                  except:d=resp.text
+                  u=choose(d,prefer_domains)
+                  if not u and resp.url!=action:u=resp.url
+                  if verify(name,u):return True
+                except Exception as ee:print(name+'_FORM_ERR',type(ee).__name__,ee)
+            except Exception as e:print(name+'_ERR',type(e).__name__,e)
+            return False
+
+          ok=form_publish('https://sharable.link/free-html-hosting',pages[3],titles[3],'SHARABLE',('sharable.link',))
+          if not ok:
+            try:
+              skill=s.get('https://sharable.link/skill.md',timeout=35)
+              print('SHARABLE_SKILL',skill.status_code,skill.text[:3500].replace('\n',' '))
+              eps=re.findall(r'https://sharable\.link[^\s`"\']+',skill.text)
+              for ep in eps:
+                if '/api/' not in ep:continue
+                for payload in ({'html':pages[3],'title':titles[3]},{'content':pages[3],'title':titles[3]}):
+                  try:
+                    rr=s.post(ep,json=payload,timeout=45);print('SHARABLE_API',ep,rr.status_code,rr.text[:700].replace('\n',' '))
+                    try:d=rr.json()
+                    except:d=rr.text
+                    if verify('SHARABLE',choose(d,('sharable.link',))):ok=True;break
+                  except Exception as ee:print('SHARABLE_API_ERR',type(ee).__name__,ee)
+                if ok:break
+            except Exception as e:print('SHARABLE_SKILL_ERR',type(e).__name__,e)
+
+          # 5 YourWebs - anonymous browser form or skill-described endpoint
+          ok=form_publish('https://yourwebs.cc/',pages[4],titles[4],'YOURWEBS',('yourwebs.app','yourwebs.cc'))
+          if not ok:
+            try:
+              skill=s.get('https://yourwebs.cc/skill.md',timeout=35)
+              print('YOURWEBS_SKILL',skill.status_code,skill.text[:4000].replace('\n',' '))
+              eps=re.findall(r'https://yourwebs\.cc[^\s`"\']+',skill.text)
+              for ep in eps:
+                if '/api/' not in ep:continue
+                for mode in ('json','file'):
+                  try:
+                    if mode=='json':rr=s.post(ep,json={'html':pages[4],'title':titles[4]},timeout=50)
+                    else:rr=s.post(ep,files={'file':('united-events.html',pages[4],'text/html')},timeout=50)
+                    print('YOURWEBS_API',ep,mode,rr.status_code,rr.text[:700].replace('\n',' '))
+                    try:d=rr.json()
+                    except:d=rr.text
+                    if verify('YOURWEBS',choose(d,('yourwebs.app','yourwebs.cc'))):ok=True;break
+                  except Exception as ee:print('YOURWEBS_API_ERR',type(ee).__name__,ee)
+                if ok:break
+            except Exception as e:print('YOURWEBS_SKILL_ERR',type(e).__name__,e)
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
