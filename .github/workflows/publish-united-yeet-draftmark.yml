@@ -1,0 +1,43 @@
+name: Publish United Yeet Draftmark
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish United Yeet Draftmark'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish two permanent rendered markdown pages
+        shell: bash
+        run: |
+          cat > /tmp/p.py <<'PY'
+          import requests,re,json
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/1.0'})
+          a1=open('united-long-20260815/02-exhibition-booth-riyadh.md',encoding='utf-8').read()
+          a2=open('united-long-20260815/05-corporate-product-launch-events.md',encoding='utf-8').read()
+          def check(name,u):
+            try:
+              if u and not u.startswith('http'): u='https://'+u.lstrip('/')
+              r=s.get(u,timeout=30,allow_redirects=True)
+              h=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',r.text,re.I))
+              print(f'CHECK_{name} URL={r.url} STATUS={r.status_code} HREFS={h} DOMAINS={r.text.count("unitedevent.net")}')
+              if r.status_code<400 and h>=6: print(f'VALID_{name}={r.url}')
+            except Exception as e: print('CHECK_ERR',name,type(e).__name__,e)
+          try:
+            r=s.post('https://yeet.md/api/share',json={'content':a1},headers={'Content-Type':'application/json','User-Agent':s.headers['User-Agent']},timeout=45)
+            print('YEET_POST',r.status_code,r.text[:700].replace('\n',' '))
+            d=r.json() if r.text else {}; check('YEET',d.get('url',''))
+          except Exception as e: print('YEET_ERR',type(e).__name__,e)
+          try:
+            r=s.post('https://draftmark.app/api/v1/docs',json={'content':a2,'visibility':'public'},headers={'Content-Type':'application/json','User-Agent':s.headers['User-Agent']},timeout=45)
+            print('DRAFTMARK_POST',r.status_code,r.text[:900].replace('\n',' '))
+            d=r.json() if r.text else {}; u=d.get('url','')
+            if u and not u.startswith('http'): u='https://'+u
+            check('DRAFTMARK',u)
+          except Exception as e: print('DRAFTMARK_ERR',type(e).__name__,e)
+          PY
+          python /tmp/p.py
