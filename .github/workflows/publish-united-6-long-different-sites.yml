@@ -1,0 +1,163 @@
+name: Publish United 6 Long Different Sites
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Publish United 6 long backlinks'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish long United Events articles and verify backlinks
+        shell: bash
+        run: |
+          cat > /tmp/publish_united.py <<'PY'
+          import requests, json, re, html, os, sys, time
+
+          paths = [
+            'united-long-20260815/01-event-management-saudi.md',
+            'united-long-20260815/02-exhibition-booth-riyadh.md',
+            'united-long-20260815/03-printing-production-events.md',
+            'united-long-20260815/04-conference-management-saudi.md',
+            'united-long-20260815/05-corporate-product-launch-events.md',
+            'united-long-20260815/06-event-av-brand-experience.md',
+          ]
+          titles = [
+            'تنظيم الفعاليات في السعودية من الفكرة إلى تجربة متكاملة',
+            'تجهيز المعارض وتصميم الأجنحة في الرياض',
+            'خدمات الطباعة والإنتاج الإعلاني للفعاليات',
+            'تنظيم المؤتمرات والملتقيات في السعودية',
+            'تنظيم فعاليات الشركات وإطلاق المنتجات في السعودية',
+            'تجهيزات الصوت والإضاءة والهوية في الفعاليات',
+          ]
+          arts = [open(p, encoding='utf-8').read() for p in paths]
+          for i,a in enumerate(arts,1):
+              words=len(re.findall(r'\S+',a))
+              links=a.count('unitedevent.net')
+              print(f'ARTICLE_{i}_WORDS={words} LINKS={links}')
+              if links < 6:
+                  raise SystemExit(f'article {i} has fewer than 6 links')
+
+          s=requests.Session()
+          s.headers.update({'User-Agent':'Mozilla/5.0 (compatible; UnitedEventsEditorial/1.0; +https://unitedevent.net/)'})
+          results=[]
+
+          def extract_url(obj_or_text, preferred=()):
+              if isinstance(obj_or_text, dict):
+                  for k in preferred:
+                      v=obj_or_text.get(k)
+                      if isinstance(v,str) and v.startswith('http'): return v
+                  for k,v in obj_or_text.items():
+                      if isinstance(v,str) and v.startswith('http'): return v
+                      if isinstance(v,dict):
+                          u=extract_url(v, preferred)
+                          if u: return u
+                  return ''
+              text=str(obj_or_text)
+              m=re.search(r'https?://[^\s"\'<>]+', text)
+              return m.group(0).rstrip('.,);') if m else ''
+
+          def verify(name,url):
+              if not url:
+                  print(f'{name}_NO_URL')
+                  return False
+              try:
+                  r=s.get(url,timeout=35,allow_redirects=True)
+                  count=r.text.count('unitedevent.net')
+                  print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} LINKS={count} LEN={len(r.text)}')
+                  if r.status_code < 400 and count >= 6:
+                      results.append({'platform':name,'url':r.url,'links':count})
+                      print(f'RESULT_{name}={r.url}')
+                      return True
+              except Exception as e:
+                  print(f'VERIFY_{name}_ERR={type(e).__name__}:{e}')
+              return False
+
+          # 1) output.pub
+          try:
+              r=s.post('https://output.pub/api/publish',json={'content':arts[0],'format':'markdown'},timeout=45)
+              print('OUTPUTPUB_POST',r.status_code,r.text[:600].replace('\n',' '))
+              try: d=r.json()
+              except: d=r.text
+              verify('OUTPUTPUB',extract_url(d,('url','link','publicUrl')))
+          except Exception as e: print('OUTPUTPUB_ERR',type(e).__name__,e)
+
+          # 2) Write.as anonymous post
+          try:
+              r=s.post('https://write.as/api/posts',json={'body':arts[1],'title':titles[1],'font':'serif','lang':'ar','rtl':True},timeout=45)
+              print('WRITEAS_POST',r.status_code,r.text[:600].replace('\n',' '))
+              d=r.json() if r.text else {}
+              data=d.get('data') or {}
+              pid=data.get('id') or data.get('slug') or ''
+              url=data.get('url') or ('https://write.as/'+pid if pid else '')
+              verify('WRITEAS',url)
+          except Exception as e: print('WRITEAS_ERR',type(e).__name__,e)
+
+          # 3) markdown.page
+          try:
+              r=s.post('https://markdown.page/api/publish',data=arts[2].encode('utf-8'),headers={'Accept':'text/plain','Content-Type':'text/markdown; charset=utf-8','User-Agent':s.headers['User-Agent']},timeout=45)
+              print('MARKDOWNPAGE_POST',r.status_code,r.text[:600].replace('\n',' '))
+              verify('MARKDOWNPAGE',extract_url(r.text))
+          except Exception as e: print('MARKDOWNPAGE_ERR',type(e).__name__,e)
+
+          # 4) BrewPage markdown render (temporary public page)
+          try:
+              r=s.post('https://brewpage.app/api/html?format=markdown&ttl=30',json={'content':arts[3]},headers={'User-Agent':s.headers['User-Agent']},timeout=45)
+              print('BREWPAGE_POST',r.status_code,r.text[:600].replace('\n',' '))
+              try: d=r.json()
+              except: d=r.text
+              verify('BREWPAGE',extract_url(d,('link','url','publicUrl')))
+          except Exception as e: print('BREWPAGE_ERR',type(e).__name__,e)
+
+          # 5) PageDrop
+          try:
+              r=s.post('https://pagedrop.dev/api/v1/sites',json={'markdown':arts[4]},headers={'User-Agent':s.headers['User-Agent']},timeout=45)
+              print('PAGEDROP_POST',r.status_code,r.text[:800].replace('\n',' '))
+              try: d=r.json()
+              except: d=r.text
+              url=extract_url(d,('url','link','siteUrl','publicUrl'))
+              verify('PAGEDROP',url)
+          except Exception as e: print('PAGEDROP_ERR',type(e).__name__,e)
+
+          # 6) Telegraph - convert Markdown to Telegraph Node format while preserving links
+          def inline_nodes(text):
+              nodes=[]; pos=0
+              pat=re.compile(r'\[([^\]]+)\]\((https?://[^)]+)\)')
+              for m in pat.finditer(text):
+                  if m.start()>pos: nodes.append(text[pos:m.start()])
+                  nodes.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]})
+                  pos=m.end()
+              if pos<len(text): nodes.append(text[pos:])
+              return nodes or [' ']
+
+          def md_to_nodes(md):
+              nodes=[]
+              for block in re.split(r'\n\s*\n',md.strip()):
+                  block=block.strip()
+                  if not block: continue
+                  if block.startswith('# '):
+                      nodes.append({'tag':'h3','children':inline_nodes(block[2:].strip())})
+                  elif block.startswith('## '):
+                      nodes.append({'tag':'h4','children':inline_nodes(block[3:].strip())})
+                  else:
+                      clean=' '.join(x.strip() for x in block.splitlines())
+                      nodes.append({'tag':'p','children':inline_nodes(clean)})
+              return nodes
+          try:
+              ar=s.post('https://api.telegra.ph/createAccount',data={'short_name':'UnitedEventsSEO','author_name':'United Events','author_url':'https://unitedevent.net/'},timeout=45).json()
+              token=(ar.get('result') or {}).get('access_token','')
+              nodes=md_to_nodes(arts[5])
+              r=s.post('https://api.telegra.ph/createPage',data={'access_token':token,'title':titles[5],'author_name':'United Events','author_url':'https://unitedevent.net/','content':json.dumps(nodes,ensure_ascii=False),'return_content':'false'},timeout=45)
+              print('TELEGRAPH_POST',r.status_code,r.text[:800].replace('\n',' '))
+              d=r.json() if r.text else {}
+              url=(d.get('result') or {}).get('url','')
+              verify('TELEGRAPH',url)
+          except Exception as e: print('TELEGRAPH_ERR',type(e).__name__,e)
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
+          python /tmp/publish_united.py
