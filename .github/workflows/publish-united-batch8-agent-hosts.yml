@@ -1,0 +1,148 @@
+name: Publish United Batch8 Agent Hosts
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run United batch8 agent hosts'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests markdown
+      - name: Publish and verify four new providers
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,hashlib,subprocess,os,time
+          from urllib.parse import urlparse
+          import markdown
+
+          files=[
+            'united-batch5-20260815/04-post-event-measurement.md',
+            'united-batch6-20260815/02-stage-rehearsal.md',
+            'united-batch6-20260815/03-promotional-print-plan.md',
+            'united-batch6-20260815/04-sponsor-branding.md'
+          ]
+          titles=[
+            'قياس نجاح الفعاليات بعد انتهائها وتحويل النتائج إلى قرارات أفضل',
+            'البروفة التقنية للمنصة قبل الفعالية ولماذا تمنع أغلب مشاكل يوم الحدث',
+            'تخطيط المطبوعات الدعائية للفعاليات من الدعوة حتى نقطة الخروج',
+            'إدارة ظهور الرعاة في المؤتمرات والفعاليات بدون إرباك الهوية الرئيسية'
+          ]
+          arts=[open(f,encoding='utf-8').read() for f in files]
+          def make_html(md,t):
+            body=markdown.markdown(md,extensions=['extra','sane_lists'])
+            return f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{t}</title><meta name="description" content="دليل احترافي لتنظيم وتجهيز المعارض والفعاليات في السعودية"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:2;color:#222}}h1,h2{{line-height:1.5}}a{{color:#54208f;text-decoration:underline}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'''
+          pages=[make_html(arts[i],titles[i]) for i in range(4)]
+          for i,(a,h) in enumerate(zip(arts,pages),1):
+            hh=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',h,re.I))
+            print(f'ARTICLE_{i}_WORDS={len(a.split())} LINKS={a.count("unitedevent.net")} HREFS={hh}')
+            if len(a.split())<650 or hh<8: raise SystemExit('ARTICLE_INVALID')
+
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/9.0'})
+          used={'output.pub','yeet.md','markdown.page','rentry.co','draftmark.app','telegra.ph','ht-ml.app','pitchey.app','sshgrid.com','aired.sh','yeetit.site','sitebin.io','zerodeploy.app','yourwebs.app','htmlshare.net','shipped.page','here.now','shipsite.co'}
+          results=[]
+          def provider(host):
+            host=host.lower().removeprefix('www.')
+            known=['xdr.no','botsite.dev','draftlet.io','based.page']
+            for p in known:
+              if host==p or host.endswith('.'+p):return p
+            for p in used:
+              if host==p or host.endswith('.'+p):return p
+            ps=host.split('.')
+            return '.'.join(ps[-2:]) if len(ps)>=2 else host
+          def urls(x):
+            out=[]
+            def walk(v):
+              if isinstance(v,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():walk(z)
+              elif isinstance(v,list):
+                for z in v:walk(z)
+            walk(x);return [u.rstrip('.,);}') for u in out]
+          def choose(x,domains=()):
+            us=urls(x)
+            for d in domains:
+              for u in us:
+                if d in u:return u
+            return us[0] if us else ''
+          def verify(name,u):
+            if not u:print(name+'_NO_URL');return False
+            try:
+              r=s.get(u,timeout=45,allow_redirects=True)
+              host=urlparse(r.url).netloc.lower().removeprefix('www.');prov=provider(host)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} HOST={host} PROVIDER={prov} HREFS={hrefs} DOMAINS={r.text.count("unitedevent.net")} NOINDEX={int(noindex)}')
+              if r.status_code<400 and hrefs>=6 and not noindex and prov not in used:
+                used.add(prov);results.append({'platform':name,'url':r.url,'provider':prov,'hrefs':hrefs});print(f'VALID_{name}={r.url}');return True
+            except Exception as e:print(f'VERIFY_{name}_ERR={type(e).__name__}:{e}')
+            return False
+
+          # 1 wh-drop / xdr.no exact documented three-step
+          try:
+            data=pages[0].encode('utf-8');sha=hashlib.sha256(data).hexdigest()
+            payload={'files':[{'path':'index.html','size':len(data),'contentType':'text/html','sha256':sha}]}
+            r=s.post('https://api.xdr.no/api/v1/publish',json=payload,timeout=50);print('XDR_CREATE',r.status_code,r.text[:1500].replace('\n',' '));d=r.json()
+            ups=d.get('uploads') or []; fin=d.get('finalize'); live=d.get('url')
+            if ups:
+              up=ups[0];rr=requests.put(up.get('putUrl'),data=data,headers={'Content-Type':'text/html'},timeout=55);print('XDR_UPLOAD',rr.status_code,rr.text[:300])
+              fr=s.post(fin,timeout=50);print('XDR_FINALIZE',fr.status_code,fr.text[:800].replace('\n',' '))
+              verify('XDR',live)
+            if d.get('claimUrl'):print('XDR_CLAIM='+d['claimUrl'])
+          except Exception as e:print('XDR_ERR',type(e).__name__,e)
+
+          # 2 botsite.dev direct raw HTML POST
+          try:
+            r=s.post('https://botsite.dev/api/v1/sites',data=pages[1].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=55)
+            print('BOTSITE_POST',r.status_code,r.text[:1300].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify('BOTSITE',choose(d,('botsite.dev',)))
+            if isinstance(d,dict) and d.get('claimUrl'):print('BOTSITE_CLAIM='+d['claimUrl'])
+          except Exception as e:print('BOTSITE_ERR',type(e).__name__,e)
+
+          # 3 draftlet: discover exact quickstart, then use compatible create/upload/finalize flow
+          try:
+            q=s.get('https://draftlet.io/quickstart.md',timeout=40);print('DRAFTLET_QUICKSTART',q.status_code,q.text[:5000].replace('\n',' '))
+            # first try known create endpoint and manifest
+            data=pages[2].encode('utf-8');payload={'files':[{'path':'index.html','contentType':'text/html','size':len(data)}]}
+            r=s.post('https://api.draftlet.io/api/v1/publish',json=payload,timeout=50);print('DRAFTLET_CREATE',r.status_code,r.text[:1800].replace('\n',' '))
+            try:d=r.json()
+            except:d={}
+            live=d.get('siteUrl') or d.get('url') or choose(d,('draftlet.io',))
+            # support common manifest response shapes
+            upload=d.get('upload') or d
+            ups=upload.get('uploads') or d.get('uploads') or []
+            fin=upload.get('finalizeUrl') or d.get('finalizeUrl') or d.get('finalize')
+            ver=upload.get('versionId') or d.get('versionId')
+            claim=d.get('claimToken')
+            if ups:
+              up=ups[0];upurl=up.get('url') or up.get('putUrl');hdr=up.get('headers') or {'Content-Type':'text/html'}
+              rr=requests.put(upurl,data=data,headers=hdr,timeout=55);print('DRAFTLET_UPLOAD',rr.status_code,rr.text[:300])
+            if fin:
+              fp={}
+              if ver:fp['versionId']=ver
+              if claim:fp['claimToken']=claim
+              fr=s.post(fin,json=fp if fp else None,timeout=50);print('DRAFTLET_FINALIZE',fr.status_code,fr.text[:1000].replace('\n',' '))
+              try:fd=fr.json()
+              except:fd={}
+              live=fd.get('siteUrl') or fd.get('url') or live
+            verify('DRAFTLET',live)
+            if d.get('claimUrl'):print('DRAFTLET_CLAIM='+d['claimUrl'])
+          except Exception as e:print('DRAFTLET_ERR',type(e).__name__,e)
+
+          # 4 based.page CLI anonymous auto-provisioning
+          try:
+            open('/tmp/united-based.html','w',encoding='utf-8').write(pages[3])
+            p=subprocess.run(['npx','-y','based-page@latest','deploy','--file','/tmp/united-based.html','--slug','united-events-sponsor-branding','--title',titles[3]],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=150)
+            print('BASED_CLI_RC',p.returncode);print('BASED_CLI_OUT',p.stdout[:5000].replace('\n',' '))
+            verify('BASED',choose(p.stdout,('based.page',)))
+          except Exception as e:print('BASED_ERR',type(e).__name__,e)
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
