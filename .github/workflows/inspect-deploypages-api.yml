@@ -1,0 +1,36 @@
+name: Inspect DeployPages API
+on:
+  push:
+    branches: [main]
+jobs:
+  inspect:
+    if: github.event.head_commit.message == 'Run DeployPages API inspection'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect frontend endpoint usage
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re
+          from urllib.parse import urljoin
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0'})
+          base='https://deploypages.com/'
+          h=s.get(base,timeout=40).text
+          scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',h,re.I)
+          pats=['/api/deploy/prepare','/api/deploy/confirm','/api/deploy/status']
+          for src in scripts:
+            try:
+              u=urljoin(base,src);js=s.get(u,timeout=30).text
+              hit=False
+              for p in pats:
+                start=0
+                while True:
+                  i=js.find(p,start)
+                  if i<0:break
+                  hit=True
+                  print('\n=== FILE',u,'PAT',p,'===')
+                  print(js[max(0,i-4000):i+6000])
+                  start=i+len(p)
+              if hit:print('\n=== END FILE ===')
+            except Exception as e:print('ERR',src,type(e).__name__,e)
+          PY
