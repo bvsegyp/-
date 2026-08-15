@@ -1,0 +1,74 @@
+name: Publish United DeployPages
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run United DeployPages publish'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests markdown
+      - name: Publish and verify DeployPages
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,hashlib,time
+          from urllib.parse import urlparse
+          import markdown
+          a=open('united-batch6-20260815/03-promotional-print-plan.md',encoding='utf-8').read()
+          t='تخطيط المطبوعات الدعائية للفعاليات من الدعوة حتى نقطة الخروج'
+          body=markdown.markdown(a,extensions=['extra','sane_lists'])
+          html=f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{t}</title><meta name="description" content="دليل احترافي للمطبوعات والفعاليات والمعارض في السعودية"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:2;color:#222}}h1,h2{{line-height:1.5}}a{{color:#54208f;text-decoration:underline}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'''
+          data=html.encode('utf-8');hrefs=len(re.findall(r'href=["\'][^"\']*unitedevent\.net',html,re.I))
+          print('WORDS',len(a.split()),'LINKS',a.count('unitedevent.net'),'HREFS',hrefs,'SIZE',len(data))
+          if len(a.split())<650 or hrefs<8:raise SystemExit('BAD_ARTICLE')
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 UnitedEventsSEO/11.0'})
+          hx=hashlib.sha256(data).hexdigest();h='sha256-'+hx
+          manifest={'index.html':{'hash':h,'size':len(data)}}
+          p=s.post('https://deploypages.com/api/deploy/prepare',json={'manifest':manifest,'mode':'replace'},timeout=55)
+          print('PREPARE',p.status_code,p.text[:5000].replace('\n',' '));p.raise_for_status();pd=p.json()
+          uploads=pd.get('uploads') or []
+          print('UPLOADS_COUNT',len(uploads),'SESSION',pd.get('sessionId'))
+          for up in uploads:
+            if up.get('hash')!=h:continue
+            u=up.get('uploadUrl');print('UPLOAD_URL_HOST',urlparse(u).netloc if u else None,'EXPECTED_SIZE',up.get('size'))
+            rr=requests.put(u,data=data,headers={'content-type':'application/octet-stream'},timeout=65)
+            print('UPLOAD',rr.status_code,rr.text[:300].replace('\n',' '));rr.raise_for_status()
+          sid=pd.get('sessionId')
+          c=s.post('https://deploypages.com/api/deploy/confirm',json={'sessionId':sid},timeout=55)
+          print('CONFIRM',c.status_code,c.text[:5000].replace('\n',' '));c.raise_for_status();cd=c.json()
+          dep=cd.get('deploymentId') or pd.get('deploymentId');proj=cd.get('projectId') or pd.get('projectId')
+          candidates=[]
+          def walk(x):
+            if isinstance(x,str) and x.startswith('http'):candidates.append(x)
+            elif isinstance(x,dict):
+              for v in x.values():walk(v)
+            elif isinstance(x,list):
+              for v in x:walk(v)
+          walk(cd);walk(pd)
+          if dep and proj:
+            for i in range(20):
+              st=s.get('https://deploypages.com/api/deploy/status',params={'deploymentId':dep,'projectId':proj},timeout=45)
+              print('STATUS',i,st.status_code,st.text[:3000].replace('\n',' '))
+              if st.ok:
+                sd=st.json();walk(sd)
+                if sd.get('ready') or sd.get('failed'):break
+              time.sleep(3)
+          print('CANDIDATES',json.dumps(candidates,ensure_ascii=False))
+          seen=set()
+          valid=[]
+          for u in candidates:
+            if u in seen or 'deploypages.com/api/' in u:continue
+            seen.add(u)
+            try:
+              r=s.get(u,timeout=45,allow_redirects=True)
+              hh=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?unitedevent\.net',r.text,re.I))
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print('VERIFY',u,'=>',r.url,r.status_code,'HREFS',hh,'NOINDEX',int(noindex),'COUNT',r.text.count('unitedevent.net'))
+              if r.status_code<400 and hh>=6 and not noindex:
+                valid.append(r.url);print('VALID_DEPLOYPAGES='+r.url);break
+            except Exception as e:print('VERIFY_ERR',u,type(e).__name__,e)
+          print('FINAL_VALID',json.dumps(valid))
+          PY
