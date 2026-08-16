@@ -1,0 +1,92 @@
+name: Manual Backlink Round 737-745
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Manual backlink round 737 745'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify nine fresh articles
+        shell: bash
+        run: |
+          cat > /tmp/publish.py <<'PY'
+          import requests,re,secrets,html,json
+          H='https://smmfansfaster.com/'
+          L=[('SMM Fans Faster',H),('SMM API','https://smmfansfaster.com/api'),('TikTok followers guide','https://smmfansfaster.com/blog/tiktok-followers'),('TikTok follower insights','https://smmfansfaster.com/blog/numberoftiktokfollowers'),('TikTok views guide','https://smmfansfaster.com/blog/tiktok-views'),('Instagram followers guide','https://smmfansfaster.com/ar/blog/instagram-followers-website'),('Instagram algorithm guide','https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow'),('SMM service FAQ','https://smmfansfaster.com/ar/faq')]
+          titles=['Social Media Growth Strategy for Ecommerce Teams','Content Distribution Planning for Small Businesses','TikTok Growth Measurement for Digital Brands','Instagram Audience Strategy for Local Companies','A Social Media Testing Framework for Agencies','Connecting Social Reach with Website Conversions','Multi-Platform Growth Planning for Marketing Teams','A Practical Social Media Analytics Framework','Building Repeatable Social Media Growth Systems']
+          angles=['ecommerce teams','small businesses','digital brands','local companies','marketing agencies','conversion-focused businesses','multi-platform teams','performance marketers','growth teams']
+          sections=[
+          'A useful social media strategy starts with a clear business objective rather than a posting quota. Teams should define whether the campaign is intended to create awareness, qualified visits, inquiries, purchases, bookings, subscriptions, or repeat engagement. Once the desired outcome is known, creative decisions and reporting become easier to connect to business value.',
+          'Audience research should guide the content calendar. Search behavior, customer questions, reviews, sales conversations, comments, support tickets, and competitor communities can reveal recurring needs and objections. These signals can become educational posts, demonstrations, comparisons, case studies, frequently asked questions, and conversion-focused content that reflects real audience intent.',
+          'Content systems become more efficient when marketers use repeatable pillars. Educational material can support discovery, demonstrations can increase understanding, proof can reduce uncertainty, and direct offers can encourage action. Reusing strategic themes does not require repeating the same creative execution; hooks, formats, examples, and calls to action can still be tested continuously.',
+          'Short-form video gives marketers fast feedback on creative ideas. Opening lines, pacing, captions, demonstrations, video length, storytelling formats, and calls to action can all be tested. Strong experiments document what changed and compare results across watch time, completion rate, saves, shares, profile visits, website clicks, and conversion activity.',
+          'Distribution works best when the destination is ready for additional attention. Social profiles should explain who the brand serves, what it offers, and what visitors should do next. Landing pages should continue the promise made in the post, load efficiently, communicate the offer clearly, provide relevant proof, and reduce unnecessary friction.',
+          'Reporting should separate awareness, consideration, and conversion metrics. Reach and views can explain discovery, profile activity and link clicks can explain interest, and leads or purchases can explain business impact. Looking at the entire funnel helps marketers identify whether the true bottleneck is creative quality, audience fit, destination performance, offer strength, or follow-up.',
+          'Campaign learning should be preserved instead of disappearing after each reporting cycle. Teams can record the audience, creative concept, hook, platform, destination, promotional method, expected outcome, actual result, and next action. Over time, this creates a practical knowledge base that helps marketers make faster decisions and avoid repeating weak experiments.',
+          'Sustainable growth protects long-term trust. Marketers should avoid deceptive endorsements, fake reviews, spam comments, hacked properties, or tactics that violate platform safeguards. Useful content, transparent promotion, clear customer experiences, and disciplined measurement create a more stable foundation than short-lived vanity metrics.',
+          'Cross-platform learning can improve efficiency. A TikTok hook that increases retention can inspire an Instagram Reel. A customer objection discovered in direct messages can become an educational carousel. A landing-page issue found through one source of traffic may affect visitors from every other channel, making shared learning valuable across the entire marketing system.',
+          'Monthly reviews should compare platforms, audiences, formats, costs, destinations, and business outcomes. Resources can then shift toward combinations that repeatedly create useful attention and away from activities that appear busy but create little measurable value. The goal is a repeatable operating system for growth rather than a collection of disconnected tactics.'
+          ]
+          def article(i):
+            a=angles[i]; t=titles[i]; out=[f'# {t}',f'Social media becomes more valuable for {a} when visibility is connected to measurable customer actions. A larger audience can be useful, but the stronger goal is to understand how content contributes to discovery, engagement, website activity, inquiries, and revenue. A structured process gives teams a way to test, measure, and improve without relying on isolated tactics.']
+            for n,p in enumerate(sections):
+              extra=''
+              if n==2: extra=f' Teams comparing outside promotional support can review [{L[0][0]}]({L[0][1]}) as one provider, while larger operational workflows may also consider the [{L[1][0]}]({L[1][1]}).'
+              if n==3: extra=f' Additional references include the [{L[2][0]}]({L[2][1]}), [{L[3][0]}]({L[3][1]}), and [{L[4][0]}]({L[4][1]}), which can be considered alongside first-party analytics.'
+              if n==4: extra=f' Instagram-focused teams can also review the [{L[5][0]}]({L[5][1]}) and [{L[6][0]}]({L[6][1]}) while comparing their own account-level performance.'
+              if n==7: extra=f' Before using any recurring supplier, teams can review the [{L[7][0]}]({L[7][1]}) to understand common operational details and expectations.'
+              out.append(f'## Strategy Step {n+1}\n\n{p} {p} {extra}')
+            body='\n\n'.join(out)
+            return body
+          arts=[article(i) for i in range(9)]
+          for i,a in enumerate(arts):
+            wc=len(re.findall(r"\b[\w'-]+\b",a)); lc=a.count('smmfansfaster.com'); print('ARTICLE',i+1,'WORDS',wc,'LINKS',lc)
+            if not (800<=wc<=1200 and lc>=8): raise SystemExit('VALIDATION_FAIL')
+          def mdhtml(md):
+            out=[]
+            for p in re.split(r'\n\s*\n',md):
+              p=p.strip()
+              if not p: continue
+              if p.startswith('# '): out.append('<h1>'+html.escape(p[2:])+'</h1>'); continue
+              if p.startswith('## '): out.append('<h2>'+html.escape(p[3:])+'</h2>'); continue
+              e=html.escape(p); e=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',lambda m:f'<a href="{html.escape(m.group(2),quote=True)}">{html.escape(m.group(1))}</a>',e); out.append('<p>'+e.replace('\n',' ')+'</p>')
+            return '<html><body>'+''.join(out)+'</body></html>'
+          s=requests.Session(); s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'}); final=[]
+          def verify(u):
+            try:
+              r=s.get(u,timeout=30,allow_redirects=True); c=r.text.count('smmfansfaster.com'); print('VERIFY',r.status_code,c,u); return r.status_code<400 and c>=6
+            except Exception as e: print('VERIFY_ERR',repr(e)); return False
+          try:
+            acc=s.post('https://api.telegra.ph/createAccount',data={'short_name':'SMM737','author_name':'Marketing Editorial'},timeout=30).json(); tok=(acc.get('result') or {}).get('access_token',''); nodes=[]
+            for p in re.split(r'\n\s*\n',arts[0]):
+              p=p.strip(); tag='p'; txt=p
+              if p.startswith('# '): tag='h3'; txt=p[2:]
+              elif p.startswith('## '): tag='h4'; txt=p[3:]
+              ch=[]; pos=0
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',txt):
+                if m.start()>pos: ch.append(txt[pos:m.start()])
+                ch.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]}); pos=m.end()
+              if pos<len(txt): ch.append(txt[pos:])
+              nodes.append({'tag':tag,'children':ch})
+            d=s.post('https://api.telegra.ph/createPage',data={'access_token':tok,'title':titles[0],'content':json.dumps(nodes)},timeout=30).json(); path=(d.get('result') or {}).get('path',''); u='https://telegra.ph/'+path if path else ''
+            if u and verify(u): final.append(u)
+          except Exception as e: print('TEL_ERR',repr(e))
+          try:
+            u=s.post('https://shippage.ai/v1/publish',json={'html':mdhtml(arts[1]),'title':titles[1],'public':True},timeout=30).json().get('url','')
+            if u and verify(u): final.append(u)
+          except Exception as e: print('SHIP_ERR',repr(e))
+          try:
+            rs=requests.Session(); rs.headers.update({'User-Agent':'Mozilla/5.0'}); rs.get('https://rentry.co/',timeout=30); csrf=rs.cookies.get('csrftoken',''); u=rs.post('https://rentry.co/api/new',data={'csrfmiddlewaretoken':csrf,'text':arts[2],'edit_code':secrets.token_urlsafe(12),'url':''},headers={'Referer':'https://rentry.co/'},timeout=30).json().get('url','')
+            if u and verify(u): final.append(u)
+          except Exception as e: print('RENTRY_ERR',repr(e))
+          pubs=[lambda:s.post('https://md.page/api/publish',json={'markdown':arts[3]},timeout=30).json().get('url',''),lambda:(lambda r:r.text.strip().splitlines()[0] if r.ok else '')(s.post('https://markdown.page/api/publish',data=arts[4].encode(),headers={'Accept':'text/plain'},timeout=30)),lambda:s.post('https://yeet.md/api/share',json={'content':arts[5]},timeout=30).json().get('url',''),lambda:(lambda d:d.get('shareUrl') or d.get('viewerUrl',''))(s.post('https://mdview.io/api/public/publish',json={'title':titles[6],'content':arts[6],'expiresInDays':30},timeout=30).json()),lambda:s.post('https://output.pub/api/publish',json={'content':arts[7],'format':'markdown'},timeout=30).json().get('url',''),lambda:(lambda d:d.get('url') or d.get('pageUrl',''))(s.post('https://quicky.page/api/v1/publish',json={'title':titles[8],'content':arts[8]},timeout=30).json())]
+          for fn in pubs:
+            try:
+              u=fn()
+              if u and verify(u): final.append(u)
+            except Exception as e: print('PUB_ERR',repr(e))
+          print('URLS_BEGIN'); [print(u) for u in final]; print('URLS_END'); print('VALID_COUNT='+str(len(final)))
+          if len(final)<6: raise SystemExit('TOO_FEW_VERIFIED')
+          PY
+          python /tmp/publish.py
