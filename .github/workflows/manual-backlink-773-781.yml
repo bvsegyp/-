@@ -1,0 +1,72 @@
+name: Manual Backlink Round 773-781
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Manual backlink round 773 781'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify nine fresh articles
+        shell: bash
+        run: |
+          cat > /tmp/publish.py <<'PY'
+          import requests,re,secrets,html,json
+          H='https://smmfansfaster.com/'
+          L=[('SMM Fans Faster',H),('SMM API','https://smmfansfaster.com/api'),('TikTok growth resource','https://smmfansfaster.com/blog/tiktok-followers'),('TikTok audience insights','https://smmfansfaster.com/blog/numberoftiktokfollowers'),('TikTok views guide','https://smmfansfaster.com/blog/tiktok-views'),('Instagram growth guide','https://smmfansfaster.com/ar/blog/instagram-followers-website'),('Instagram algorithm resource','https://smmfansfaster.com/ar/blog/doesincreasingyourfollowersaffecttheinstagramalgorithmfindoutnow'),('service FAQ','https://smmfansfaster.com/ar/faq')]
+          titles=['Social Media Growth Planning for Subscription Brands','A Practical SMM Measurement Framework for Ecommerce','TikTok Audience Growth Planning for Creative Teams','Instagram Growth Operations for Service Providers','Social Media Conversion Planning for Online Businesses','A Content Testing Framework for Digital Agencies','Multi-Platform Audience Development for SaaS Brands','Social Media Reporting for Performance Campaigns','Sustainable Social Growth Systems for Small Companies']
+          angles=['subscription brands','ecommerce teams','creative teams','service providers','online businesses','digital agencies','SaaS brands','performance campaigns','small companies']
+          def article(i):
+            a=angles[i];t=titles[i]
+            return f'''# {t}\n\nSocial media growth becomes more valuable for {a} when activity is tied to a clear customer journey. Reach, views, followers, profile visits, website sessions, inquiries, purchases, and repeat engagement should be interpreted together rather than as isolated statistics. A useful operating model gives marketers a repeatable way to turn audience attention into measurable business outcomes.\n\nA strong plan starts by defining the action the campaign should influence. Some teams need awareness, while others need qualified traffic, direct messages, product views, trials, bookings, subscriptions, or purchases. Once the objective is clear, teams can choose the right creative formats, platforms, destinations, promotional methods, and reporting metrics without confusing visibility with actual performance.\n\n## Build content from audience evidence\n\nFor {a}, content planning should begin with recurring audience needs. Search behavior, customer questions, sales calls, support tickets, reviews, comments, direct messages, and competitor discussions can reveal what people want to understand before taking action. These signals can be organized into education, demonstrations, comparisons, proof, frequently asked questions, objection handling, and direct response content.\n\nA content calendar becomes easier to manage when these themes are treated as reusable pillars. The strategic topic can stay consistent while the execution changes through different hooks, examples, visuals, formats, lengths, and calls to action. This creates enough structure for consistency while still allowing regular creative testing.\n\n## Use promotion as a controlled distribution layer\n\nSome marketers compare outside promotional services when evaluating additional distribution. [SMM Fans Faster]({L[0][1]}) can be reviewed as one provider within that process. The important question is whether the service supports a defined campaign objective and can be evaluated alongside organic publishing, paid campaigns, and website behavior.\n\nTeams managing repeatable workflows may also review the [SMM API]({L[1][1]}). API-based ordering can reduce repetitive administrative work, but it still benefits from clear campaign naming, destination checks, reporting ownership, quality control, error handling, and documented procedures. Automation should improve a disciplined workflow rather than replace one.\n\n## Use TikTok as a testing environment\n\nTikTok gives marketers rapid feedback on creative choices. Opening hooks, pacing, demonstrations, captions, video length, storytelling structures, visual rhythm, and calls to action can all be compared. Strong tests change a limited number of variables so the team can understand why one version performs differently instead of producing random variations with no learning objective.\n\nTeams studying audience development can consult the [TikTok growth resource]({L[2][1]}), compare it with [TikTok audience insights]({L[3][1]}), and review the [TikTok views guide]({L[4][1]}). These resources are most useful when combined with first-party metrics such as watch time, completion rate, repeat views, shares, profile visits, website clicks, and conversion activity.\n\nFollower count should therefore be interpreted as one signal among several. A smaller audience that repeatedly engages, visits a site, sends inquiries, or purchases can create more commercial value than a larger audience that produces little downstream behavior.\n\n## Give Instagram formats specific roles\n\nInstagram supports multiple stages of the customer journey. Reels can support discovery, Stories can maintain regular interaction, carousels can explain detailed topics, Highlights can organize important information, and pinned posts can help new visitors understand the offer quickly. Assigning a clear purpose to each format makes both content planning and reporting more useful.\n\nBusinesses comparing audience-growth approaches can review the [Instagram growth guide]({L[5][1]}). Marketers can also consider the [Instagram algorithm resource]({L[6][1]}) alongside their own account analytics. Distribution depends on multiple behavioral signals, so a single visible metric should not be treated as the complete explanation for reach.\n\n## Improve the destination after the click\n\nMore social visibility is valuable only when the next step is prepared to convert attention. Profiles should explain who the account serves, what value it offers, and what visitors should do next. Landing pages should continue the message used in the post, load efficiently, communicate the offer clearly, provide relevant proof, and reduce unnecessary friction.\n\nIf traffic rises while leads or sales remain unchanged, marketers should examine audience fit, message continuity, page speed, offer clarity, trust signals, forms, checkout steps, and follow-up. Fixing a conversion bottleneck can sometimes create more value than increasing traffic volume again.\n\n## Organize analytics around the funnel\n\nAwareness metrics can include reach, impressions, video views, watch time, and shares. Consideration metrics can include saves, profile visits, direct messages, product views, and link clicks. Conversion metrics can include leads, bookings, purchases, subscriptions, and revenue when attribution is reliable.\n\nWeekly reviews can focus on creative learning. Monthly reviews can focus on platform priorities, budget allocation, destination improvements, campaign objectives, and broader performance trends. Every report should end with a specific decision or next experiment so analytics become part of the operating process instead of a passive dashboard.\n\n## Preserve campaign learning\n\nFor {a}, maintaining a simple experiment archive improves consistency. Record the audience, creative concept, hook, platform, destination, distribution method, expected result, actual result, and next action. Over time, this becomes a reusable source of evidence that helps marketers scale successful patterns and avoid repeating weak experiments.\n\nCross-platform learning is especially valuable. A TikTok hook that improves retention may inspire an Instagram Reel. An objection found in direct messages may become an educational carousel. A landing-page issue discovered through one source of traffic may affect visitors from every other channel. Sharing these findings improves the entire marketing system.\n\n## Review operations before scaling\n\nAny third-party supplier should be understood before becoming part of a recurring workflow. The [service FAQ]({L[7][1]}) provides operational information that can be reviewed before ordering. Similar diligence should be applied to every provider: understand what the service does, define its role, decide how success will be measured, and maintain appropriate quality controls.\n\nSustainable social media growth comes from connecting audience research, useful content, disciplined testing, careful distribution, analytics, and conversion optimization. For {a}, the strongest approach is a repeatable system that turns attention into relevant engagement, qualified traffic, and measurable business outcomes rather than a collection of disconnected tactics.'''
+          arts=[article(i) for i in range(9)]
+          for i,a in enumerate(arts):
+            wc=len(re.findall(r"\b[\w'-]+\b",a));lc=a.count('smmfansfaster.com');print('ARTICLE',i+1,'WORDS',wc,'LINKS',lc)
+            if not (800<=wc<=1200 and lc>=8):raise SystemExit('VALIDATION_FAIL')
+          def mdhtml(md):
+            out=[]
+            for p in re.split(r'\n\s*\n',md):
+              p=p.strip()
+              if not p:continue
+              if p.startswith('# '):out.append('<h1>'+html.escape(p[2:])+'</h1>');continue
+              if p.startswith('## '):out.append('<h2>'+html.escape(p[3:])+'</h2>');continue
+              e=html.escape(p);e=re.sub(r'\[([^\]]+)\]\((https?://[^)]+)\)',lambda m:f'<a href="{html.escape(m.group(2),quote=True)}">{html.escape(m.group(1))}</a>',e);out.append('<p>'+e.replace('\n',' ')+'</p>')
+            return '<html><body>'+''.join(out)+'</body></html>'
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 SMMEditorial/1.0'});final=[]
+          def verify(u):
+            try:
+              r=s.get(u,timeout=30,allow_redirects=True);c=r.text.count('smmfansfaster.com');print('VERIFY',r.status_code,c,u);return r.status_code<400 and c>=6
+            except Exception as e:print('VERIFY_ERR',repr(e));return False
+          try:
+            acc=s.post('https://api.telegra.ph/createAccount',data={'short_name':'SMM773','author_name':'Marketing Editorial'},timeout=30).json();tok=(acc.get('result') or {}).get('access_token','');nodes=[]
+            for p in re.split(r'\n\s*\n',arts[0]):
+              p=p.strip();tag='p';txt=p
+              if p.startswith('# '):tag='h3';txt=p[2:]
+              elif p.startswith('## '):tag='h4';txt=p[3:]
+              ch=[];pos=0
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',txt):
+                if m.start()>pos:ch.append(txt[pos:m.start()])
+                ch.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]});pos=m.end()
+              if pos<len(txt):ch.append(txt[pos:])
+              nodes.append({'tag':tag,'children':ch})
+            d=s.post('https://api.telegra.ph/createPage',data={'access_token':tok,'title':titles[0],'content':json.dumps(nodes)},timeout=30).json();path=(d.get('result') or {}).get('path','');u='https://telegra.ph/'+path if path else ''
+            if u and verify(u):final.append(u)
+          except Exception as e:print('TEL_ERR',repr(e))
+          try:
+            u=s.post('https://shippage.ai/v1/publish',json={'html':mdhtml(arts[1]),'title':titles[1],'public':True},timeout=30).json().get('url','')
+            if u and verify(u):final.append(u)
+          except Exception as e:print('SHIP_ERR',repr(e))
+          try:
+            rs=requests.Session();rs.headers.update({'User-Agent':'Mozilla/5.0'});rs.get('https://rentry.co/',timeout=30);csrf=rs.cookies.get('csrftoken','');u=rs.post('https://rentry.co/api/new',data={'csrfmiddlewaretoken':csrf,'text':arts[2],'edit_code':secrets.token_urlsafe(12),'url':''},headers={'Referer':'https://rentry.co/'},timeout=30).json().get('url','')
+            if u and verify(u):final.append(u)
+          except Exception as e:print('RENTRY_ERR',repr(e))
+          pubs=[lambda:s.post('https://md.page/api/publish',json={'markdown':arts[3]},timeout=30).json().get('url',''),lambda:(lambda r:r.text.strip().splitlines()[0] if r.ok else '')(s.post('https://markdown.page/api/publish',data=arts[4].encode(),headers={'Accept':'text/plain'},timeout=30)),lambda:s.post('https://yeet.md/api/share',json={'content':arts[5]},timeout=30).json().get('url',''),lambda:(lambda d:d.get('shareUrl') or d.get('viewerUrl',''))(s.post('https://mdview.io/api/public/publish',json={'title':titles[6],'content':arts[6],'expiresInDays':30},timeout=30).json()),lambda:s.post('https://output.pub/api/publish',json={'content':arts[7],'format':'markdown'},timeout=30).json().get('url',''),lambda:(lambda d:d.get('url') or d.get('pageUrl',''))(s.post('https://quicky.page/api/v1/publish',json={'title':titles[8],'content':arts[8]},timeout=30).json())]
+          for fn in pubs:
+            try:
+              u=fn()
+              if u and verify(u):final.append(u)
+            except Exception as e:print('PUB_ERR',repr(e))
+          print('URLS_BEGIN');[print(u) for u in final];print('URLS_END');print('VALID_COUNT='+str(len(final)))
+          if len(final)<6:raise SystemExit('TOO_FEW_VERIFIED')
+          PY
+          python /tmp/publish.py
