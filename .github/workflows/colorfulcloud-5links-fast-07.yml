@@ -1,0 +1,19 @@
+name: Colorful Cloud Fast Five-Link Batch 07
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run Colorful Cloud fast five-link batch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser
+        run: |
+          pip install requests playwright
+          python -m playwright install chromium --with-deps
+      - name: Publish verified five-link pages
+        run: python scripts/colorfulcloud_5links_fast_07.py
