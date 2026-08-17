@@ -1,0 +1,210 @@
+name: Publish SMMFansFaster Backlink Batch 5
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run SMMFansFaster backlink batch 5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Publish fresh domains and recheck SSHGrid
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4
+          cat > /tmp/b5.py <<'PY'
+          import requests,re,json,html,time
+          from urllib.parse import urlparse,urljoin
+          from bs4 import BeautifulSoup
+
+          TITLES=[
+            'Social Media Audience Retention Strategy for 2026',
+            'Instagram Growth Experiments for Ecommerce Teams',
+            'TikTok Distribution and Content Testing Framework',
+            'SMM Provider Quality Assurance for Marketing Agencies',
+            'How to Measure Social Proof Without Losing Business Context',
+            'Social Media Growth Budget Allocation for Small Brands',
+            'From Followers to Leads: A Social Conversion Measurement Guide',
+            'Agency Workflow for Testing Social Media Growth Services',
+            'Content Quality and Distribution: Building a Balanced Growth Plan',
+            'Multi-Platform Audience Acquisition and Retention Playbook'
+          ]
+          OPENERS=[
+            'Audience growth becomes more valuable when marketers measure what remains after the first spike and what those people do next.',
+            'Ecommerce teams can learn quickly when each Instagram campaign is treated as a controlled experiment instead of an isolated promotional push.',
+            'TikTok creates rapid feedback, but the strongest teams convert that speed into a structured testing process for hooks, formats, retention, and distribution.',
+            'Agencies need quality assurance around every social growth order because small process errors can repeat across many client accounts.',
+            'Social proof can support trust, but visible numbers should always be interpreted beside engagement, intent, traffic quality, and conversion.',
+            'Small brands need to allocate social growth budgets carefully because content, distribution, landing pages, and measurement all compete for limited resources.',
+            'Followers are useful only when the wider customer journey gives new audience members a reason to engage, click, inquire, or buy.',
+            'A repeatable testing workflow helps agencies compare social media growth services without relying on promotional claims or one-off outcomes.',
+            'Content and distribution solve different growth problems. Strong marketing programs make them reinforce each other rather than asking one to compensate for weakness in the other.',
+            'Multi-platform acquisition works best when one strategic message is adapted to the native behavior of each network and measured with consistent business outcomes.'
+          ]
+          P=[
+            ('Define the outcome first','A campaign should begin with one primary outcome such as awareness, profile visits, website sessions, qualified leads, purchases, bookings, or repeat audience behavior. The objective determines which metrics matter and how long the campaign needs to run before the team can make a sensible judgment.'),
+            ('Research the audience from real behavior','Search queries, comments, direct messages, customer reviews, support tickets, and sales calls reveal how the audience describes its needs. These signals help teams build stronger hooks, content themes, offers, and landing pages than broad assumptions based only on age or geography.'),
+            ('Prepare the profile before scaling reach','New visitors should immediately understand who the account serves, what it offers, why it is credible, and what action to take next. Bio copy, pinned content, highlights, recent posts, proof, and a clear call to action turn additional exposure into a better chance of meaningful behavior.'),
+            ('Use content as the retention engine','Distribution can generate visibility, but useful content gives people a reason to stay. Educational posts, demonstrations, comparisons, customer proof, entertaining formats, and objection handling can all deepen interest. A growth plan should improve content quality at the same time it expands distribution.'),
+            ('Separate exposure from durable audience growth','Reach and views show that content entered a feed, while follows, returning viewers, repeat engagement, profile visits, and direct traffic indicate deeper audience formation. A temporary spike can be useful, but it should not be confused with a stable community or reliable source of future demand.'),
+            ('Measure retention over time','Record the starting count, immediate gain, short-term retention, later retention, and changes in downstream behavior. This makes it possible to compare acquisition sources using retained value instead of the initial number alone. It also helps separate normal account fluctuation from campaign-specific effects.'),
+            ('Run a small pilot before a larger order','A controlled pilot can reveal delivery speed, support quality, retention, and account behavior with limited risk. Define the service, quantity, review window, and success criteria before launch. If results are acceptable, scale gradually while continuing to monitor the same measurements.'),
+            ('Use a consistent provider scorecard','Compare providers using the same fields: service relevance, platform coverage, price, delivery expectations, minimums, maximums, refill conditions, support, data requirements, retention, and downstream performance. Consistent criteria make decisions easier to explain and reduce the influence of a single attractive claim.'),
+            ('Protect account access','External services should not require unnecessary passwords, recovery codes, or sensitive credentials. Agencies should keep client permissions separate from vendor activity, record approvals, and document the target link and quantity before submitting an order. Operational safeguards become more important as volume increases.'),
+            ('Build a layered dashboard','Group measurements into discovery, engagement, intent, and conversion. Reach and views describe exposure; watch time, saves, shares, and comments show engagement; profile visits and clicks show intent; leads, bookings, and purchases show business outcomes. This makes weak stages easier to diagnose.'),
+            ('Improve the destination after the click','A landing page should repeat the promise that generated the click, load quickly, work on mobile, show relevant proof, and make the next step obvious. If social metrics look healthy but conversions remain weak, the problem may sit in the offer or destination rather than in audience volume.'),
+            ('Review campaigns on a fixed rhythm','A weekly review can compare content performance, distribution, retention, traffic quality, conversion, and active service tests. Each review should finish with clear decisions about what to repeat, stop, change, or test next. Regular learning is more reliable than reacting to every daily fluctuation.'),
+            ('Document experiments and results','A simple log can capture the hypothesis, audience, creative, provider, quantity, timing, cost, result, issue, and next action. Documentation creates an internal playbook that speeds future decisions, helps agencies explain changes to clients, and prevents teams from repeating the same mistakes.'),
+            ('Keep trust central','Social proof works best when it reinforces a credible product or service. Clear positioning, honest communication, helpful content, responsive support, and a strong customer experience remain essential. Additional reach creates more value when every later touchpoint gives the visitor another reason to trust the brand.')
+          ]
+          LINKS=[
+            ('SMMFansFaster','https://smmfansfaster.com/'),
+            ('social media growth resources','https://smmfansfaster.com/blog'),
+            ('TikTok followers guide','https://smmfansfaster.com/blog/buytiktokfollowers'),
+            ('TikTok growth guide','https://smmfansfaster.com/blog/increasetiktokfollowers'),
+            ('Instagram retention resource','https://smmfansfaster.com/blog/iboughtinstagramfollowersandtheydecreasedthesolution'),
+            ('Instagram pricing resource','https://smmfansfaster.com/blog/howmuchdoes1000instagramfollowerscost')
+          ]
+          def build(i):
+            secs=[P[(i+j*5)%len(P)] for j in range(12)]
+            body=[f'<h1>{html.escape(TITLES[i])}</h1>',f'<p>{html.escape(OPENERS[i])} A useful system combines content, distribution, retention, account safety, and business measurement instead of optimizing one number in isolation.</p>']
+            li=0
+            for n,(h,p) in enumerate(secs):
+              body += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n in (0,2,4,6,8,10):
+                a,u=LINKS[li];body.append(f'<p>As one additional reference, marketers can review <a href="{u}">{html.escape(a)}</a> and compare the information with native analytics, platform policies, account conditions, and the specific campaign objective.</p>');li+=1
+            body.append('<h2>Final perspective</h2><p>Reliable social media growth is a management process rather than a single tactic. Clear goals, useful content, careful distribution, controlled testing, realistic retention windows, safe account practices, and full-funnel reporting help teams make better decisions and scale only what continues to create useful results.</p>')
+            page=f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(TITLES[i])}</title><meta name="description" content="Practical social media growth and measurement guide"><style>body{{font-family:Arial,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:1.82;color:#222}}h1,h2{{line-height:1.35}}a{{color:#2454b8}}</style></head><body>{"".join(body)}</body></html>'
+            wc=len(re.findall(r"\b[\w'-]+\b",BeautifulSoup(page,'html.parser').get_text(' ')))
+            return page,wc
+          ARTS=[]
+          for i in range(10):
+            p,w=build(i);hc=sum(1 for a in BeautifulSoup(p,'html.parser').find_all('a',href=True) if 'smmfansfaster.com' in a['href']);print(f'ARTICLE_{i+1}_WORDS={w} HREFS={hc}')
+            if w<700 or hc<6:raise SystemExit('ARTICLE_INVALID')
+            ARTS.append(p)
+
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 SMMFansFasterEditorial/5.0'})
+          PREV={'shipped.page','here.now','shipsite.co','xdr.no','draftlet.io','based.page','thethings.ai','output.pub','draftmark.app','telegra.ph','ht-ml.app','pitchey.app','aired.sh','sitebin.io','zerodeploy','yeetit.site','htmlshare.net','shippage.ai','leafmill.net','yourwebs','github.com'}
+          used=set(PREV);results=[]
+          def root(host):
+            h=host.lower().removeprefix('www.')
+            groups={'sshgrid.com':['sshgrid.com'],'brewpage.app':['brewpage.app'],'paste.page':['paste.page'],'dochost.io':['dochost.io'],'htmlpeek.com':['htmlpeek.com'],'htmlspot.com':['htmlspot.com'],'fylo.host':['fylo.host','fylo.live'],'htmlhost.co':['htmlhost.co'],'pagedrop.dev':['pagedrop.dev'],'freekit.dev':['freekit.dev'],'hurl.page':['hurl.page','hurled.page']}
+            for r,vals in groups.items():
+              if any(h==v or h.endswith('.'+v) for v in vals):return r
+            ps=h.split('.');return '.'.join(ps[-2:]) if len(ps)>1 else h
+          def inspect(name,u,allow_insecure=False):
+            if not u:return False
+            try:
+              r=s.get(u,timeout=40,allow_redirects=True,verify=not allow_insecure)
+              soup=BeautifulSoup(r.text,'html.parser');hrefs=sum(1 for a in soup.find_all('a',href=True) if re.match(r'^https?://(?:www\.)?smmfansfaster\.com',a['href'],re.I));ni='noindex' in r.headers.get('x-robots-tag','').lower()
+              for m in soup.find_all('meta'):
+                if (m.get('name') or '').lower() in ('robots','googlebot','bingbot') and 'noindex' in (m.get('content') or '').lower():ni=True
+              prov=root(urlparse(r.url).netloc)
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} PROVIDER={prov} HREFS={hrefs} NOINDEX={int(ni)}')
+              if r.status_code<400 and hrefs>=6 and not ni and prov not in used:
+                used.add(prov);results.append({'platform':name,'provider':prov,'url':r.url,'hrefs':hrefs});print('VALID_'+name+'='+r.url);return True
+            except Exception as e:print(name+'_VERIFY_ERR',type(e).__name__,e)
+            return False
+          def findurls(x):
+            out=[]
+            def walk(v):
+              if isinstance(v,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():walk(z)
+              elif isinstance(v,list):
+                for z in v:walk(z)
+            walk(x);return [u.rstrip('.,);}') for u in out]
+          def verify_response(name,r,prefer=()):
+            try:d=r.json()
+            except:d=r.text
+            us=findurls(d);ordered=[]
+            for p in prefer:ordered += [u for u in us if p in u and u not in ordered]
+            ordered += [u for u in us if u not in ordered]
+            for u in ordered:
+              if '/claim' in u.lower() or '/api/' in u.lower():continue
+              if inspect(name,u):return True
+            if r.url and r.status_code<400 and not any(x in r.url for x in ('/api/','/publish','/upload')):return inspect(name,r.url)
+            return False
+
+          # 1 rescue SSHGrid after SSL provisioning
+          ssh='https://brave-crane-5816.sshgrid.com'
+          for n in range(12):
+            if inspect('SSHGRID',ssh):break
+            time.sleep(5)
+
+          # 2 BrewPage direct HTML endpoint
+          try:
+            r=s.post('https://brewpage.app/api/html?ttl=30',data=ARTS[1].encode(),headers={'Content-Type':'text/html'},timeout=50);print('BREWPAGE_POST',r.status_code,r.text[:1200].replace('\n',' '));verify_response('BREWPAGE',r,('brewpage.app/public','brewpage.app'))
+          except Exception as e:print('BREWPAGE_ERR',type(e).__name__,e)
+
+          # exact PageDrop/FreeKit www fallbacks
+          for name,endp,art in [('PAGEDROP','https://www.pagedrop.dev/api/v1/sites',ARTS[2]),('FREEKIT','https://www.freekit.dev/api/v1/sites',ARTS[3])]:
+            try:
+              r=s.post(endp,json={'html':art},timeout=45);print(name+'_POST',r.status_code,r.text[:1000].replace('\n',' '));verify_response(name,r,(urlparse(endp).netloc,))
+            except Exception as e:print(name+'_ERR',type(e).__name__,e)
+
+          # hurl www fallback
+          try:
+            r=s.post('https://www.hurl.page/deploy?ttl=7d',data=ARTS[4].encode(),headers={'Content-Type':'text/html'},timeout=45);print('HURL_POST',r.status_code,r.text[:1000].replace('\n',' '));verify_response('HURL',r,('hurled.page','hurl.page'))
+          except Exception as e:print('HURL_ERR',type(e).__name__,e)
+
+          def discover(name,home,page,prefer):
+            try:
+              g=s.get(home,timeout=40);print(name+'_GET',g.status_code,g.url)
+              soup=BeautifulSoup(g.text,'html.parser')
+              # conventional forms
+              for f in soup.find_all('form'):
+                if (f.get('method') or 'post').lower()!='post':continue
+                action=urljoin(g.url,f.get('action') or g.url);data={};files={};has=False
+                for el in f.find_all(['input','textarea','select']):
+                  nm=el.get('name');typ=(el.get('type') or '').lower();nl=(nm or '').lower()
+                  if not nm or typ in ('submit','button','image'):continue
+                  if typ=='file':files[nm]=('index.html',page,'text/html');has=True
+                  elif any(k in nl for k in ('html','content','code','text','body','markup')):data[nm]=page;has=True
+                  elif any(k in nl for k in ('visibility','public')):data[nm]='public'
+                  elif 'title' in nl:data[nm]=name+' Social Growth Guide'
+                  else:
+                    if el.name=='select':
+                      op=el.find('option',selected=True) or el.find('option');data[nm]=op.get('value','') if op else ''
+                    else:data[nm]=el.get('value','')
+                if has:
+                  try:
+                    rr=s.post(action,data=data,files=files or None,timeout=45,allow_redirects=True);print(name+'_FORM',rr.status_code,rr.url,rr.text[:800].replace('\n',' '))
+                    if verify_response(name,rr,prefer):return True
+                  except Exception as ee:print(name+'_FORM_ERR',type(ee).__name__,ee)
+              # inspect JS bundles for likely publish/create endpoints
+              endpoints=set()
+              for sc in soup.find_all('script',src=True)[:20]:
+                su=urljoin(g.url,sc['src'])
+                if urlparse(su).netloc!=urlparse(g.url).netloc:continue
+                try:
+                  js=s.get(su,timeout=25).text
+                  for ep in re.findall(r'["\'](/(?:api|v1)/[A-Za-z0-9_./?=&-]+)["\']',js):
+                    if any(k in ep.lower() for k in ('publish','upload','page','site','create','document','drop')):endpoints.add(urljoin(g.url,ep))
+                except:pass
+              print(name+'_ENDPOINTS',list(endpoints)[:25])
+              for ep in list(endpoints)[:25]:
+                if any(x in ep.lower() for x in ('delete','login','auth','analytics')):continue
+                attempts=[('json',{'html':page,'visibility':'public'}),('json',{'content':page,'visibility':'public'}),('file',None)]
+                for mode,p in attempts:
+                  try:
+                    rr=s.post(ep,json=p,timeout=35) if mode=='json' else s.post(ep,files={'file':('index.html',page,'text/html')},data={'visibility':'public'},timeout=35)
+                    if rr.status_code>=500:continue
+                    print(name+'_API',ep,mode,rr.status_code,rr.text[:700].replace('\n',' '))
+                    if verify_response(name,rr,prefer):return True
+                  except:pass
+            except Exception as e:print(name+'_ERR',type(e).__name__,e)
+            return False
+
+          discover('PASTEPAGE','https://paste.page/',ARTS[5],('paste.page',))
+          discover('DOCHOST','https://dochost.io/',ARTS[6],('dochost.io/d/','dochost.io'))
+          discover('HTMLPEEK','https://htmlpeek.com/',ARTS[7],('htmlpeek.com',))
+          discover('HTMLSPOT','https://www.htmlspot.com/',ARTS[8],('htmlspot.com',))
+          discover('HTMLHOST','https://htmlhost.co/',ARTS[9],('htmlhost.co',))
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
+          python /tmp/b5.py
