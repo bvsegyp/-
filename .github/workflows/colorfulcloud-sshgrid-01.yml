@@ -1,0 +1,12 @@
+name: Colorful Cloud SSHGrid Backlink
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run Colorful Cloud SSHGrid backlink'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish and verify
+        run: python scripts/colorfulcloud_sshgrid_01.py
