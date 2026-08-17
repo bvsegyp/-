@@ -1,0 +1,100 @@
+name: Colorful Cloud 3 More Clean Five-Link Articles 09
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run Colorful Cloud 3 clean five-link articles'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify clean pages
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html,secrets
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 ColorfulCloudSEO/9.0'})
+          links=[
+            ('أفضل شركة تنظيف في الرياض','https://colorfulcloudco.com/شركة-تنظيف-منازل-في-الرياض/'),
+            ('خدمات غيمة ملونة','https://colorfulcloudco.com/خدماتنا/'),
+            ('شركة غيمة ملونة','https://colorfulcloudco.com/'),
+            ('شركة تنظيف بعد التشطيب الرياض','https://colorfulcloudco.com/شركة-تنظيف-بعد-التشطيب-الرياض/'),
+            ('اتصل بنا','https://colorfulcloudco.com/اتصل-بنا/')
+          ]
+          titles=['أفضل شركة تنظيف في الرياض وكيف تختار الخدمة المناسبة','دليل عملي لتنظيف المنازل والفلل في الرياض','خدمات تنظيف احترافية للشقق والمنازل بالرياض']
+          paras=[
+            ('ما الذي يميز شركة التنظيف المحترفة','الخدمة الاحترافية تبدأ بفهم مساحة المكان ونوع الأسطح ودرجة التنظيف المطلوبة، ثم تجهيز الأدوات والمواد المناسبة. وجود فريق منظم وخطة واضحة يقلل الوقت ويحسن النتيجة ويجعل تجربة العميل أكثر راحة.'),
+            ('تنظيف المنازل يحتاج ترتيبًا واضحًا','من الأفضل البدء بالمناطق التي تحتاج عناية أكبر مثل المطابخ والحمامات ثم الانتقال إلى الغرف والمجالس والزوايا والتفاصيل. هذا الترتيب يمنع تكرار العمل ويساعد على الوصول إلى مستوى نظافة متوازن في جميع أجزاء المنزل.'),
+            ('المواد المناسبة تحمي الأسطح','الرخام والخشب والسيراميك والأقمشة لا يجب تنظيفها بنفس الطريقة. اختيار مادة مناسبة لكل سطح يحافظ على المظهر ويقلل خطر التلف أو تغير اللون، خصوصًا عند تنفيذ تنظيف عميق أو معالجة البقع الصعبة.'),
+            ('تنظيف ما بعد التشطيب يحتاج خبرة','بعد أعمال التشطيب تتراكم الأتربة الدقيقة وبقايا الدهانات والمواد حول النوافذ والأرضيات والزوايا. التعامل معها يحتاج أدوات مناسبة وخطوات منظمة حتى يصبح المكان جاهزًا للاستخدام دون إلحاق ضرر بالأسطح الجديدة.'),
+            ('الحجز الواضح يوفر الوقت','قبل الموعد من الأفضل تحديد مساحة المكان ونوع الخدمة وأي تفاصيل خاصة، ثم التأكد من السعر والمدة المتوقعة وموعد الوصول. التواصل الواضح يجعل تجهيز الفريق أفضل ويقلل أي اختلاف في التوقعات.'),
+            ('الخلاصة','اختيار شركة تنظيف مناسبة يعتمد على الجودة والتنظيم وخبرة الفريق بقدر اعتماده على السعر. عندما تكون تفاصيل الخدمة واضحة والمعدات مناسبة يصبح الوصول إلى نتيجة جيدة أسهل وأكثر استقرارًا.')
+          ]
+          def md(i):
+            out=[f'# {titles[i]}','']
+            for n,(h,p) in enumerate(paras):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=links[n]; out += [f'يمكن التعرف أكثر على [{a}]({u}) ومراجعة التفاصيل المرتبطة بالخدمة.','']
+            return '\n'.join(out)
+          def htmlpage(i):
+            t=md(i); body=[]
+            for b in re.split(r'\n\s*\n',t):
+              b=b.strip()
+              if not b: continue
+              if b.startswith('# '): body.append('<h1>'+html.escape(b[2:])+'</h1>'); continue
+              if b.startswith('## '): body.append('<h2>'+html.escape(b[3:])+'</h2>'); continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()])); x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>'); pos=m.end()
+              x.append(html.escape(b[pos:])); body.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+html.escape(titles[i])+'</title></head><body style="font-family:Arial,Tahoma,sans-serif;max-width:900px;margin:40px auto;padding:0 24px;line-height:2">'+''.join(body)+'</body></html>'
+          def ex(x,need):
+            vals=[]
+            def w(v):
+              if isinstance(v,str): vals.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():w(z)
+              elif isinstance(v,list):
+                for z in v:w(z)
+            w(x); vals=[v.rstrip('.,);}') for v in vals]
+            for v in vals:
+              if need in v:return v
+            return vals[0] if vals else ''
+          def verify(n,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=40,allow_redirects=True); hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?colorfulcloudco\.com',r.text,re.I)); noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I)); print('VERIFY',n,r.status_code,r.url,'HREFS',hrefs,'NOINDEX',int(noindex)); return r.url if r.status_code<400 and hrefs>=5 and not noindex else None
+            except Exception as e: print('VERIFY_ERR',n,repr(e)); return None
+          res=[]
+          # ShareYourHTML
+          try:
+            h=htmlpage(0); r=S.post('https://shareyourhtml.com/pages',json={'slug':'colorful-cleaning-'+secrets.token_hex(4),'html':h,'expiry':'never'},timeout=50); print('SHARE_POST',r.status_code,r.text[:600]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('ShareYourHTML',ex(d,'shareyourhtml.com'))
+            if u:res.append(('ShareYourHTML',u))
+          except Exception as e: print('SHARE_ERR',repr(e))
+          # Shippage
+          try:
+            h=htmlpage(1); r=S.post('https://shippage.ai/v1/publish',json={'html':h},timeout=50); print('SHIPPAGE_POST',r.status_code,r.text[:600]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('Shippage',ex(d,'shippage.ai'))
+            if u:res.append(('Shippage',u))
+          except Exception as e: print('SHIPPAGE_ERR',repr(e))
+          # MD.page
+          try:
+            r=S.post('https://md.page/api/publish',json={'markdown':md(2)},timeout=50); print('MDPAGE_POST',r.status_code,r.text[:600]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('MD.page',ex(d,'md.page'))
+            if u:res.append(('MD.page',u))
+          except Exception as e: print('MDPAGE_ERR',repr(e))
+          print('CLEAN3_BEGIN')
+          for n,u in res: print(n+'\t'+u)
+          print('CLEAN3_END')
+          print('CLEAN3_COUNT='+str(len(res)))
+          print('CLEAN3_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
