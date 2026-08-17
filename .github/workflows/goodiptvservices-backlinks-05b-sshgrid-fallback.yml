@@ -1,0 +1,48 @@
+name: GoodIPTVServices French Backlink Batch 05b SSHGrid Fallback
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run GoodIPTVServices French backlink batch 05b sshgrid fallback'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify SSHGrid
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,time
+          SITE='https://goodiptvservices.com/'
+          title='Abonnement IPTV : compatibilité, stabilité et support avant de choisir'
+          links=[('abonnement IPTV',SITE),('abonnement IPTV premium',SITE),('meilleur abonnement IPTV',SITE),('service IPTV',SITE),('fournisseur IPTV',SITE)]
+          secs=[('Compatibilité','Vérifiez Smart TV, box Android, ordinateur et mobile avant de choisir.'),('Stabilité','La qualité de diffusion dépend des serveurs, de la connexion internet et du réseau domestique.'),('Connexions','Le nombre de connexions simultanées doit correspondre aux habitudes du foyer.'),('Qualité','Comparez la qualité réelle et la pertinence du contenu plutôt que le volume annoncé uniquement.'),('Support','Un support accessible simplifie l’activation et la résolution des problèmes techniques.'),('Prix','Comparez le prix, la durée et les conditions de renouvellement.'),('Connexion','Une connexion stable reste essentielle pour une expérience fluide.'),('Conditions','Lisez les modalités du service avant de souscrire.')]
+          parts=[f'<h1>{title}</h1>','<p>Comparer un service IPTV demande de regarder plusieurs critères avant de souscrire.</p>']
+          for i,(h,p) in enumerate(secs):
+            parts += [f'<h2>{h}</h2>',f'<p>{p}</p>']
+            if i<5:
+              a,u=links[i];parts.append(f'<p>Pour comparer un <a href="{u}">{a}</a>, Good IPTV Services présente ses offres parmi les options disponibles.</p>')
+          page='<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>'+title+'</title></head><body><main>'+''.join(parts)+'</main></body></html>'
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 GoodIPTVServicesSEO/5b'})
+          r=s.post('https://sshgrid.com/api/v1/deploy',json={'files':[{'path':'index.html','content':page}],'label':'Good IPTV Services French Guide'},timeout=45)
+          print('CREATE_STATUS',r.status_code)
+          d=r.json() if r.ok else {};u=d.get('url_live') or '';status=d.get('status_url') or (('https://sshgrid.com/api/v1/sites/'+d.get('handle')) if d.get('handle') else '')
+          for i in range(30):
+            if u:break
+            if status:
+              try:
+                sd=s.get(status,timeout=20).json();u=sd.get('url_live') or (sd.get('url') if sd.get('overall') in ('ready','live') else '') or ''
+                print('POLL',i,sd.get('overall'),bool(u))
+              except Exception as e:print('POLL_ERR',repr(e))
+            time.sleep(3)
+          good=''
+          if u:
+            for i in range(10):
+              try:
+                v=s.get(u,timeout=30,allow_redirects=True);src=html.unescape(v.text)
+                hrefs=len(re.findall(r'<a[^>]+href=["\'][^"\']*goodiptvservices\.com[^"\']*["\']',src,re.I));exact='abonnement IPTV'.lower() in re.sub(r'<[^>]+>',' ',src).lower();robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower();noindex='noindex' in robots or 'noindex' in v.headers.get('x-robots-tag','').lower();print('VERIFY',i,v.status_code,v.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+                if v.status_code<400 and hrefs>=5 and exact and not noindex:good=v.url;break
+              except Exception as e:print('VERIFY_ERR',repr(e))
+              time.sleep(3)
+          print('GOODIPTV5B_RESULT='+good)
+          print('GOODIPTV5B_VALID_COUNT='+str(1 if good else 0))
+          PY
