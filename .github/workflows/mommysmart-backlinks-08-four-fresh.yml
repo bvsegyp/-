@@ -1,0 +1,35 @@
+name: MommySmart Fresh Domains Batch 08
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run MommySmart fresh domains batch 08'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser
+        run: |
+          pip install playwright requests
+          python -m playwright install chromium --with-deps
+      - name: Publish on four fresh domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src=Path('scripts/mommysmart_newdomains_browser_05.py').read_text(encoding='utf-8')
+          start=src.index('TARGETS=[')
+          end=src.index(']\nTITLES=',start)+2
+          targets="""TARGETS=[
+           ('notesh.ink','https://notesh.ink/','md'),
+           ('yapp.page','https://yapp.page/','html'),
+           ('publishmarkdown.com','https://publishmarkdown.com/','md'),
+           ('markdshare.com','https://markdshare.com/','md'),
+          ]
+          """
+          mod=src[:start]+targets+src[end:]
+          exec(compile(mod,'mommysmart_batch08','exec'))
+          PY
