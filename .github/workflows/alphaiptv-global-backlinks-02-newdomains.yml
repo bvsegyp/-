@@ -1,0 +1,160 @@
+name: AlphaIPTV Global English Backlinks Batch 02 New Domains
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run AlphaIPTV global English backlink batch 02 new domains'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify new-domain AlphaIPTV backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,time,hashlib,secrets
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 AlphaIPTVSEO/2.0'})
+          SITE='https://alphaiptv.tn/'
+          ANCHOR='Legal IPTV Subscription'
+          LINKS=[
+            ('Legal IPTV Subscription',SITE),
+            ('IPTV Subscription',SITE),
+            ('Legal IPTV Service',SITE),
+            ('Worldwide IPTV Service',SITE),
+            ('IPTV Service Provider',SITE)]
+          TITLES=[
+            'How to Evaluate a Legal IPTV Subscription Before You Pay',
+            'IPTV Subscription Guide for Smart TVs and Streaming Devices',
+            'Legal IPTV Service: What Global Viewers Should Check First',
+            'Worldwide IPTV Service Guide for International Viewers',
+            'How to Compare IPTV Service Providers for Multiple Devices',
+            'IPTV Subscription Checklist for Families and Frequent Travelers',
+            'What to Check Before Choosing an IPTV Provider Online',
+            'IPTV for Smart TV: Compatibility, Quality and Support Explained',
+            'How to Compare IPTV Plans Without Relying on Channel Counts',
+            'Legal IPTV Subscription Guide for Viewers Across Different Regions',
+            'IPTV Service Buying Guide: Devices, Connections and Terms']
+          SECS=[
+            ('Verify licensing and regional availability','Before paying for any IPTV service, viewers should confirm that the provider has the appropriate rights for the content it offers in the locations where the service will be used. Regional availability can vary, so public terms and independently verifiable licensing information are important.'),
+            ('Check device compatibility','Smart TVs, Android TV boxes, streaming sticks, phones, tablets and computers can require different apps or setup methods. Confirming compatibility first helps avoid activation problems and unnecessary purchases.'),
+            ('Compare streaming quality realistically','Picture quality depends on the source, provider infrastructure, internet connection and device performance. Marketing labels such as HD or 4K should be considered together with the connection requirements and the quality actually available on supported content.'),
+            ('Review simultaneous connections','Households using several screens should check how many concurrent connections are included and whether account, device or household rules apply. These limits can affect the practical value of a subscription.'),
+            ('Evaluate internet requirements','Stable internet is essential for IPTV. Congested Wi-Fi, weak coverage or inconsistent broadband can cause buffering even when advertised download speeds appear high. Wired Ethernet or strong Wi-Fi can improve reliability.'),
+            ('Look at customer support','Support becomes important when activation, compatibility or playback issues occur. Buyers should review the available contact methods, expected response times and whether support is offered in a language they can use comfortably.'),
+            ('Compare pricing and plan length','A low headline price is not enough to judge value. Compare the subscription period, device limits, simultaneous connections, support, cancellation conditions and refund policy before choosing a plan.'),
+            ('Read billing and refund terms','Clear billing, cancellation and refund terms help customers understand what happens if a service does not meet expectations. Longer plans should be considered carefully when refund conditions are limited.'),
+            ('Consider travel and regional restrictions','People who travel frequently should confirm whether the service is intended for use outside their home country and whether regional licensing restrictions affect availability while abroad.'),
+            ('Protect account security','Use a unique password and follow the provider’s permitted account-sharing rules. Customers should be cautious with unknown applications, modified software and payment requests that bypass the provider’s official process.'),
+            ('Conclusion','A responsible IPTV comparison should balance licensing, device compatibility, quality, internet stability, connection limits, support, pricing and transparent terms rather than focusing on a single marketing claim.')]
+          def make(i):
+            secs=SECS[i%len(SECS):]+SECS[:i%len(SECS)]
+            out=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>IPTV gives viewers flexible ways to watch content across different devices, but choosing a provider responsibly requires more than comparing a price or an advertised channel count. Global users should review licensing, compatibility, quality, support, connection limits and service terms before subscribing.</p>']
+            for n,(h,p) in enumerate(secs):
+              out += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                phrases=[
+                  f'Viewers researching a <a href="{u}">{html.escape(a)}</a> can review Alpha IPTV as one option while independently confirming licensing, regional rights and service terms.',
+                  f'When comparing an <a href="{u}">{html.escape(a)}</a>, check device support, connection limits and published conditions before payment.',
+                  f'Anyone considering a <a href="{u}">{html.escape(a)}</a> should verify content rights, supported devices and regional restrictions that apply to their location.',
+                  f'For users comparing a <a href="{u}">{html.escape(a)}</a>, Alpha IPTV can be assessed alongside other providers based on compatibility, support and transparent terms.',
+                  f'A buyer evaluating an <a href="{u}">{html.escape(a)}</a> should compare licensing information, simultaneous connections, pricing and cancellation conditions.'
+                ]
+                out.append('<p>'+phrases[n]+'</p>')
+            return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(out)+'</main></body></html>'
+          H=[make(i) for i in range(len(TITLES))]
+          def verify(name,u):
+            if not u:return None
+            for _ in range(5):
+              try:
+                r=S.get(u,timeout=45,allow_redirects=True)
+                src=html.unescape(r.content.decode('utf-8','ignore'))
+                hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?alphaiptv\.tn',src,re.I))
+                text=re.sub(r'<[^>]+>',' ',src)
+                exact=ANCHOR.lower() in text.lower()
+                robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+                noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+                print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+                if r.status_code<400 and hrefs>=5 and exact and not noindex:return r.url
+              except Exception as e: print('VERIFY_ERR',name,repr(e))
+              time.sleep(2)
+            return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # Quicky
+          try:
+            r=S.post('https://quicky.page/api/v1/publish',json={'html':H[0],'title':TITLES[0]},timeout=45)
+            d=r.json() if r.ok else {}; print('QUICKY',r.status_code); add('Quicky.page',d.get('url') or '')
+          except Exception as e: print('QUICKY_ERR',repr(e))
+          # Output
+          try:
+            r=S.post('https://output.pub/api/publish',json={'html':H[1],'title':TITLES[1]},timeout=45)
+            d=r.json() if r.ok else {}; print('OUTPUT',r.status_code); add('Output.pub',d.get('url') or '')
+          except Exception as e: print('OUTPUT_ERR',repr(e))
+          # Leafmill
+          try:
+            r=S.post('https://leafmill.net/api/v1/publish',json={'html':H[2],'title':TITLES[2]},timeout=45)
+            d=r.json() if r.ok else {}; print('LEAFMILL',r.status_code); add('Leafmill',d.get('url') or '')
+          except Exception as e: print('LEAFMILL_ERR',repr(e))
+          # AirED permanent
+          try:
+            r=S.post('https://aired.sh/api/publish',json={'html':H[3],'title':TITLES[3],'permanent':True},timeout=45)
+            d=r.json() if r.ok else {}; print('AIRED',r.status_code); add('AirED',d.get('url') or '')
+          except Exception as e: print('AIRED_ERR',repr(e))
+          # TheThings
+          try:
+            r=S.post('https://thethings.ai/api/scratch/publish',json={'html':H[4],'title':TITLES[4]},timeout=45)
+            d=r.json() if r.ok else {}; print('THETHINGS',r.status_code); add('TheThings.ai',d.get('url') or '')
+          except Exception as e: print('THETHINGS_ERR',repr(e))
+          # Shippage
+          try:
+            r=S.post('https://shippage.ai/v1/publish',json={'html':H[5],'title':TITLES[5],'public':True},timeout=45)
+            d=r.json() if r.ok else {}; print('SHIPPAGE',r.status_code); add('Shippage.ai',d.get('url') or '')
+          except Exception as e: print('SHIPPAGE_ERR',repr(e))
+          # Pubmark
+          try:
+            r=S.post('https://pubmark.site/api/documents',json={'title':TITLES[6]},timeout=40); d=r.json() if r.ok else {}; sid=d.get('secretId'); u=''; print('PUBMARK_CREATE',r.status_code)
+            if sid:
+              S.put('https://pubmark.site/api/documents/'+sid,json={'content':H[6],'title':TITLES[6],'theme':'clean','colorPreset':'blue'},timeout=40)
+              p=S.post('https://pubmark.site/api/documents/'+sid+'/publish',json={},timeout=40); j=p.json() if p.ok else {}; slug=j.get('slug'); u='https://pubmark.site/p/'+slug if slug else ''
+            add('Pubmark',u)
+          except Exception as e: print('PUBMARK_ERR',repr(e))
+          # YeetIt
+          try:
+            r=S.post('https://yeetit.site/v1/publish',json={'html':H[7],'title':TITLES[7]},timeout=45)
+            d=r.json() if r.ok else {}; print('YEETIT',r.status_code); add('YeetIt',d.get('url') or '')
+          except Exception as e: print('YEETIT_ERR',repr(e))
+          # SSHGrid
+          try:
+            r=S.post('https://sshgrid.com/api/v1/deploy',json={'files':[{'path':'index.html','content':H[8]}],'label':'Alpha IPTV Legal Guide'},timeout=45)
+            d=r.json() if r.ok else {}; print('SSHGRID',r.status_code); u=d.get('url_live') or d.get('url') or ''
+            status=d.get('status_url') or (('https://sshgrid.com/api/v1/sites/'+d.get('handle')) if d.get('handle') else '')
+            if status:
+              for _ in range(20):
+                try:
+                  sd=S.get(status,timeout=20).json(); live=sd.get('url_live') or ''
+                  if live: u=live; break
+                except: pass
+                time.sleep(3)
+            add('SSHGrid',u)
+          except Exception as e: print('SSHGRID_ERR',repr(e))
+          # BotSite create then upload
+          try:
+            c=S.post('https://botsite.dev/api/v1/sites',headers={'X-Botsite-Client':'alphaiptv/2.0'},timeout=35)
+            d=c.json() if c.ok else {}; slug=d.get('subdomain') or ''; token=d.get('claimToken') or ''; live=d.get('url') or ''; print('BOTSITE_CREATE',c.status_code)
+            if slug and token and live:
+              up=S.put('https://botsite.dev/api/v1/sites/'+slug+'/files/index.html',data=H[9].encode('utf-8'),headers={'Authorization':'Bearer '+token,'Content-Type':'text/html'},timeout=40); print('BOTSITE_UPLOAD',up.status_code); add('BotSite',live)
+          except Exception as e: print('BOTSITE_ERR',repr(e))
+          # Draftmark
+          try:
+            r=S.post('https://draftmark.app/api/v1/docs',json={'title':TITLES[10],'content':H[10],'format':'html'},timeout=45)
+            d=r.json() if r.ok else {}; print('DRAFTMARK',r.status_code); u=d.get('url') or d.get('share_url') or d.get('shareUrl') or ''
+            add('Draftmark',u)
+          except Exception as e: print('DRAFTMARK_ERR',repr(e))
+          print('ALPHA2_RESULTS_BEGIN')
+          for n,u in res: print(n+'\t'+u)
+          print('ALPHA2_RESULTS_END')
+          print('ALPHA2_VALID_COUNT='+str(len(res)))
+          print('ALPHA2_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
