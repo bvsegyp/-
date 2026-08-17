@@ -1,0 +1,201 @@
+name: NetflixTunisie French Backlinks Batch 06 Two Fresh
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run NetflixTunisie French backlink batch 06 two fresh'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Publish exactly two fresh French backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,json,os
+          from playwright.async_api import async_playwright
+          SITE='https://netflixtunisie.com.tn/'
+          ANCHOR='Netflix Tunisie'
+          LINKS=[
+            ('Netflix Tunisie',SITE),
+            ('abonnement Netflix en Tunisie',SITE),
+            ('prix Netflix en Tunisie',SITE),
+            ('regarder Netflix en Tunisie',SITE),
+            ('streaming Netflix en Tunisie',SITE),
+          ]
+          TARGETS=[
+            ('DocHost','dochost.io','https://dochost.io/','html'),
+            ('Fylo','fylo.host','https://fylo.host/','html'),
+            ('PageLive','pagelive.io','https://pagelive.io/','html'),
+            ('HTMLDrop','htmldrop.app','https://htmldrop.app/','html'),
+            ('Crevioo','crevioo.com','https://crevioo.com/','html'),
+            ('Swolvy','swolvy.com','https://swolvy.com/','html'),
+            ('UploadTheFile','uploadthefile.com','https://uploadthefile.com/','html'),
+            ('HTMLSpot','htmlspot.com','https://htmlspot.com/','html'),
+            ('HTMLPut','htmlput.com','https://htmlput.com/','html'),
+            ('PasteMD','pastemd.io','https://pastemd.io/','md'),
+            ('NoteRift','noterift.com','https://noterift.com/','md'),
+            ('Pastes','pastes.io','https://pastes.io/','md'),
+          ]
+          TITLES=[
+            'Netflix Tunisie : conseils utiles avant de choisir un abonnement',
+            'Abonnement Netflix en Tunisie : comparer prix, écrans et qualité',
+            'Netflix en Tunisie : organiser son streaming selon son budget',
+            'Prix Netflix Tunisie : comment choisir une formule adaptée',
+            'Streaming Netflix en Tunisie : guide pratique pour les foyers',
+            'Netflix Tunisie : écrans, profils et connexion à vérifier',
+            'Choisir Netflix en Tunisie selon ses habitudes de visionnage',
+            'Netflix Tunisie : éviter de payer pour des options inutiles',
+            'Abonnement Netflix Tunisie : les critères essentiels à comparer',
+            'Netflix en Tunisie : comment mieux gérer son budget streaming',
+            'Netflix Tunisie : guide simple pour choisir sa formule',
+            'Regarder Netflix en Tunisie : les points à vérifier avant de payer',
+          ]
+          SECTIONS=[
+            ('Comprendre les besoins du foyer','Le nombre d’utilisateurs et la fréquence de visionnage sont les premiers critères à examiner. Une formule adaptée à une personne seule peut être insuffisante pour une famille qui utilise plusieurs profils et plusieurs appareils.'),
+            ('Comparer les écrans simultanés','Le nombre d’écrans disponibles en même temps influence directement le confort d’utilisation. Il vaut mieux choisir selon les habitudes réelles plutôt que prendre automatiquement l’offre la plus complète.'),
+            ('Vérifier la qualité vidéo','La qualité vidéo doit rester cohérente avec les appareils utilisés et la stabilité de la connexion internet. Une résolution plus élevée n’est utile que si la connexion permet de la maintenir correctement.'),
+            ('Garder un budget adapté','Comparer le prix mensuel aux fonctions réellement utilisées permet d’éviter les dépenses inutiles. Une bonne formule est celle qui correspond au niveau d’utilisation du foyer.'),
+            ('Évaluer la connexion internet','Une connexion stable limite les interruptions et les baisses de qualité. Ce point devient encore plus important lorsque plusieurs personnes utilisent internet en même temps à la maison.'),
+            ('Organiser les profils','Des profils séparés permettent à chaque utilisateur de conserver ses recommandations et son historique. Cela simplifie l’utilisation lorsque plusieurs personnes partagent le même abonnement.'),
+            ('Lire les conditions','Avant de souscrire, il est utile de vérifier les fonctions incluses, les règles d’utilisation et les modalités de paiement pour éviter les mauvaises surprises.'),
+            ('Conclusion','Une comparaison simple entre les utilisateurs, les écrans, la qualité vidéo, la connexion et le budget permet de choisir une solution de streaming plus adaptée en Tunisie.'),
+          ]
+          def md_article(i):
+            out=[f'# {TITLES[i]}','','Le streaming occupe une place importante dans les habitudes de nombreux foyers tunisiens. Avant de choisir une formule, il est utile de comparer les usages, le nombre d’écrans, la qualité vidéo, la connexion internet et le budget mensuel.','']
+            secs=SECTIONS[i%len(SECTIONS):]+SECTIONS[:i%len(SECTIONS)]
+            for n,(h,p) in enumerate(secs):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n]
+                out += [f'Pour plus de détails, consultez [{a}]({u}).','']
+            out += ['## Conclusion','','Comparer ses besoins réels avant de souscrire aide à choisir plus facilement une formule cohérente avec son budget et son usage quotidien.']
+            return '\n'.join(out)
+          def html_article(i):
+            text=md_article(i); blocks=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b: continue
+              if b.startswith('# '): blocks.append('<h1>'+html.escape(b[2:])+'</h1>'); continue
+              if b.startswith('## '): blocks.append('<h2>'+html.escape(b[3:])+'</h2>'); continue
+              pos=0; parts=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                parts.append(html.escape(b[pos:m.start()])); parts.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>'); pos=m.end()
+              parts.append(html.escape(b[pos:])); blocks.append('<p>'+''.join(parts)+'</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.85;color:#222">'+''.join(blocks)+'</main></body></html>'
+          async def verify(browser,url):
+            p=await browser.new_page(); resp=None
+            try:
+              resp=await p.goto(url,wait_until='domcontentloaded',timeout=40000); await p.wait_for_timeout(1800)
+              n=0
+              try:n+=await p.locator('a[href*="netflixtunisie.com.tn"]').count()
+              except:pass
+              for fr in p.frames:
+                if fr==p.main_frame: continue
+                try:n+=await fr.locator('a[href*="netflixtunisie.com.tn"]').count()
+                except:pass
+              exact=False
+              try: exact=ANCHOR.lower() in (await p.content()).lower()
+              except:pass
+              robots=''
+              try: robots=(await p.locator('meta[name="robots"],meta[name="googlebot"]').evaluate_all("els=>els.map(e=>e.content||'').join(' ')")).lower()
+              except:pass
+              xrob=''
+              try: xrob=(await resp.all_headers()).get('x-robots-tag','').lower() if resp else ''
+              except:pass
+              noindex='noindex' in robots or 'noindex' in xrob
+              final=p.url; print('VERIFY',url,'FINAL',final,'HREFS',n,'EXACT',int(exact),'NOINDEX',int(noindex)); await p.close(); return final,n,exact,noindex
+            except Exception as e:
+              print('VERIFY_ERR',url,repr(e))
+              try:await p.close()
+              except:pass
+              return url,0,False,True
+          async def publish(browser,i,name,domain,start,mode):
+            pg=await browser.new_page(); md=md_article(i); ht=html_article(i); content=md if mode=='md' else ht
+            try:
+              await pg.goto(start,wait_until='domcontentloaded',timeout=40000); await pg.wait_for_timeout(1200); print('TRY',name,pg.url,await pg.title())
+              for sel in ['input[name*=title i]','input[placeholder*=title i]','input[type=text]']:
+                loc=pg.locator(sel)
+                if await loc.count():
+                  try:await loc.first.fill(TITLES[i]);break
+                  except:pass
+              filled=False
+              tas=pg.locator('textarea:visible')
+              if await tas.count():
+                best=None; area=-1
+                for j in range(await tas.count()):
+                  e=tas.nth(j)
+                  try:
+                    bb=await e.bounding_box(); a=bb['width']*bb['height'] if bb else 0
+                    if a>area:best=e;area=a
+                  except:pass
+                if best:
+                  try:await best.fill(content);filled=True
+                  except:pass
+              if not filled:
+                ce=pg.locator('[contenteditable=true]:visible')
+                if await ce.count():
+                  try:await ce.first.fill(content);filled=True
+                  except:pass
+              if not filled:
+                fi=pg.locator('input[type=file]')
+                if await fi.count():
+                  path=f'/tmp/netflixtn6-{i}.html';open(path,'w',encoding='utf-8').write(ht)
+                  try:await fi.first.set_input_files(path);filled=True
+                  except:pass
+              if not filled:
+                print(name,'NO_INPUT');await pg.close();return None
+              clicked=False
+              for pat in ['Get my shareable link','Get shareable link','Generate link','Generate Link','Generate Live Page','Deploy Page','Deploy Site','Deploy','Publish & Share','Publish','Share Note','Share','Host','Upload','Generate','Create Link','Create','Save','Post']:
+                btn=pg.get_by_role('button',name=re.compile(pat,re.I))
+                if await btn.count():
+                  try:await btn.first.click(timeout=6000);clicked=True;break
+                  except:pass
+              if not clicked:
+                sub=pg.locator('button[type=submit]:visible,input[type=submit]:visible')
+                if await sub.count():
+                  try:await sub.first.click(timeout=5000);clicked=True
+                  except:pass
+              await pg.wait_for_timeout(4500)
+              c=[]
+              if pg.url.rstrip('/')!=start.rstrip('/'):c.append(pg.url)
+              try:c += await pg.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)')
+              except:pass
+              try:c += await pg.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(v=>v && v.startsWith("http"))')
+              except:pass
+              try:c += re.findall(r'https?://[^\s<>"\']+',await pg.locator('body').inner_text())
+              except:pass
+              seen=set();print('CAND',name,c[:20])
+              for u in c:
+                u=u.strip().rstrip('.,);]}')
+                if u in seen:continue
+                seen.add(u)
+                if domain not in u:continue
+                if any(x in u for x in ['/api/','assets','favicon','manifest','login','signup','register','privacy','terms']):continue
+                f,n,e,ni=await verify(browser,u)
+                if n>=5 and e and not ni:
+                  print('VALID',name,f);await pg.close();return f
+              print(name,'NO_VALID')
+            except Exception as e:print(name,'ERR',repr(e))
+            try:await pg.close()
+            except:pass
+            return None
+          async def main():
+            async with async_playwright() as pw:
+              browser=await pw.chromium.launch(headless=True)
+              out=[]
+              for i,t in enumerate(TARGETS):
+                if len(out)>=2:break
+                u=await publish(browser,i,*t)
+                if u:out.append((t[0],u))
+              print('NETFLIXTN6_RESULTS_BEGIN')
+              for n,u in out:print(n+'\t'+u)
+              print('NETFLIXTN6_RESULTS_END')
+              print('NETFLIXTN6_VALID_COUNT='+str(len(out)))
+              print('NETFLIXTN6_RESULTS_JSON='+json.dumps(out,ensure_ascii=False))
+              await browser.close()
+          asyncio.run(main())
+          PY
