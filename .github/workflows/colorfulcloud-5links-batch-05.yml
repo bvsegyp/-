@@ -1,0 +1,16 @@
+name: Colorful Cloud Five-Link Backlink Batch 05
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run Colorful Cloud five-link backlink batch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      - name: Publish and verify five-link articles
+        run: python scripts/colorfulcloud_5links_batch_05.py
