@@ -1,0 +1,83 @@
+name: NetflixTunisie French Backlinks Batch 06c SSHGrid ShowCode
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run NetflixTunisie French backlink batch 06c sshgrid showcode'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify SSHGrid and ShowYourCode
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,time
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 NetflixTunisieSEO/6c'})
+          SITE='https://netflixtunisie.com.tn/'
+          ANCHOR='Netflix Tunisie'
+          LINKS=[('Netflix Tunisie',SITE),('abonnement Netflix en Tunisie',SITE),('prix Netflix en Tunisie',SITE),('regarder Netflix en Tunisie',SITE),('streaming Netflix en Tunisie',SITE)]
+          def page(title,rot=0):
+            secs=[
+              ('Définir les besoins du foyer','Le nombre d’utilisateurs, les horaires de visionnage et les appareils utilisés permettent de déterminer plus facilement la formule réellement nécessaire.'),
+              ('Comparer les écrans simultanés','Le nombre d’écrans utilisés au même moment est un critère pratique pour éviter une formule trop limitée ou plus coûteuse que nécessaire.'),
+              ('Adapter la qualité vidéo','La résolution doit rester cohérente avec les appareils et la connexion internet. Une meilleure qualité est utile lorsque la connexion reste suffisamment stable.'),
+              ('Contrôler le budget mensuel','Comparer le coût aux fonctions réellement utilisées aide à garder un budget streaming plus prévisible et à éviter les options inutiles.'),
+              ('Vérifier la connexion','Une connexion stable réduit les interruptions et les changements de qualité, notamment lorsque plusieurs appareils utilisent internet en même temps.'),
+              ('Organiser les profils','Des profils distincts facilitent les recommandations et permettent à chaque membre du foyer de conserver son historique.'),
+              ('Lire les conditions','Avant la souscription, il est utile de vérifier les fonctions incluses et les modalités d’utilisation afin de choisir avec davantage de clarté.'),
+              ('Conclusion','Comparer les usages, les écrans, la qualité, la connexion et le budget permet de choisir une solution de streaming adaptée en Tunisie.')]
+            secs=secs[rot:]+secs[:rot]
+            out=[f'<h1>{html.escape(title)}</h1>','<p>Pour choisir une offre de streaming en Tunisie, il est préférable de partir des habitudes réelles du foyer et de comparer plusieurs critères avant de souscrire.</p>']
+            for i,(h,p) in enumerate(secs):
+              out += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if i<5:
+                a,u=LINKS[i];out.append(f'<p>Pour approfondir ce point, consultez <a href="{u}">{html.escape(a)}</a>.</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.85;color:#222">'+''.join(out)+'</main></body></html>'
+          def verify(name,u):
+            if not u:return None
+            for i in range(8):
+              try:
+                r=S.get(u,timeout=35,allow_redirects=True)
+                src=html.unescape(r.text)
+                hrefs=len(re.findall(r'<a[^>]+href=["\'][^"\']*netflixtunisie\.com\.tn[^"\']*["\']',src,re.I))
+                exact=bool(re.search(r'>\s*Netflix Tunisie\s*</a>',src,re.I)) or 'Netflix Tunisie' in re.sub(r'<[^>]+>',' ',src)
+                robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+                noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+                print('VERIFY',name,i,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+                if r.status_code<400 and hrefs>=5 and exact and not noindex:return r.url
+              except Exception as e:print('VERIFY_ERR',name,repr(e))
+              time.sleep(3)
+            return None
+          results=[]
+          # SSHGrid
+          try:
+            title='Netflix Tunisie : guide pratique pour choisir une formule adaptée'
+            h=page(title,0)
+            r=S.post('https://sshgrid.com/api/v1/deploy',json={'files':[{'path':'index.html','content':h}],'label':'Netflix Tunisie Guide'},timeout=45)
+            print('SSHGRID_POST',r.status_code,r.text[:1200]);d=r.json() if r.ok else {};u=d.get('url_live') or d.get('url') or d.get('site_url') or d.get('public_url') or ''
+            if not u and d.get('slug'):
+              status='https://sshgrid.com/api/v1/sites/'+d['slug']
+              for _ in range(12):
+                try:
+                  sd=S.get(status,timeout=20).json();u=sd.get('url_live') or (sd.get('url') if sd.get('overall') in ('ready','live','done') else '') or ''
+                  if u:break
+                except:pass
+                time.sleep(3)
+            v=verify('SSHGrid',u)
+            if v:results.append(('SSHGrid',v))
+          except Exception as e:print('SSHGRID_ERR',repr(e))
+          # ShowYourCode
+          try:
+            title='Abonnement Netflix en Tunisie : comparer écrans, qualité et budget'
+            h=page(title,2)
+            r=S.post('https://www.showyourcode.app/api/works',json={'htmlContent':h,'title':title,'topicIds':[],'type':'html','templateId':None},timeout=45)
+            print('SHOWCODE_POST',r.status_code,r.text[:1200]);d=r.json() if r.ok else {};data=d.get('data') or {};uid=data.get('uuid') or d.get('uuid') or data.get('id') or d.get('id');u='https://www.showyourcode.app/share/'+uid if uid else ''
+            v=verify('ShowYourCode',u)
+            if v:results.append(('ShowYourCode',v))
+          except Exception as e:print('SHOWCODE_ERR',repr(e))
+          print('NETFLIXTN6C_RESULTS_BEGIN')
+          for n,u in results:print(n+'\t'+u)
+          print('NETFLIXTN6C_RESULTS_END')
+          print('NETFLIXTN6C_VALID_COUNT='+str(len(results)))
+          print('NETFLIXTN6C_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          PY
