@@ -1,0 +1,138 @@
+name: DermaArt Islam Backlinks Batch 06 Recover New Roots
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run DermaArt Islam backlink batch 06'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Publish and verify five fresh roots
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html,hashlib,secrets
+          from bs4 import BeautifulSoup
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/6.0'})
+          ANCHOR='أفضل دكتورة تجميل في الرياض'
+          LINKS=[
+            (ANCHOR,'https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('ديرما آرت الرياض','https://dermaart-sa.com/'),
+            ('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),
+            ('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          TITLES=[
+            'كيف تختارين طبيبة تجميل في الرياض بناء على التشخيص والخطة',
+            'دليل عملي للعناية بالبشرة قبل الفيلر والبوتوكس والليزر',
+            'كيف تحافظين على ملامح طبيعية مع الإجراءات التجميلية',
+            'متى تحتاج البشرة إلى علاج قبل بدء إجراءات التجميل',
+            'الاستشارة التجميلية في الرياض: خطوات تساعد على قرار أوضح']
+          BASE=[
+            ('التشخيص يسبق اختيار اسم الجلسة','تعدد الإجراءات التجميلية قد يجعل الاختيار مربكًا، لذلك تبدأ الخطة الجيدة بفهم نوع البشرة وحركة العضلات وتوزيع الحجم والهدف الحقيقي من العلاج. عندما يتم تحديد المشكلة بدقة يصبح من الأسهل معرفة ما إذا كانت الأولوية لتحسين جودة البشرة أو الليزر أو البوتوكس أو الفيلر أو الجمع بين أكثر من خيار بشكل متدرج.'),
+            ('النتيجة الطبيعية تحتاج إلى خطة مخصصة','ملامح الوجه ونوع البشرة تختلف من شخص لآخر، ولهذا لا توجد جرعة أو تقنية واحدة تناسب الجميع. الخطة المتوازنة تراعي تناسق الوجه وتبدأ بخطوات محسوبة ثم تراجع الاستجابة قبل إضافة أي إجراء جديد. هذا الأسلوب يساعد على تجنب المبالغة ويحافظ على الشكل الطبيعي.'),
+            ('صحة البشرة جزء أساسي من التجميل','الترطيب والملمس والتصبغات والحبوب وآثارها تؤثر في الشكل النهائي بوضوح. في بعض الحالات يكون علاج البشرة أو تحسينها أولًا أكثر فائدة من البدء مباشرة بإجراء يغير الحجم أو حركة العضلات، ولذلك يمكن أن تكون جلسات العناية أو الليزر مرحلة مهمة ضمن الخطة.'),
+            ('الفيلر والبوتوكس ليسا بديلين متطابقين','يرتبط البوتوكس غالبًا بحركة العضلات والتجاعيد التعبيرية، بينما يستخدم الفيلر لدعم أو إضافة حجم في مناطق محددة بحسب احتياج الوجه. تحديد الإجراء يعتمد على سبب المشكلة وليس على انتشار اسم الخدمة، وقد لا تحتاج بعض الحالات إلى أي منهما في البداية.'),
+            ('المتابعة بعد الجلسة تحسن اتخاذ القرار','تقييم النتيجة في الوقت المناسب ومعرفة التعليمات بعد الجلسة يساعدان على فهم الاستجابة الفعلية وتحديد ما إذا كانت الخطة تحتاج إلى تعديل. المتابعة تمنع التسرع في تكرار الإجراءات وتوفر فرصة لمناقشة أي ملاحظة أو تغير قبل الخطوة التالية.'),
+            ('وضوح البدائل والتوقعات مهم','الاستشارة المفيدة تتضمن شرح البدائل والنتيجة المتوقعة والمدة وفترة التعافي إن وجدت. عندما تعرف المراجعة ما الذي يمكن تحقيقه بشكل واقعي وما الذي لا يناسب حالتها يصبح القرار أكثر وعيًا، وتقل احتمالات اختيار إجراء غير ضروري.'),
+            ('اختيار الطبيبة يعتمد على الخبرة وطريقة التخطيط','عند مقارنة خيارات الجلدية والتجميل في الرياض، من المفيد التركيز على التخصص وطريقة التشخيص والقدرة على شرح الخطة والمتابعة، وليس على السعر أو اسم إجراء واحد فقط. جودة القرار تبدأ من فهم الحالة قبل تنفيذ أي خطوة.'),
+            ('الخلاصة','التجميل الطبي المدروس لا يعتمد على إجراء واحد يناسب الجميع. التشخيص الواضح وصحة البشرة والتدرج والمتابعة والتوقعات الواقعية عناصر مترابطة تساعد على الوصول إلى نتيجة متوازنة وتحافظ على تناسق الملامح.')]
+          def md(i):
+            out=[f'# {TITLES[i]}','','أصبحت خيارات الجلدية والتجميل والليزر كثيرة، لكن كثرة الخيارات لا تعني أن كل إجراء مناسب لكل حالة. الاختيار الأفضل يبدأ باستشارة واضحة تربط الهدف بحالة البشرة والملامح وتضع خطة واقعية قبل التنفيذ.','']
+            # rotate section order to diversify articles
+            secs=BASE[i%3:]+BASE[:i%3]
+            for n,(h,p) in enumerate(secs):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n]
+                if n==0: out += [f'لمن تبحث عن [{a}]({u}) يمكن الاطلاع على صفحة د. إسلام اللبودي والتعرف على مجالها وخيارات الاستشارة.','']
+                else: out += [f'للمزيد من المعلومات ذات الصلة يمكن زيارة [{a}]({u}).','']
+            return '\n'.join(out)
+          def htm(i):
+            text=md(i);parts=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b:continue
+              if b.startswith('# '):parts.append('<h1>'+html.escape(b[2:])+'</h1>');continue
+              if b.startswith('## '):parts.append('<h2>'+html.escape(b[3:])+'</h2>');continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()]));x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>');pos=m.end()
+              x.append(html.escape(b[pos:]));parts.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,Tahoma,sans-serif;line-height:2;color:#222">'+''.join(parts)+'</main></body></html>'
+          M=[md(i) for i in range(5)];H=[htm(i) for i in range(5)]
+          def pick(obj,domain):
+            vals=[]
+            def walk(x):
+              if isinstance(x,str): vals.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values():walk(v)
+              elif isinstance(x,list):
+                for v in x:walk(v)
+            walk(obj)
+            for u in vals:
+              u=u.rstrip('.,);}')
+              if domain in u:return u
+            return ''
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              # force UTF-8 for Arabic pages that omit charset
+              try: src=r.content.decode('utf-8')
+              except: src=r.text
+              src=html.unescape(src)
+              soup=BeautifulSoup(src,'html.parser')
+              hrefs=sum(1 for a in soup.find_all('a',href=True) if 'dermaart-sa.com' in a.get('href',''))
+              visible=soup.get_text(' ',strip=True)
+              exact=ANCHOR in visible
+              robots=' '.join((m.get('content') or '') for m in soup.find_all('meta') if (m.get('name') or '').lower() in ('robots','googlebot')).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # Brewpage
+          try:
+            r=S.post('https://brewpage.app/api/html?format=markdown&ttl=30&ns=public',json={'content':M[0]},timeout=45);print('BREWPAGE',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('Brewpage',pick(d,'brewpage.app'))
+          except Exception as e:print('BREW_ERR',repr(e))
+          # Write.as
+          try:
+            r=S.post('https://write.as/api/posts',json={'body':M[1],'title':TITLES[1],'font':'serif','lang':'ar','rtl':True},timeout=45);print('WRITEAS',r.status_code,r.text[:500]);d=r.json() if r.ok else {};pid=(d.get('data') or {}).get('id','');add('Write.as','https://write.as/'+pid if pid else '')
+          except Exception as e:print('WRITEAS_ERR',repr(e))
+          # MDLib
+          try:
+            r=S.post('https://mdlib.dev/v1/docs',json={'markdown':M[2],'title':TITLES[2],'is_public':True},timeout=45);print('MDLIB',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('MDLib',pick(d,'mdlib.dev'))
+          except Exception as e:print('MDLIB_ERR',repr(e))
+          # XDR
+          try:
+            data=H[3].encode('utf-8');sha=hashlib.sha256(data).hexdigest();r=S.post('https://api.xdr.no/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html; charset=utf-8','sha256':sha}]},timeout=55);print('XDR',r.status_code,r.text[:500]);d=r.json();ups=d.get('uploads') or [];live=d.get('url');fin=d.get('finalize')
+            if ups:
+              requests.put(ups[0].get('putUrl'),data=data,headers={'Content-Type':'text/html; charset=utf-8'},timeout=60)
+              if fin:S.post(fin,timeout=45)
+            add('XDR',live)
+          except Exception as e:print('XDR_ERR',repr(e))
+          # Draftlet
+          try:
+            data=H[4].encode('utf-8');r=S.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','contentType':'text/html; charset=utf-8','size':len(data)}]},timeout=55);print('DRAFTLET',r.status_code,r.text[:500]);d=r.json();slug=d['slug'];ver=d['versionId'];tok=d['editToken'];up=d['uploads'][0]['uploadUrl'];live=d['url'];requests.put(up,data=data,headers={'content-type':'text/html; charset=utf-8','content-length':str(len(data))},timeout=60);S.post(f'https://api.draftlet.io/api/v1/publish/{slug}/finalize',json={'versionId':ver,'editToken':tok},timeout=45);add('Draftlet',live)
+          except Exception as e:print('DRAFTLET_ERR',repr(e))
+          print('DERMAART6_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('DERMAART6_RESULTS_END')
+          print('DERMAART6_VALID_COUNT='+str(len(res)))
+          print('DERMAART6_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
+        env:
+          PYTHONUNBUFFERED: '1'
+      - name: Install parser dependency if missing
+        if: failure()
+        run: true
