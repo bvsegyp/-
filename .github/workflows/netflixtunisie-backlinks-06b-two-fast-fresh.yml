@@ -1,0 +1,90 @@
+name: NetflixTunisie French Backlinks Batch 06b Two Fast Fresh
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run NetflixTunisie French backlink batch 06b two fast fresh'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify two fresh direct backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,time
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 NetflixTunisieSEO/6b'})
+          SITE='https://netflixtunisie.com.tn/'
+          ANCHOR='Netflix Tunisie'
+          LINKS=[
+            ('Netflix Tunisie',SITE),
+            ('abonnement Netflix en Tunisie',SITE),
+            ('prix Netflix en Tunisie',SITE),
+            ('regarder Netflix en Tunisie',SITE),
+            ('streaming Netflix en Tunisie',SITE),
+          ]
+          def article(title,offset=0):
+            sections=[
+              ('Choisir selon les utilisateurs','Le nombre de personnes qui utilisent le service au quotidien est un point de départ important. Un abonnement prévu pour une seule personne ne répond pas forcément aux besoins d’un foyer où plusieurs profils regardent des contenus à des moments différents.'),
+              ('Comparer le nombre d’écrans','Les écrans simultanés doivent être comparés aux habitudes réelles du foyer. Cela évite de choisir une formule trop limitée ou de payer pour une capacité qui ne sera jamais utilisée.'),
+              ('Adapter la qualité vidéo','La qualité vidéo doit correspondre aux appareils disponibles et à la stabilité de la connexion internet. Une résolution plus élevée est surtout utile lorsque la connexion peut la maintenir sans interruptions fréquentes.'),
+              ('Garder un budget cohérent','Le prix mensuel doit être mis en relation avec la fréquence d’utilisation et les fonctions réellement nécessaires. Cette comparaison permet de limiter les dépenses inutiles tout en conservant une expérience adaptée.'),
+              ('Vérifier la connexion internet','Une connexion stable améliore le confort du streaming, en particulier lorsque plusieurs appareils utilisent internet en même temps. La stabilité peut être aussi importante que la vitesse maximale annoncée.'),
+              ('Organiser les profils','Des profils distincts facilitent les recommandations et permettent à chaque utilisateur de conserver son historique et ses préférences de visionnage.'),
+              ('Lire les conditions avant de choisir','Avant de souscrire, il est utile de vérifier les fonctions incluses, les modalités d’utilisation et les conditions de paiement afin d’éviter les mauvaises surprises.'),
+              ('Conclusion','Comparer les besoins, les écrans, la qualité, la connexion et le budget aide à choisir une solution de streaming plus adaptée aux habitudes du foyer tunisien.'),
+            ]
+            sections=sections[offset:]+sections[:offset]
+            out=[f'<h1>{html.escape(title)}</h1>','<p>Le streaming est devenu une habitude courante pour de nombreux foyers tunisiens. Avant de choisir une formule, il est préférable de comparer les usages réels, le nombre d’écrans, la qualité vidéo, la connexion internet et le budget mensuel.</p>']
+            for i,(h,p) in enumerate(sections):
+              out += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if i<5:
+                a,u=LINKS[i]
+                phrases=[
+                  f'Pour découvrir une solution dédiée au marché tunisien, consultez <a href="{u}">{html.escape(a)}</a>.',
+                  f'Pour comparer les possibilités disponibles, retrouvez les informations sur <a href="{u}">{html.escape(a)}</a>.',
+                  f'Les utilisateurs peuvent également consulter <a href="{u}">{html.escape(a)}</a> avant de faire leur choix.',
+                  f'Pour approfondir ce point, consultez <a href="{u}">{html.escape(a)}</a>.',
+                  f'Plus de détails sont disponibles sur <a href="{u}">{html.escape(a)}</a>.',
+                ]
+                out.append('<p>'+phrases[i]+'</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.85;color:#222">'+''.join(out)+'</main></body></html>'
+          def verify(name,u):
+            if not u:return None
+            for attempt in range(5):
+              try:
+                r=S.get(u,timeout=35,allow_redirects=True)
+                src=html.unescape(r.text)
+                hrefs=len(re.findall(r'<a[^>]+href=["\'][^"\']*netflixtunisie\.com\.tn[^"\']*["\']',src,re.I))
+                exact=bool(re.search(r'>\s*Netflix Tunisie\s*</a>',src,re.I)) or 'Netflix Tunisie' in re.sub(r'<[^>]+>',' ',src)
+                robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+                noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+                print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+                if r.status_code<400 and hrefs>=5 and exact and not noindex:return r.url
+              except Exception as e:print('VERIFY_ERR',name,repr(e))
+              time.sleep(2)
+            return None
+          results=[]
+          # OneClickLive
+          try:
+            title='Netflix Tunisie : bien choisir son abonnement selon ses besoins'
+            h=article(title,0)
+            r=S.post('https://oneclicklive.app/api/deploy',json={'code':h,'title':title},timeout=60)
+            print('ONECLICK_STATUS',r.status_code,r.text[:1200]);d=r.json() if r.ok else {};u=d.get('url') or (('https://'+d.get('slug')+'.oneclicklive.app') if d.get('slug') else '')
+            v=verify('OneClickLive',u)
+            if v:results.append(('OneClickLive',v))
+          except Exception as e:print('ONECLICK_ERR',repr(e))
+          # Sharable
+          try:
+            title='Abonnement Netflix en Tunisie : écrans, qualité et budget à comparer'
+            h=article(title,2)
+            r=S.post('https://sharable.vercel.app/api/publish',json={'html':h},timeout=45)
+            print('SHARABLE_STATUS',r.status_code,r.text[:1200]);d=r.json() if r.ok else {};u=d.get('url') or (('https://sharable.link/'+d.get('slug')) if d.get('slug') else '')
+            v=verify('Sharable',u)
+            if v:results.append(('Sharable',v))
+          except Exception as e:print('SHARABLE_ERR',repr(e))
+          print('NETFLIXTN6B_RESULTS_BEGIN')
+          for n,u in results:print(n+'\t'+u)
+          print('NETFLIXTN6B_RESULTS_END')
+          print('NETFLIXTN6B_VALID_COUNT='+str(len(results)))
+          print('NETFLIXTN6B_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          PY
