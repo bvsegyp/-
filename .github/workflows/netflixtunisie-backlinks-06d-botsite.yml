@@ -1,0 +1,53 @@
+name: NetflixTunisie French Backlink Batch 06d BotSite
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run NetflixTunisie French backlink batch 06d botsite'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify BotSite backlink
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,time,json
+          SITE='https://netflixtunisie.com.tn/'
+          title='Netflix Tunisie : comparer abonnement, prix et qualité avant de choisir'
+          links=[('Netflix Tunisie',SITE),('abonnement Netflix en Tunisie',SITE),('prix Netflix en Tunisie',SITE),('regarder Netflix en Tunisie',SITE),('streaming Netflix en Tunisie',SITE)]
+          sections=[
+            ('Commencer par les habitudes réelles','Le choix d’une formule dépend du nombre de personnes qui utilisent le service, de la fréquence de visionnage et des appareils disponibles dans le foyer.'),
+            ('Comparer les écrans simultanés','Le nombre d’écrans nécessaires doit correspondre aux usages réels. Cela évite une formule trop limitée ou un abonnement plus coûteux que nécessaire.'),
+            ('Vérifier la qualité vidéo','La résolution disponible doit être cohérente avec la connexion internet et les appareils utilisés. Une qualité élevée est surtout utile lorsque la connexion reste stable.'),
+            ('Maîtriser le budget','Le prix mensuel doit être comparé aux fonctions réellement utilisées afin de conserver un budget streaming clair et éviter les options inutiles.'),
+            ('Tenir compte de la connexion','Une connexion stable réduit les interruptions et les changements de résolution, particulièrement lorsque plusieurs appareils utilisent internet en même temps.'),
+            ('Organiser les profils','Des profils distincts facilitent les recommandations et permettent à chaque utilisateur de conserver son historique de visionnage.'),
+            ('Lire les conditions','Avant de souscrire, il est utile de vérifier les fonctions incluses et les modalités d’utilisation afin de choisir plus sereinement.'),
+            ('Conclusion','Comparer les utilisateurs, les écrans, la qualité, la connexion et le budget aide à sélectionner une solution de streaming adaptée en Tunisie.')]
+          parts=[f'<h1>{html.escape(title)}</h1>','<p>Avant de choisir une offre de streaming en Tunisie, il est utile de comparer les besoins réels du foyer, les écrans, la qualité vidéo, la connexion internet et le budget.</p>']
+          for i,(h,p) in enumerate(sections):
+            parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+            if i<5:
+              a,u=links[i];parts.append(f'<p>Pour plus de détails, consultez <a href="{u}">{html.escape(a)}</a>.</p>')
+          page='<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.85;color:#222">'+''.join(parts)+'</main></body></html>'
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 NetflixTunisieSEO/6d'})
+          r=s.post('https://botsite.dev/api/v1/sites',data=page.encode('utf-8'),headers={'Content-Type':'text/html'},timeout=45)
+          print('BOTSITE_POST',r.status_code,r.text[:1500]);d=r.json() if r.ok else {};u=d.get('url') or ''
+          good=''
+          for i in range(12):
+            if not u:break
+            try:
+              v=s.get(u,timeout=30,allow_redirects=True)
+              src=html.unescape(v.text)
+              hrefs=len(re.findall(r'<a[^>]+href=["\'][^"\']*netflixtunisie\.com\.tn[^"\']*["\']',src,re.I))
+              exact=bool(re.search(r'>\s*Netflix Tunisie\s*</a>',src,re.I)) or 'Netflix Tunisie' in re.sub(r'<[^>]+>',' ',src)
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in v.headers.get('x-robots-tag','').lower()
+              print('VERIFY',i,v.status_code,v.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              if v.status_code<400 and hrefs>=5 and exact and not noindex:
+                good=v.url;break
+            except Exception as e:print('VERIFY_ERR',repr(e))
+            time.sleep(3)
+          print('NETFLIXTN6D_RESULT='+good)
+          print('NETFLIXTN6D_VALID_COUNT='+str(1 if good else 0))
+          PY
