@@ -1,0 +1,124 @@
+name: Colorful Cloud 3 More Five-Link Articles 08
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run Colorful Cloud 3 more five-link articles'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify three articles
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html
+          from urllib.parse import urlparse
+
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 ColorfulCloudSEO/8.0'})
+          URLS=[
+            ('أفضل شركة تنظيف في الرياض','https://colorfulcloudco.com/شركة-تنظيف-منازل-في-الرياض/'),
+            ('خدمات شركة غيمة ملونة','https://colorfulcloudco.com/خدماتنا/'),
+            ('شركة غيمة ملونة','https://colorfulcloudco.com/'),
+            ('تنظيف بعد التشطيب في الرياض','https://colorfulcloudco.com/شركة-تنظيف-بعد-التشطيب-الرياض/'),
+            ('التواصل مع شركة التنظيف','https://colorfulcloudco.com/اتصل-بنا/')
+          ]
+          TITLES=[
+            'كيف تختار أفضل شركة تنظيف في الرياض للمنازل والفلل',
+            'دليل تنظيف المنازل في الرياض بخدمة احترافية ومنظمة',
+            'تنظيف الشقق والفلل بالرياض وما يجب معرفته قبل الحجز'
+          ]
+          BASE=[
+            ('اختيار شركة التنظيف على أساس الجودة','اختيار شركة تنظيف مناسبة في الرياض لا يعتمد على السعر وحده، بل على مستوى التنظيم وخبرة فريق العمل ووضوح نطاق الخدمة قبل الحجز. من المهم معرفة ما إذا كانت الخدمة تشمل المطابخ والحمامات والمجالس والغرف، وما نوع المعدات والمواد المستخدمة، وكيف يتم التعامل مع الأسطح المختلفة دون إتلافها.'),
+            ('التنظيف العميق يحتاج خطة واضحة','التنظيف العميق يختلف عن التنظيف الدوري، لأنه يشمل تفاصيل أكثر مثل الزوايا والأسطح المرتفعة وآثار الدهون والأتربة المتراكمة. وجود خطة مرتبة وتوزيع واضح للمهام يساعد على إنجاز العمل بكفاءة ويقلل من تكرار الخطوات أو ترك مناطق تحتاج إلى مراجعة.'),
+            ('تنظيف الفلل والشقق يختلف حسب المساحة','الفلل عادة تحتاج إلى فريق أكبر وتقسيم العمل بين الطوابق والغرف، بينما تتطلب الشقق سرعة وتنظيمًا يناسب المساحة وطبيعة الأثاث. لذلك من الأفضل وصف المكان والخدمة المطلوبة بدقة قبل الموعد حتى يتم تجهيز عدد العمال والمعدات المناسبة.'),
+            ('جودة المواد والمعدات مهمة','استخدام مواد مناسبة للرخام والخشب والسيراميك والأقمشة يقلل احتمالات التلف ويحافظ على مظهر المكان. كما تساعد المكانس والمعدات الاحترافية في الوصول إلى نتيجة أكثر ثباتًا، خصوصًا عند التعامل مع الأتربة الدقيقة أو البقع التي تحتاج معالجة متخصصة.'),
+            ('مراجعة الخدمة قبل الحجز','قبل تأكيد الموعد من الأفضل التأكد من السعر وما يشمله، مدة التنفيذ، موعد الوصول، وأي خدمات إضافية مطلوبة. هذه الخطوات البسيطة تجعل توقعات العميل واضحة وتساعد الشركة على تجهيز الفريق بالطريقة المناسبة للمهمة.'),
+            ('الالتزام بالمواعيد جزء من جودة الخدمة','عند تنظيف منزل قبل مناسبة أو بعد تشطيب يصبح الوقت عنصرًا أساسيًا. الشركة المنظمة تحدد الموعد وتوضح مدة التنفيذ وتوزع المهام بحيث يتم إنجاز العمل دون استعجال يؤثر على التفاصيل.'),
+            ('الخلاصة','النتيجة الأفضل تبدأ من اختيار مزود خدمة واضح في طريقة العمل وقادر على التعامل مع احتياج المكان الفعلي. الجمع بين الخبرة والتنظيم والمعدات المناسبة وخدمة العملاء يجعل تجربة التنظيف أكثر راحة ويساعد على الحفاظ على مستوى نظافة مستقر.')
+          ]
+
+          def md_article(i):
+            parts=[f'# {TITLES[i]}','']
+            for n,(h,p) in enumerate(BASE):
+              parts += [f'## {h}','',p,'']
+              if n < 5:
+                a,u=URLS[n]
+                parts += [f'للمزيد يمكن مراجعة [{a}]({u}) للتعرف على تفاصيل الخدمة وخيارات الحجز المناسبة.','']
+            return '\n'.join(parts)
+
+          def html_article(i):
+            md=md_article(i)
+            out=['<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body style="font-family:Arial,Tahoma,sans-serif;max-width:900px;margin:40px auto;padding:0 24px;line-height:2">']
+            for b in re.split(r'\n\s*\n',md):
+              b=b.strip()
+              if not b: continue
+              if b.startswith('# '): out.append('<h1>'+html.escape(b[2:])+'</h1>'); continue
+              if b.startswith('## '): out.append('<h2>'+html.escape(b[3:])+'</h2>'); continue
+              pos=0; x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()])); x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>'); pos=m.end()
+              x.append(html.escape(b[pos:])); out.append('<p>'+''.join(x)+'</p>')
+            out.append('</body></html>'); return ''.join(out)
+
+          def extract(x, prefer=''):
+            vals=[]
+            def walk(v):
+              if isinstance(v,str): vals.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values(): walk(z)
+              elif isinstance(v,list):
+                for z in v: walk(z)
+            walk(x)
+            vals=[v.rstrip('.,);}') for v in vals]
+            if prefer:
+              for v in vals:
+                if prefer in v:return v
+            return vals[0] if vals else ''
+
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=40,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?colorfulcloudco\.com',r.text,re.I))
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY {name} STATUS={r.status_code} URL={r.url} HREFS={hrefs} NOINDEX={int(noindex)}')
+              if r.status_code<400 and hrefs>=5 and not noindex:return r.url
+            except Exception as e: print('VERIFY_ERR',name,repr(e))
+            return None
+
+          results=[]
+          # 1 yeet.md
+          try:
+            md=md_article(0); r=S.post('https://yeet.md/api/share',json={'content':md},timeout=45); print('YEET_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('yeet.md',extract(d,'yeet.md'))
+            if u:results.append(('Yeet.md',u))
+          except Exception as e: print('YEET_ERR',repr(e))
+
+          # 2 markdown.page
+          try:
+            md=md_article(1); r=S.post('https://markdown.page/api/publish',data=md.encode('utf-8'),headers={'Content-Type':'text/markdown','Accept':'text/plain'},timeout=45); print('MARKDOWN_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('markdown.page',extract(d,'markdown.page'))
+            if u:results.append(('Markdown.page',u))
+          except Exception as e: print('MARKDOWN_ERR',repr(e))
+
+          # 3 htmldrop.link
+          try:
+            hh=html_article(2); r=S.post('https://htmldrop.link/publish',json={'html':hh,'title':TITLES[2]},timeout=45); print('HTMLDROP_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('htmldrop.link',extract(d,'htmldrop.link'))
+            if u:results.append(('HTMLDrop',u))
+          except Exception as e: print('HTMLDROP_ERR',repr(e))
+
+          print('COLORFUL_3MORE_BEGIN')
+          for n,u in results: print(n+'\t'+u)
+          print('COLORFUL_3MORE_END')
+          print('COLORFUL_3MORE_COUNT='+str(len(results)))
+          print('COLORFUL_3MORE_JSON='+json.dumps(results,ensure_ascii=False))
+          PY
