@@ -1,0 +1,147 @@
+name: NetflixTunisie French Backlinks Batch 03
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run NetflixTunisie French backlink batch 03'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install browser tools
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Publish and verify browser French backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,requests,json,secrets,os
+          from playwright.async_api import async_playwright
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 NetflixTunisieSEO/3.0'})
+          SITE='https://netflixtunisie.com.tn/'
+          ANCHOR='Netflix Tunisie'
+          LINKS=[('Netflix Tunisie',SITE),('abonnement Netflix Tunisie',SITE),('prix Netflix Tunisie',SITE),('regarder Netflix en Tunisie',SITE),('Netflix en Tunisie',SITE)]
+          TITLES=[
+            'Netflix Tunisie : conseils pour choisir une offre selon vos habitudes',
+            'Abonnement Netflix Tunisie : mieux comparer avant de souscrire',
+            'Prix Netflix en Tunisie : guide pour maîtriser son budget streaming',
+            'Comment regarder Netflix en Tunisie avec une formule adaptée',
+            'Netflix Tunisie : nombre d’écrans et qualité vidéo à comparer',
+            'Choisir Netflix en Tunisie selon le nombre d’utilisateurs du foyer',
+            'Streaming en Tunisie : comment sélectionner une formule pratique',
+            'Netflix Tunisie : guide simple pour choisir son abonnement']
+          SECS=[
+            ('Déterminer ses besoins','Le choix d’une formule dépend d’abord du nombre d’utilisateurs, de la fréquence de visionnage et des appareils utilisés. Une personne seule n’a généralement pas les mêmes attentes qu’un foyer qui regarde plusieurs programmes en parallèle.'),
+            ('Comparer le nombre d’écrans','Le nombre d’écrans utilisés simultanément peut changer l’expérience au quotidien. Avant de choisir, il est utile d’identifier combien de personnes regardent réellement des contenus au même moment.'),
+            ('Évaluer la qualité vidéo','La résolution disponible doit être cohérente avec l’équipement et la connexion internet. Choisir une qualité supérieure n’est intéressant que si les conditions techniques permettent d’en profiter correctement.'),
+            ('Contrôler le budget','Le prix mensuel doit être comparé aux fonctionnalités réellement utilisées. Une offre simple peut suffire pour certains utilisateurs alors qu’un foyer plus actif peut avoir besoin de davantage de flexibilité.'),
+            ('Vérifier la connexion internet','Une connexion stable réduit les interruptions et les variations de qualité. C’est un point important à vérifier avant de choisir une formule destinée au streaming haute définition.'),
+            ('Tenir compte des profils','Les goûts varient entre films, séries, documentaires et programmes familiaux. Une organisation adaptée des profils rend l’utilisation plus confortable lorsque plusieurs personnes partagent le même service.'),
+            ('Lire les informations avant de payer','Les conditions, les fonctionnalités et les modalités d’utilisation doivent être consultées avant la souscription. Cela permet de choisir avec plus de clarté et d’éviter les options inutiles.'),
+            ('Conclusion','Comparer l’usage, les écrans, la qualité vidéo, la connexion et le budget permet de choisir plus facilement une solution de streaming adaptée en Tunisie.')]
+          def make(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>Pour profiter du streaming au quotidien, il est utile de choisir une formule cohérente avec son budget, ses appareils et le nombre de personnes qui utilisent le service. Quelques critères simples permettent de mieux comparer avant de souscrire.</p>']
+            secs=SECS[i:]+SECS[:i]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                extras=[f'Pour une solution destinée aux utilisateurs tunisiens, consultez <a href="{u}">{a}</a>.',f'Vous pouvez retrouver davantage d’informations sur <a href="{u}">{a}</a>.',f'Pour comparer les options disponibles, consultez <a href="{u}">{a}</a>.',f'Les utilisateurs souhaitant <a href="{u}">{a}</a> peuvent consulter les informations disponibles.',f'Pour en savoir plus sur <a href="{u}">{a}</a>, consultez le site dédié.']
+                parts.append('<p>'+extras[n]+'</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8">'+''.join(parts)+'</main></body></html>'
+          H=[make(i) for i in range(8)]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?netflixtunisie\.com\.tn',src,re.I))
+              exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          async def run():
+            out=[]
+            targets=[
+              ('Notesh','notesh.ink','https://notesh.ink/',0,['Publish','Share','Create','Generate']),
+              ('Yapp','yapp.page','https://yapp.page/',1,['Publish','Deploy','Create','Generate']),
+              ('PublishMarkdown','publishmarkdown.com','https://publishmarkdown.com/',2,['Publish','Create','Share']),
+              ('MarkdShare','markdshare.com','https://markdshare.com/',3,['Publish','Share','Create']),
+              ('PageGate','pagegate.app','https://pagegate.app/',4,['Publish','Create','Deploy','Share']),
+              ('PagePaste','pagepaste.com','https://pagepaste.com/',5,['Get my shareable link','Publish','Create']),
+              ('PagedNet','paged.net','https://paged.net/',6,['Deploy Site','Deploy','Upload']),
+              ('Fylo','fylo.host','https://fylo.host/html-viewer-online',7,['Publish & Share','Publish'])]
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True)
+              for name,domain,start,i,buttons in targets:
+                ctx=await b.new_context();p=await ctx.new_page();network=[];fn=f'/tmp/netflix3-{i}.html';open(fn,'w',encoding='utf-8').write(H[i])
+                async def capture(resp):
+                  try:
+                    if resp.request.method in ('POST','PUT'):
+                      txt=await resp.text()
+                      if 'http' in txt:network.append(txt[:10000])
+                  except:pass
+                p.on('response',capture)
+                try:
+                  await p.goto(start,wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1200);print('PAGE',name,p.url,await p.title())
+                  used=False
+                  fis=p.locator('input[type=file]')
+                  if await fis.count():
+                    for k in range(await fis.count()):
+                      try:await fis.nth(k).set_input_files(fn);used=True;print('FILE',name,k);break
+                      except:pass
+                  if not used:
+                    for sel in ['textarea:visible','[contenteditable=true]:visible','.monaco-editor textarea','textarea','[contenteditable=true]']:
+                      loc=p.locator(sel)
+                      if await loc.count():
+                        try:await loc.first.fill(H[i]);used=True;print('CONTENT',name,sel);break
+                        except:pass
+                  slug='netflix-tunisie-'+secrets.token_hex(3)
+                  for sel,val in [('input[placeholder*="title" i]',TITLES[i]),('input[name*="title" i]',TITLES[i]),('input[placeholder*="slug" i]',slug),('input[name*="slug" i]',slug),('input[placeholder*="name" i]',slug)]:
+                    loc=p.locator(sel)
+                    if await loc.count():
+                      try:await loc.first.fill(val)
+                      except:pass
+                  await p.wait_for_timeout(700);clicked=False
+                  for pat in buttons:
+                    for role in ['button','link']:
+                      loc=p.get_by_role(role,name=re.compile(pat,re.I))
+                      if await loc.count():
+                        try:await loc.first.click(timeout=8000);clicked=True;print('CLICK',name,pat);break
+                        except Exception as e:print('CLICK_ERR',name,pat,str(e)[:100])
+                    if clicked:break
+                  await p.wait_for_timeout(5500)
+                  cand=[]
+                  if ((domain in p.url) or (name=='Fylo' and 'fylo.live' in p.url)) and p.url.rstrip('/')!=start.rstrip('/'):cand.append(p.url)
+                  try:cand += await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)')
+                  except:pass
+                  try:cand += await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(v=>v && v.startsWith("http"))')
+                  except:pass
+                  try:cand += re.findall(r'https?://[^\s<>"\']+',await p.locator('body').inner_text())
+                  except:pass
+                  for t in network:cand += re.findall(r'https?://[^\s<>"\\]+',t)
+                  print('CAND',name,cand[:25]);seen=set()
+                  for u in cand:
+                    u=u.strip().rstrip('.,);]}')
+                    if u in seen:continue
+                    seen.add(u)
+                    allowed=(domain in u) or (name=='Fylo' and 'fylo.live' in u)
+                    if not allowed:continue
+                    if any(x in u for x in ['/login','/signup','/pricing','/privacy','/terms','/docs','/features','/contact']):continue
+                    v=verify(name,u)
+                    if v:out.append((name,v));break
+                except Exception as e:print('BROWSER_ERR',name,repr(e))
+                await ctx.close()
+              await b.close()
+            return out
+          res=asyncio.run(run())
+          print('NETFLIXTN3_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('NETFLIXTN3_RESULTS_END')
+          print('NETFLIXTN3_VALID_COUNT='+str(len(res)))
+          print('NETFLIXTN3_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
