@@ -1,0 +1,137 @@
+name: MommySmart English Backlinks Batch 04 New Domains
+on:
+  push:
+    branches: [ main ]
+jobs:
+  publish:
+    if: contains(github.event.head_commit.message, 'Run MommySmart backlink batch 04 new domains')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify new-domain MommySmart articles
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html,secrets
+          from urllib.parse import urlparse
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 MommySmartSEO/4.0'})
+          LINKS=[
+            ('baby products online in Egypt','https://mommysmart.net/'),
+            ('baby strollers in Egypt','https://mommysmart.net/collections/baby-transport'),
+            ('baby feeding essentials','https://mommysmart.net/collections/frontpage'),
+            ('baby diapering products','https://mommysmart.net/collections/diapering'),
+            ('baby carriers','https://mommysmart.net/collections/baby-carriers')
+          ]
+          TITLES=[
+            'A Practical Newborn Essentials Guide for Parents in Egypt',
+            'How to Choose Baby Travel Gear for Everyday Family Life',
+            'Baby Feeding and Diapering Essentials for New Parents',
+            'Smart Baby Shopping Tips for First-Time Parents in Egypt',
+            'Everyday Baby Care Products Parents Actually Need',
+            'How to Build a Simple Baby Essentials Checklist'
+          ]
+          BASE=[
+            ('Start with daily routines','The best baby shopping list begins with feeding, diaper changes, sleep, hygiene, and safe travel. Parents do not need every product at once. A smaller set of reliable essentials makes it easier to learn what the baby actually prefers and reduces unnecessary spending.'),
+            ('Choose products that are easy to clean','Baby items are used repeatedly, so washable materials and simple designs are valuable. Bottles, feeding tools, changing accessories, carriers, and travel gear should be easy to clean and maintain because convenience matters during busy newborn routines.'),
+            ('Match travel gear to real life','Strollers, car seats, and carriers should fit the family lifestyle. Parents should consider car size, apartment storage, stairs, elevators, walking distances, and how often the gear will be folded or carried before choosing a model.'),
+            ('Buy feeding products in stages','Feeding needs change quickly. Bottles, nipples, bibs, cups, bowls, and storage containers become useful at different ages, so it is often smarter to buy gradually and test products before purchasing many of the same type.'),
+            ('Keep diapering and hygiene simple','A practical setup needs diapers, wipes, a changing mat, spare clothes, and gentle care products. Keeping these items together saves time and makes it easier to maintain a consistent routine at home and during outings.'),
+            ('Focus on safety and value','A useful baby product should be suitable for the child’s age and size, easy to use correctly, durable enough for regular use, and practical for the family. Real value comes from safety and frequent use rather than from buying the largest number of products.'),
+            ('Final thoughts','Parents usually make better buying decisions when they shop around real routines instead of generic checklists. Starting with essential feeding, diapering, care, and travel products makes it easier to stay organized and add new items only when they become useful.')
+          ]
+          def article(i):
+            t=TITLES[i]
+            out=[f'<h1>{html.escape(t)}</h1>', '<p>Preparing for a baby becomes easier when parents focus on practical products that support daily life. This guide covers the essentials new parents in Egypt are most likely to use and explains how to avoid overbuying while still being ready for feeding, diapering, hygiene, and travel.</p>']
+            for n,(h,p) in enumerate(BASE):
+              out.append(f'<h2>{html.escape(h)}</h2><p>{html.escape(p)}</p>')
+              if n<5:
+                a,u=LINKS[n]
+                out.append(f'<p>For related options, explore <a href="{html.escape(u,quote=True)}">{html.escape(a)}</a> from Mommy\'s Mart.</p>')
+            return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(t)+'</title><meta name="description" content="Practical baby products and newborn essentials guide for parents in Egypt"></head><body><main style="max-width:920px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.85;color:#222">'+''.join(out)+'</main></body></html>'
+          def urls(obj):
+            out=[]
+            def walk(x):
+              if isinstance(x,str): out.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values(): walk(v)
+              elif isinstance(x,list):
+                for v in x: walk(v)
+            walk(obj);return [u.rstrip('.,);}') for u in out]
+          def pick(obj,domain):
+            us=urls(obj)
+            for u in us:
+              if domain in u:return u
+            return us[0] if us else ''
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?mommysmart\.net',r.text,re.I))
+              exact='baby products online in Egypt' in r.text
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY {name} STATUS={r.status_code} URL={r.url} HREFS={hrefs} EXACT={int(exact)} NOINDEX={int(noindex)}')
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:
+              print('VERIFY_ERR',name,repr(e));return None
+          results=[]
+          def add(name,u):
+            v=verify(name,u)
+            if v:results.append((name,v))
+          pages=[article(i) for i in range(6)]
+          # 1 Pagedrop
+          try:
+            r=S.post('https://pagedrop.dev/api/v1/sites',json={'html':pages[0],'title':TITLES[0]},timeout=50);print('PAGEDROP_POST',r.status_code,r.text[:700]);
+            try:d=r.json()
+            except:d=r.text
+            add('Pagedrop',pick(d,'pagedrop.dev'))
+          except Exception as e:print('PAGEDROP_ERR',repr(e))
+          # 2 FreeKit
+          try:
+            r=S.post('https://freekit.dev/api/v1/sites',json={'html':pages[1],'title':TITLES[1]},timeout=50);print('FREEKIT_POST',r.status_code,r.text[:700]);
+            try:d=r.json()
+            except:d=r.text
+            add('FreeKit',pick(d,'freekit.dev'))
+          except Exception as e:print('FREEKIT_ERR',repr(e))
+          # 3 PasteHTML
+          try:
+            r=S.post('https://pastehtml.com/upload/create?input_type=html&result=address',data={'txt':pages[2]},timeout=50);print('PASTEHTML_POST',r.status_code,r.text[:700]);
+            add('PasteHTML',pick(r.text,'pastehtml.com'))
+          except Exception as e:print('PASTEHTML_ERR',repr(e))
+          # 4 MeetHTML
+          try:
+            r=S.post('https://api.meethtml.com/api/v1/publish',json={'html':pages[3],'title':TITLES[3]},timeout=50);print('MEETHTML_POST',r.status_code,r.text[:700]);
+            try:d=r.json()
+            except:d=r.text
+            add('MeetHTML',pick(d,'meethtml.com'))
+          except Exception as e:print('MEETHTML_ERR',repr(e))
+          # 5 HTML-Docs
+          try:
+            r=S.post('https://www.html-docs.com/api/v1/docs',data=pages[4].encode('utf-8'),headers={'Content-Type':'text/html','x-agent-name':'MommySmart Parenting Guide'},timeout=50);print('HTMLDOCS_POST',r.status_code,r.text[:700]);
+            try:d=r.json()
+            except:d=r.text
+            add('HTML-Docs',pick(d,'html-docs.com'))
+          except Exception as e:print('HTMLDOCS_ERR',repr(e))
+          # 6 Post-Easy multiple form shapes
+          try:
+            candidates=[]
+            for payload in [
+              {'title':TITLES[5],'content':pages[5]},
+              {'title':TITLES[5],'body':pages[5]},
+              {'content':pages[5]},
+              {'html':pages[5]}
+            ]:
+              rr=S.post('https://post-easy.org/post',data=payload,timeout=45,allow_redirects=True)
+              print('POSTEASY_POST',rr.status_code,rr.url,rr.text[:300])
+              candidates += urls(rr.text)+[rr.url]
+              if rr.status_code<400:
+                for u in candidates:
+                  if 'post-easy.org' in u:
+                    v=verify('Post-Easy',u)
+                    if v:results.append(('Post-Easy',v));raise StopIteration
+          except StopIteration: pass
+          except Exception as e:print('POSTEASY_ERR',repr(e))
+          print('MOMMYSMART4_RESULTS_BEGIN')
+          for n,u in results:print(n+'\t'+u)
+          print('MOMMYSMART4_RESULTS_END')
+          print('MOMMYSMART4_VALID_COUNT='+str(len(results)))
+          print('MOMMYSMART4_RESULTS_JSON='+json.dumps(results))
+          PY
