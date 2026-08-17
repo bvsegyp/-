@@ -1,0 +1,161 @@
+name: NetflixTunisie French Backlinks Batch 02
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run NetflixTunisie French backlink batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify new French backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,os,subprocess,hashlib,secrets
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 NetflixTunisieSEO/2.0'})
+          SITE='https://netflixtunisie.com.tn/'
+          ANCHOR='Netflix Tunisie'
+          LINKS=[
+            ('Netflix Tunisie',SITE),
+            ('abonnement Netflix Tunisie',SITE),
+            ('prix Netflix Tunisie',SITE),
+            ('regarder Netflix en Tunisie',SITE),
+            ('Netflix en Tunisie',SITE)]
+          TITLES=[
+            'Netflix Tunisie : comment choisir une formule adaptée à votre budget',
+            'Abonnement Netflix en Tunisie : les points à comparer avant de choisir',
+            'Prix Netflix Tunisie : comment choisir selon votre usage quotidien',
+            'Regarder Netflix en Tunisie : conseils pour une expérience plus simple',
+            'Netflix en Tunisie : écrans, qualité vidéo et budget à comparer',
+            'Comment organiser son abonnement Netflix en Tunisie sans payer inutilement',
+            'Streaming en Tunisie : bien choisir son accès Netflix',
+            'Netflix Tunisie : guide pratique pour les utilisateurs tunisiens',
+            'Quelle offre Netflix choisir en Tunisie pour la maison',
+            'Netflix en Tunisie : critères pratiques avant de souscrire',
+            'Abonnement streaming en Tunisie : mieux comparer les options disponibles']
+          SECS=[
+            ('Définir le nombre d’utilisateurs','Avant de choisir une formule, il faut déterminer combien de personnes vont utiliser le service et à quels moments. Un usage individuel ne demande pas les mêmes options qu’un foyer où plusieurs personnes regardent des contenus différents.'),
+            ('Comparer les écrans disponibles','Le nombre d’écrans utilisés simultanément peut avoir un impact direct sur le confort. Il est utile de vérifier ce point avant de choisir afin d’éviter une formule trop limitée ou inutilement coûteuse.'),
+            ('Regarder la qualité vidéo','La qualité d’image dépend à la fois de la formule sélectionnée et de la connexion internet. Une bonne résolution est intéressante seulement si l’équipement et la connexion du foyer permettent réellement d’en profiter.'),
+            ('Évaluer le budget mensuel','Le prix doit rester cohérent avec la fréquence d’utilisation. Comparer le coût mensuel avec les fonctions réellement utilisées permet de mieux maîtriser son budget de divertissement.'),
+            ('Vérifier la stabilité de la connexion','Une connexion internet stable améliore nettement le streaming. Avant de choisir une qualité élevée, il vaut mieux vérifier la vitesse et la stabilité de la connexion utilisée au quotidien.'),
+            ('Tenir compte des habitudes du foyer','Films, séries, documentaires et programmes pour enfants peuvent être regardés par des profils très différents. Une formule adaptée doit correspondre au rythme de visionnage de l’ensemble du foyer.'),
+            ('Choisir avec des informations claires','Comparer les conditions, les options et les modalités d’utilisation permet de prendre une décision plus simple. Une présentation claire des offres aide à éviter les erreurs de choix.'),
+            ('Éviter les options inutiles','Une formule plus complète n’est pas toujours nécessaire. Il vaut mieux partir de ses besoins réels et ajouter uniquement les fonctionnalités qui apportent un avantage concret.'),
+            ('Conclusion','Pour choisir plus facilement en Tunisie, il est utile de comparer le prix, le nombre d’utilisateurs, les écrans, la qualité vidéo et la connexion internet avant de souscrire.')]
+          def make(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>Le streaming est devenu une habitude quotidienne pour de nombreux utilisateurs tunisiens. Avant de choisir une formule, il est utile de comparer le budget, les écrans disponibles, la qualité vidéo et les habitudes de visionnage du foyer.</p>']
+            secs=SECS[i%len(SECS):]+SECS[:i%len(SECS)]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                extras=[
+                  f'Pour consulter une solution destinée au marché tunisien, découvrez <a href="{u}">{html.escape(a)}</a>.',
+                  f'Vous pouvez aussi retrouver les informations utiles sur <a href="{u}">{html.escape(a)}</a>.',
+                  f'Pour comparer les différentes possibilités, consultez <a href="{u}">{html.escape(a)}</a>.',
+                  f'Les utilisateurs souhaitant <a href="{u}">{html.escape(a)}</a> peuvent consulter les options disponibles.',
+                  f'Pour en savoir plus sur <a href="{u}">{html.escape(a)}</a>, consultez le site dédié.'
+                ]
+                parts.append('<p>'+extras[n]+'</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          H=[make(i) for i in range(11)]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?netflixtunisie\.com\.tn',src,re.I))
+              exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # XDR
+          try:
+            r=S.post('https://api.xdr.no/api/v1/publish',json={'files':[{'path':'index.html','size':len(H[0].encode()),'contentType':'text/html'}]},timeout=45);print('XDR_CREATE',r.status_code,r.text[:700]);d=r.json() if r.ok else {}
+            up=d.get('uploadUrl') or (d.get('upload') or {}).get('url')
+            if up:S.put(up,data=H[0].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=45)
+            fin=d.get('finalizeUrl') or (d.get('upload') or {}).get('finalizeUrl')
+            fd={}
+            if fin:
+              fr=S.post(fin,json={'versionId':d.get('versionId') or (d.get('upload') or {}).get('versionId')},timeout=45);print('XDR_FIN',fr.status_code,fr.text[:500]);fd=fr.json() if fr.ok else {}
+            add('XDR',d.get('url') or d.get('siteUrl') or fd.get('url') or fd.get('siteUrl'))
+          except Exception as e:print('XDR_ERR',repr(e))
+          # Draftlet
+          try:
+            r=S.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','size':len(H[1].encode()),'contentType':'text/html'}]},timeout=45);print('DRAFTLET_CREATE',r.status_code,r.text[:700]);d=r.json() if r.ok else {}
+            up=d.get('uploadUrl') or (d.get('upload') or {}).get('url')
+            if up:S.put(up,data=H[1].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=45)
+            fin=d.get('finalizeUrl') or (d.get('upload') or {}).get('finalizeUrl');fd={}
+            if fin:
+              fr=S.post(fin,json={'versionId':d.get('versionId') or (d.get('upload') or {}).get('versionId')},timeout=45);print('DRAFTLET_FIN',fr.status_code,fr.text[:500]);fd=fr.json() if fr.ok else {}
+            add('Draftlet',d.get('url') or d.get('siteUrl') or fd.get('url') or fd.get('siteUrl'))
+          except Exception as e:print('DRAFTLET_ERR',repr(e))
+          # HTMLShare
+          try:
+            r=S.post('https://api.htmlshare.net/v1/publish',json={'html':H[2]},timeout=45);print('HTMLSHARE',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('HTMLShare',d.get('url',''))
+          except Exception as e:print('HTMLSHARE_ERR',repr(e))
+          # ZeroDeploy
+          try:
+            open('/tmp/netflix-zerodeploy.html','w',encoding='utf-8').write(H[3])
+            with open('/tmp/netflix-zerodeploy.html','rb') as f:r=S.post('https://api.zerodeploy.dev/drop',files={'file':('index.html',f,'text/html')},timeout=60)
+            print('ZERODEPLOY',r.status_code,r.text[:600]);d=r.json() if r.ok else {};add('ZeroDeploy',d.get('url',''))
+          except Exception as e:print('ZERODEPLOY_ERR',repr(e))
+          # Sitebin
+          try:
+            files={'files':('index.html',H[4].encode('utf-8'),'text/html')};r=S.post('https://app.sitebin.io/api/sites',files=files,timeout=60);print('SITEBIN',r.status_code,r.text[:600]);d=r.json() if r.ok else {};add('Sitebin',d.get('url') or d.get('siteUrl') or '')
+          except Exception as e:print('SITEBIN_ERR',repr(e))
+          # HT-ML
+          try:
+            r=S.post('https://api.ht-ml.app/v1/sites',json={'html_content':H[5]},timeout=45);print('HTMLAPP',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('HT-ML',d.get('url',''))
+          except Exception as e:print('HTMLAPP_ERR',repr(e))
+          # Pitchey
+          try:
+            r=S.post('https://pitchey.app/api/pages',json={'html':H[6],'ttl':'30d'},timeout=45);print('PITCHEY',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('Pitchey',d.get('url',''))
+          except Exception as e:print('PITCHEY_ERR',repr(e))
+          # Based.page CLI
+          try:
+            open('/tmp/netflix-based.html','w',encoding='utf-8').write(H[7]);slug='netflix-tunisie-'+secrets.token_hex(3)
+            p=subprocess.run(['npx','-y','based-page@latest','deploy','--file','/tmp/netflix-based.html','--slug',slug,'--title',TITLES[7]],capture_output=True,text=True,timeout=150)
+            out=(p.stdout or '')+'\n'+(p.stderr or '');print('BASED',p.returncode,out[:1000]);urls=re.findall(r'https?://[^\s"\']+',out);u=next((x.rstrip('.,);}') for x in urls if 'based.page' in x),'');add('Based.page',u)
+          except Exception as e:print('BASED_ERR',repr(e))
+          # Shipped.page
+          try:
+            r=S.post('https://ship.page/deploy',data=H[8].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=60);print('SHIPPED',r.status_code,r.text[:600]);d=r.json() if r.ok else {};add('Shipped.page',d.get('url',''))
+          except Exception as e:print('SHIPPED_ERR',repr(e))
+          # Here.now
+          try:
+            data=H[9].encode('utf-8');sha=hashlib.sha256(data).hexdigest();r=S.post('https://here.now/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html; charset=utf-8','hash':sha}]},headers={'X-HereNow-Client':'netflixtunisie/batch2'},timeout=60);print('HERE_CREATE',r.status_code,r.text[:900]);d=r.json() if r.ok else {};ups=((d.get('upload') or {}).get('uploads') or [])
+            for up in ups:
+              if up.get('url'):requests.put(up['url'],data=data,headers={'Content-Type':'text/html; charset=utf-8'},timeout=60)
+            fin=(d.get('upload') or {}).get('finalizeUrl');fd={}
+            if fin:
+              fr=S.post(fin,json={'versionId':(d.get('upload') or {}).get('versionId')},headers={'X-HereNow-Client':'netflixtunisie/batch2'},timeout=60);print('HERE_FIN',fr.status_code,fr.text[:500]);fd=fr.json() if fr.ok else {}
+            add('Here.now',d.get('siteUrl') or fd.get('siteUrl') or '')
+          except Exception as e:print('HERE_ERR',repr(e))
+          # ShipSite
+          try:
+            data=H[10].encode('utf-8');sha=hashlib.sha256(data).hexdigest();r=S.post('https://shipsite.co/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html; charset=utf-8','hash':sha}]},timeout=60);print('SHIPSITE_CREATE',r.status_code,r.text[:900]);d=r.json() if r.ok else {};ups=((d.get('upload') or {}).get('uploads') or [])
+            for up in ups:
+              if up.get('url'):requests.put(up['url'],data=data,headers={'Content-Type':'text/html; charset=utf-8'},timeout=60)
+            fin=(d.get('upload') or {}).get('finalizeUrl');fd={}
+            if fin:
+              payload={'versionId':(d.get('upload') or {}).get('versionId')}
+              if d.get('claimToken'):payload['claimToken']=d.get('claimToken')
+              fr=S.post(fin,json=payload,timeout=60);print('SHIPSITE_FIN',fr.status_code,fr.text[:500]);fd=fr.json() if fr.ok else {}
+            add('ShipSite',d.get('siteUrl') or fd.get('siteUrl') or '')
+          except Exception as e:print('SHIPSITE_ERR',repr(e))
+          print('NETFLIXTN2_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('NETFLIXTN2_RESULTS_END')
+          print('NETFLIXTN2_VALID_COUNT='+str(len(res)))
+          print('NETFLIXTN2_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
