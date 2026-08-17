@@ -1,0 +1,210 @@
+name: AlphaIPTV Global English Backlinks Batch 03C More Fresh
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run AlphaIPTV global English backlink batch 03c more fresh'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install browser tools
+        run: |
+          pip install playwright beautifulsoup4
+          python -m playwright install chromium --with-deps
+      - name: Publish and verify more fresh AlphaIPTV domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,json,os,secrets,requests
+          from playwright.async_api import async_playwright
+          SITE='https://alphaiptv.tn/'
+          ANCHOR='Legal IPTV Subscription'
+          LINKS=[('Legal IPTV Subscription',SITE),('IPTV Subscription',SITE),('Legal IPTV Service',SITE),('Worldwide IPTV Service',SITE),('IPTV Service Provider',SITE)]
+          TITLES=[
+            'Legal IPTV Subscription Checklist for Global Viewers',
+            'How to Compare IPTV Subscriptions Across Devices and Regions',
+            'IPTV Service Guide for Smart TVs, Streaming Sticks and Mobile Devices',
+            'Legal IPTV Service: What to Verify Before Paying',
+            'Worldwide IPTV Service Guide for Families and Travelers',
+            'How to Evaluate an IPTV Service Provider Responsibly']
+          SECS=[
+            ('Verify licensing and regional rights','Before paying for any IPTV service, viewers should confirm that the provider has appropriate rights for the content it distributes in the locations where the service will be used. Regional availability can vary, so published terms and independently verifiable licensing information matter.'),
+            ('Check device compatibility','Smart TVs, Android TV devices, streaming sticks, phones, tablets and computers may require different apps or setup methods. Confirming compatibility before payment helps avoid activation problems.'),
+            ('Review simultaneous connections','Households using several screens should understand how many concurrent connections are included and whether account, device or household restrictions apply.'),
+            ('Compare streaming quality realistically','Picture quality depends on the source, provider infrastructure, device performance and internet stability. HD or 4K labels should be considered together with realistic technical requirements.'),
+            ('Evaluate customer support','Clear support channels and practical response times matter when activation, compatibility or playback issues occur.'),
+            ('Compare price and plan length','The lowest price is not automatically the best value. Compare subscription length, connection limits, support, cancellation rules and refund terms.'),
+            ('Read billing and refund terms','Transparent billing, cancellation and refund policies help users understand what happens if a service does not meet expectations.'),
+            ('Consider travel restrictions','Frequent travelers should confirm whether a service is intended for use outside their home country and whether regional restrictions affect availability abroad.'),
+            ('Protect account security','Use unique passwords and avoid unknown applications, modified software or payment requests that bypass the provider official process.'),
+            ('Conclusion','A responsible IPTV comparison balances licensing, compatibility, streaming quality, connection limits, support, pricing and transparent terms.')]
+          def md(i):
+            out=[f'# {TITLES[i]}','','IPTV can provide flexible viewing across many devices, but a responsible subscription decision should consider licensing, device compatibility, connection limits, streaming quality, support and published terms before payment.','']
+            secs=SECS[i:]+SECS[:i]
+            for n,(h,p) in enumerate(secs):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n]
+                out += [f'Viewers researching a [{a}]({u}) can review Alpha IPTV as one option while independently confirming licensing, regional availability and service conditions.','']
+            return '\n'.join(out)
+          def htm(i):
+            text=md(i);parts=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b:continue
+              if b.startswith('# '):parts.append('<h1>'+html.escape(b[2:])+'</h1>');continue
+              if b.startswith('## '):parts.append('<h2>'+html.escape(b[3:])+'</h2>');continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()]));x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>');pos=m.end()
+              x.append(html.escape(b[pos:]));parts.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          M=[md(i) for i in range(6)];H=[htm(i) for i in range(6)]
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 AlphaIPTVSEO/3.2'})
+          def verify_http(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True);src=html.unescape(r.content.decode('utf-8','ignore'))
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?alphaiptv\.tn',src,re.I));exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower();robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower();noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower();print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex));return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          async def verify_browser(browser,name,u):
+            p=await browser.new_page();resp=None
+            try:
+              resp=await p.goto(u,wait_until='domcontentloaded',timeout=40000);await p.wait_for_timeout(1500);n=await p.locator('a[href*="alphaiptv.tn"]').count();content=await p.content();exact=ANCHOR.lower() in content.lower();robots=''
+              try:robots=(await p.locator('meta[name="robots"],meta[name="googlebot"]').evaluate_all("els=>els.map(e=>e.content||'').join(' ')")).lower()
+              except:pass
+              xrob=''
+              try:xrob=(await resp.all_headers()).get('x-robots-tag','').lower() if resp else ''
+              except:pass
+              noindex='noindex' in robots or 'noindex' in xrob;final=p.url;print('BVERIFY',name,final,'HREFS',n,'EXACT',int(exact),'NOINDEX',int(noindex));await p.close();return final if n>=5 and exact and not noindex else None
+            except Exception as e:print('BVERIFY_ERR',name,repr(e));
+            try:await p.close()
+            except:pass
+            return None
+          async def main():
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True);out=[]
+              # ShareMyHTML
+              try:
+                p=await b.new_page();fn='/tmp/alpha-sharemy.html';open(fn,'w',encoding='utf-8').write(H[0]);await p.goto('https://sharemyhtml.com/',wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1000);fi=p.locator('input[type=file]');
+                if await fi.count():await fi.first.set_input_files(fn)
+                for pat in ['Give It a URL','Upload','Publish']:
+                  loc=p.get_by_role('button',name=re.compile(pat,re.I))
+                  if await loc.count():
+                    try:await loc.first.click(timeout=7000);break
+                    except:pass
+                await p.wait_for_timeout(4000);cand=[]
+                if 'sharemyhtml.com/' in p.url and p.url.rstrip('/')!='https://sharemyhtml.com':cand.append(p.url)
+                try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if 'sharemyhtml.com' in x]
+                except:pass
+                try:cand += [x for x in await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)') if isinstance(x,str) and 'sharemyhtml.com' in x]
+                except:pass
+                for u in cand:
+                  if '/p/' not in u:continue
+                  v=await verify_browser(b,'ShareMyHTML',u)
+                  if v:out.append(('ShareMyHTML',v));break
+                await p.close()
+              except Exception as e:print('SHAREMY_ERR',repr(e))
+              # YourWebs
+              try:
+                p=await b.new_page();fn='/tmp/alpha-yourwebs.html';open(fn,'w',encoding='utf-8').write(H[1]);network=[]
+                async def cap(resp):
+                  try:
+                    if resp.request.method in ('POST','PUT'):
+                      t=await resp.text();network.extend(re.findall(r'https?://[^\s"\\<>]+',t))
+                  except:pass
+                p.on('response',cap);await p.goto('https://yourwebs.cc/',wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1200);fi=p.locator('input[type=file]');used=False
+                if await fi.count():
+                  try:await fi.first.set_input_files(fn);used=True
+                  except:pass
+                if not used:
+                  ta=p.locator('textarea:visible')
+                  if await ta.count():await ta.first.fill(H[1]);used=True
+                for pat in ['Publish','Deploy','Upload','Create','Generate']:
+                  loc=p.get_by_role('button',name=re.compile(pat,re.I))
+                  if await loc.count():
+                    try:await loc.first.click(timeout=7000);break
+                    except:pass
+                await p.wait_for_timeout(4500);cand=[]
+                try:cand += await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)')
+                except:pass
+                cand += network
+                for u in cand:
+                  if 'yourwebs.app' not in u:continue
+                  v=await verify_browser(b,'YourWebs',u.rstrip('.,);]}'))
+                  if v:out.append(('YourWebs',v));break
+                await p.close()
+              except Exception as e:print('YOURWEBS_ERR',repr(e))
+              # StorageBin
+              try:
+                p=await b.new_page();await p.goto('https://storagebin.link/',wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1200)
+                for txt in ['Create a Bin','Try it now']:
+                  loc=p.get_by_role('link',name=re.compile(txt,re.I))
+                  if await loc.count():
+                    try:await loc.first.click();await p.wait_for_timeout(1000);break
+                    except:pass
+                ta=p.locator('textarea:visible')
+                if await ta.count():await ta.first.fill(H[2])
+                selects=p.locator('select')
+                for j in range(await selects.count()):
+                  try:
+                    opts=await selects.nth(j).locator('option').all_text_contents()
+                    if any('html' in x.lower() for x in opts):
+                      for x in opts:
+                        if 'html' in x.lower():await selects.nth(j).select_option(label=x);break
+                  except:pass
+                for pat in ['Create a Bin','Create Bin','Save','Publish','Create']:
+                  loc=p.get_by_role('button',name=re.compile(pat,re.I))
+                  if await loc.count():
+                    try:await loc.first.click(timeout=7000);break
+                    except:pass
+                await p.wait_for_timeout(4000);cand=[]
+                if '/bin/view/' in p.url:cand.append(p.url)
+                try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if '/bin/view/' in x]
+                except:pass
+                for u in cand:
+                  v=await verify_browser(b,'StorageBin',u)
+                  if v:out.append(('StorageBin',v));break
+                await p.close()
+              except Exception as e:print('STORAGEBIN_ERR',repr(e))
+              # Markdown publishers: force markdown in textarea, not HTML file
+              for idx,(name,domain,start,buttons) in enumerate([
+                ('PublishMarkdown','publishmarkdown.com','https://publishmarkdown.com/',['Publish','Share','Create']),
+                ('MarkdShare','markdshare.com','https://markdshare.com/',['Share','Publish','Create']),
+                ('Notesh','notesh.ink','https://notesh.ink/',['Share Note','Share','Publish','Create'])],start=3):
+                try:
+                  p=await b.new_page();await p.goto(start,wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1000);ta=p.locator('textarea:visible')
+                  if await ta.count():await ta.first.fill(M[idx])
+                  else:
+                    ce=p.locator('[contenteditable=true]:visible')
+                    if await ce.count():await ce.first.fill(M[idx])
+                  for pat in buttons:
+                    loc=p.get_by_role('button',name=re.compile(pat,re.I))
+                    if await loc.count():
+                      try:await loc.first.click(timeout=7000);break
+                      except:pass
+                  await p.wait_for_timeout(4000);cand=[]
+                  if domain in p.url and p.url.rstrip('/')!=start.rstrip('/'):cand.append(p.url)
+                  try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if domain in x]
+                  except:pass
+                  try:cand += [x for x in await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)') if isinstance(x,str) and domain in x]
+                  except:pass
+                  seen=set()
+                  for u in cand:
+                    u=u.rstrip('.,);]}')
+                    if u in seen or any(x in u for x in ['/login','/register','/pricing','/privacy','/terms','/blog','/docs']):continue
+                    seen.add(u);v=await verify_browser(b,name,u)
+                    if v:out.append((name,v));break
+                  await p.close()
+                except Exception as e:print(name+'_ERR',repr(e))
+              await b.close();return out
+          out=asyncio.run(main())
+          # Verify GitHub article as an additional fresh root
+          gh='https://github.com/bvsegyp/-/blob/main/alphaiptv-guides/legal-iptv-subscription-global-guide.md';v=verify_http('GitHub',gh)
+          if v:out.append(('GitHub',v))
+          print('ALPHA3C_RESULTS_BEGIN')
+          for n,u in out:print(n+'\t'+u)
+          print('ALPHA3C_RESULTS_END')
+          print('ALPHA3C_VALID_COUNT='+str(len(out)))
+          print('ALPHA3C_RESULTS_JSON='+json.dumps(out,ensure_ascii=False))
+          PY
