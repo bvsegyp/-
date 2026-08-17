@@ -1,0 +1,60 @@
+name: NetflixTunisie French Backlink Batch 06e BotSite Upload
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run NetflixTunisie French backlink batch 06e botsite upload'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create upload and verify BotSite backlink
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,time
+          SITE='https://netflixtunisie.com.tn/'
+          title='Netflix Tunisie : choisir un abonnement adapté à son budget et ses écrans'
+          links=[('Netflix Tunisie',SITE),('abonnement Netflix en Tunisie',SITE),('prix Netflix en Tunisie',SITE),('regarder Netflix en Tunisie',SITE),('streaming Netflix en Tunisie',SITE)]
+          secs=[
+            ('Identifier les besoins du foyer','Le nombre de personnes, les horaires de visionnage et les appareils utilisés permettent de mieux définir la formule réellement nécessaire.'),
+            ('Comparer les écrans simultanés','Le nombre d’écrans utilisés au même moment doit correspondre aux habitudes réelles afin d’éviter une formule trop limitée ou inutilement coûteuse.'),
+            ('Choisir une qualité adaptée','La qualité vidéo doit rester cohérente avec les appareils disponibles et la stabilité de la connexion internet du foyer.'),
+            ('Garder un budget clair','Comparer le coût mensuel aux fonctions réellement utilisées permet de limiter les dépenses inutiles et de choisir plus sereinement.'),
+            ('Vérifier la connexion internet','Une connexion stable réduit les interruptions et les changements de résolution lorsque plusieurs appareils utilisent internet en même temps.'),
+            ('Organiser les profils','Des profils distincts facilitent les recommandations et permettent à chaque utilisateur de conserver son historique de visionnage.'),
+            ('Lire les conditions','Avant de souscrire, il est utile de vérifier les fonctions incluses et les modalités d’utilisation.'),
+            ('Conclusion','Comparer les utilisateurs, les écrans, la qualité, la connexion et le budget aide à choisir une solution de streaming adaptée en Tunisie.')]
+          parts=[f'<h1>{html.escape(title)}</h1>','<p>Le choix d’une formule de streaming en Tunisie devient plus simple lorsque les besoins réels du foyer sont comparés avant la souscription.</p>']
+          for i,(h,p) in enumerate(secs):
+            parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+            if i<5:
+              a,u=links[i];parts.append(f'<p>Pour plus de détails, consultez <a href="{u}">{html.escape(a)}</a>.</p>')
+          page='<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.85;color:#222">'+''.join(parts)+'</main></body></html>'
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 NetflixTunisieSEO/6e','X-Botsite-Client':'netflix-tunisie-seo/1.0'})
+          c=s.post('https://botsite.dev/api/v1/sites',timeout=35)
+          print('CREATE_STATUS',c.status_code)
+          d=c.json() if c.ok else {}
+          slug=d.get('subdomain') or ''
+          token=d.get('claimToken') or ''
+          live=d.get('url') or ''
+          if not slug or not token or not live:
+            print('CREATE_FAILED');print('NETFLIXTN6E_VALID_COUNT=0');raise SystemExit
+          up=s.put('https://botsite.dev/api/v1/sites/'+slug+'/files/index.html',data=page.encode('utf-8'),headers={'Authorization':'Bearer '+token,'Content-Type':'text/html'},timeout=40)
+          print('UPLOAD_STATUS',up.status_code)
+          good=''
+          for i in range(12):
+            try:
+              r=s.get(live,timeout=30,allow_redirects=True)
+              src=html.unescape(r.text)
+              hrefs=len(re.findall(r'<a[^>]+href=["\'][^"\']*netflixtunisie\.com\.tn[^"\']*["\']',src,re.I))
+              exact=bool(re.search(r'>\s*Netflix Tunisie\s*</a>',src,re.I))
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',i,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              if r.status_code<400 and hrefs>=5 and exact and not noindex:
+                good=r.url;break
+            except Exception as e:print('VERIFY_ERR',repr(e))
+            time.sleep(2)
+          print('NETFLIXTN6E_RESULT='+good)
+          print('NETFLIXTN6E_VALID_COUNT='+str(1 if good else 0))
+          PY
