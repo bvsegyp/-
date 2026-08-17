@@ -1,0 +1,193 @@
+name: MommySmart English Backlinks Batch 01
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run MommySmart backlink batch 01'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Publish and verify MommySmart articles
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html
+          from urllib.parse import urlparse
+
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 MommySmartSEO/1.0'})
+          HOME='https://mommysmart.net/'
+          STROLLERS='https://mommysmart.net/collections/baby-transport'
+          FEEDING='https://mommysmart.net/collections/frontpage'
+          DIAPERING='https://mommysmart.net/collections/diapering'
+          CARRIERS='https://mommysmart.net/collections/baby-carriers'
+
+          LINKS=[
+            ('baby products online in Egypt',HOME),
+            ('baby strollers in Egypt',STROLLERS),
+            ('baby feeding essentials',FEEDING),
+            ('baby diapering products',DIAPERING),
+            ('baby carriers',CARRIERS),
+          ]
+
+          ARTICLES=[
+          {
+            'title':'Essential Baby Products New Parents Need in Egypt',
+            'intro':"Preparing for a new baby can feel overwhelming because every store and checklist seems to recommend something different. A more practical approach is to focus on the products that support everyday routines: feeding, sleep, diaper changes, safe travel, hygiene, and comfort. Parents in Egypt also need to think about availability, climate, storage space, and how often an item will actually be used. This guide organizes the essentials into useful groups so families can shop with a clearer plan and avoid buying too many items before they understand their baby’s real needs.",
+            'sections':[
+              ('Start with the daily routine',"The easiest way to build a baby checklist is to imagine a normal day from morning to bedtime. Newborns need frequent feeding, regular diaper changes, comfortable clothing, safe sleep, and gentle cleaning. When these basic routines are covered, parents can add convenience products gradually. This prevents the common mistake of buying many specialized items that end up unused. A focused list also makes it easier to compare quality and value instead of choosing products only because they are popular or heavily advertised."),
+              ('Feeding essentials that are easy to clean',"Feeding equipment should be simple to wash, comfortable to handle, and appropriate for the baby’s stage. Bottles, nipples, cleaning brushes, sterilizing accessories, bibs, storage containers, and feeding utensils can all become part of the routine at different ages. Parents should avoid buying large quantities of one bottle style before knowing whether it suits their baby. As solids are introduced, bowls, spoons, cups, and high-chair accessories become more useful, so a flexible feeding setup is usually better than an oversized newborn-only collection."),
+              ('Diapering and changing basics',"Diapers, wipes, changing mats, barrier creams, and a simple way to organize supplies make daily changes faster. Newborns can go through many diapers each day, so it helps to keep a practical stock without overbuying one size. Parents should pay attention to fit, absorbency, and how the baby’s skin responds rather than relying only on brand reputation. A small portable changing kit is also useful for clinic visits, family outings, and travel, especially when the main supplies stay organized at home."),
+              ('Safe and convenient travel products',"Travel equipment should match how the family actually moves around. A lightweight stroller may be more useful for frequent short trips, while a larger travel system can suit families who use a car often. Car seats should be selected according to the child’s age, size, and the vehicle setup. Baby carriers can be useful for short walks and hands-free movement, but comfort and proper fit matter for both parent and baby. The best travel setup is the one that is safe, practical, and easy to use consistently."),
+              ('Body care and hygiene',"Baby skin is delicate, so a simple hygiene routine is usually enough. Gentle wipes, suitable bath products, soft towels, grooming tools, and basic skin-care items can cover most daily needs. Parents should introduce new products carefully and avoid creating a complicated routine without a reason. Practical storage also matters because keeping bath and grooming items together makes routines faster and reduces the chance of missing essential supplies when the baby needs attention."),
+              ('Buy in stages instead of all at once',"Babies grow quickly and their preferences change, so staged shopping is often more efficient. Start with the products needed for the first weeks, then add items as feeding, mobility, sleep, and play routines evolve. This approach reduces waste and leaves room for parents to learn what works best for their own child. It also helps families spread costs over time instead of purchasing every possible product before birth."),
+              ('Quality, safety and convenience matter together',"A useful baby product should be safe, durable enough for regular use, easy to clean, and realistic for the family’s routine. Expensive does not always mean better, and the cheapest option is not always the best value. Reading specifications, checking age and weight recommendations, and choosing trusted products can help parents make more confident decisions while keeping the checklist practical."),
+            ]
+          },
+          {
+            'title':'How to Choose Baby Strollers and Car Seats for Everyday Travel',
+            'intro':"Strollers and car seats are among the most important baby purchases because they affect safety, comfort, and how easy it is for parents to leave home. The right choice depends on more than appearance. Families should consider the baby’s age, the type of trips they make, vehicle space, storage at home, pavement conditions, folding size, and how often the equipment will be carried up stairs or placed in a car. This guide explains the practical points that help parents compare travel products without getting distracted by features they may never use.",
+            'sections':[
+              ('Match the stroller to your everyday environment',"A stroller that works well in a shopping mall may not be ideal for uneven streets, long walks, or frequent car travel. Wheel size, suspension, frame weight, handle height, and turning space all affect how the stroller feels in daily use. Parents who live in apartments should also measure elevators, doorways, and storage areas before buying. A compact fold can be especially valuable when trunk space is limited or the stroller needs to be carried regularly."),
+              ('Think about the baby’s age and seating position',"Newborns need suitable head, neck, and body support, while older babies need a secure seat with enough space to sit comfortably. Some travel systems include a carry cot or compatible infant car seat, while other strollers are designed mainly for babies who can sit with more stability. Parents should check manufacturer age and weight guidance instead of assuming every stroller is suitable from birth."),
+              ('Car seat safety comes before convenience',"A car seat should fit both the child and the vehicle. Parents need to check the approved weight or height range, installation method, harness design, and whether the seat can be secured correctly in the family car. A premium seat that is installed incorrectly is not a good solution. The best choice is one that can be used properly every trip and that makes it easy for parents to follow the same safe routine consistently."),
+              ('Travel systems can simplify frequent car use',"Families who drive often may benefit from a compatible stroller and infant car-seat setup because it can reduce the number of separate items needed during short trips. However, travel systems are usually heavier and larger than lightweight strollers, so parents should compare convenience against storage and lifting requirements. It is worth testing the fold, checking the trunk fit, and making sure the system is not too complicated for everyday use."),
+              ('Baby carriers are useful for short trips',"A carrier can complement a stroller rather than replace it. It is useful in crowded places, on short walks, and when parents need both hands free. Proper fit, support, and comfort are essential, and parents should follow age and positioning guidance. A carrier that is difficult to adjust may stay unused, so ease of setup matters just as much as design."),
+              ('Look for features you will actually use',"Large baskets, adjustable handles, sun canopies, washable fabrics, one-hand folding, and removable accessories can be valuable, but only when they match the family’s routine. Parents should rank features by importance before comparing models. This prevents paying extra for accessories that look impressive in a product description but add little value during normal daily travel."),
+              ('Test the complete routine before deciding',"Before buying, imagine lifting the stroller, folding it, placing it in the car, securing the child, storing bags, and repeating the process several times in one day. Products that seem convenient in a showroom can feel very different during real use. A practical trial helps parents choose equipment that supports safe, calm travel rather than creating extra work."),
+            ]
+          },
+          {
+            'title':'A Practical Baby Feeding Essentials Checklist for New Parents',
+            'intro':"Feeding is one of the most frequent parts of caring for a baby, so the right setup can save parents time every day. The useful products change as a baby grows, from early bottle or breastfeeding support to cups, spoons, bowls, food storage, and high-chair accessories. Instead of buying everything in large quantities, parents can build a feeding kit in stages and focus on products that are easy to clean, safe for the baby’s age, and convenient to use during busy routines.",
+            'sections':[
+              ('Keep the newborn setup simple',"For the early months, parents should focus on the equipment that directly supports their chosen feeding routine. Bottles, nipples, cleaning brushes, sterilizing tools, breast pads, milk-storage accessories, and bibs are common examples, but not every family needs all of them. Buying a small starting quantity makes it easier to discover what the baby accepts before investing in more of one design."),
+              ('Cleaning should be part of the buying decision',"Feeding products are washed constantly, so complicated shapes and hard-to-reach areas can create extra work. Parents should check whether bottles, cups, containers, and accessories can be disassembled easily and cleaned thoroughly. A product that looks stylish but takes too long to wash may become frustrating during night feeds or busy mornings. Simple designs often provide better long-term convenience."),
+              ('Choose nipples and bottles by stage',"Babies develop feeding skills gradually, so flow rate and bottle design should match age and individual needs. A nipple that flows too quickly can make feeding uncomfortable, while a very slow flow can create frustration. Parents should follow product guidance and observe the baby’s response. It is also sensible to avoid purchasing many bottles before confirming that the shape and flow work well for the child."),
+              ('Prepare for the transition to solid foods',"When solids begin, the feeding checklist expands to include soft spoons, bowls, cups, bibs, food containers, and a stable high chair or suitable seating option. Easy-to-clean materials become even more important because early feeding can be messy. Parents can introduce these items gradually rather than buying a complete toddler feeding set months before it is needed."),
+              ('Portable feeding products help outside the home',"A small travel kit can make clinic visits, family outings, and longer trips easier. Depending on the baby’s age, this might include bottles, formula containers, bibs, wipes, snacks, a cup, or food-storage boxes. The goal is not to carry the entire kitchen, but to keep the essentials organized and easy to reach. Compact products with secure lids are especially useful when placed inside a diaper bag."),
+              ('Avoid overbuying one product type',"Babies can be very particular about bottles, pacifiers, cups, and feeding tools. Parents often save money by testing one or two items before buying multiples. This also allows the feeding setup to change naturally as the baby grows. A flexible approach is usually more practical than trying to predict every feeding need before the baby arrives."),
+              ('Build a routine around convenience and safety',"The best feeding setup is one that parents can maintain consistently. Products should be appropriate for the child’s stage, easy to clean, simple to store, and comfortable to use. Keeping frequently used items together and preparing supplies before feeding can reduce stress, especially during the first months when routines are still developing."),
+            ]
+          },
+          {
+            'title':'Diapering and Baby Body Care Essentials for Everyday Routines',
+            'intro':"Diaper changes and basic body care happen many times a day, especially during the newborn stage. A well-organized setup can make these routines faster and more comfortable for both parent and baby. The key is not to collect a huge number of products, but to keep reliable essentials within reach and choose items that suit sensitive baby skin. This guide covers the practical products that support diapering, bathing, grooming, and on-the-go changes while keeping the routine simple.",
+            'sections':[
+              ('Create one organized changing station',"Keeping diapers, wipes, a changing mat, clean clothes, and basic skin-care products in one place saves time during frequent changes. Parents can use a small basket or organizer rather than a large piece of furniture. The goal is to make the routine safe and efficient without leaving the baby unattended while looking for supplies. A second compact kit can be useful in another room or inside the diaper bag."),
+              ('Choose diaper size by fit, not only age',"Age ranges on diaper packaging are only a guide. A good fit should feel secure without leaving deep marks or creating frequent leaks. Babies grow at different rates, so parents may need to change sizes earlier or later than expected. It is usually better to buy a manageable quantity of newborn diapers first rather than storing a very large supply of one size."),
+              ('Use wipes and skin products thoughtfully',"Baby skin can react differently to fragrances, ingredients, and frequent wiping. Parents should choose gentle products and pay attention to redness or irritation when introducing something new. Barrier creams can be useful when needed, but a complicated collection of lotions and powders is not automatically better. A simple routine makes it easier to notice which products work well for the child."),
+              ('Bath time needs only a few reliable basics',"A soft towel, gentle cleanser, suitable bath support, and a safe place to organize clothing are enough for many families. Bath products should be easy to rinse and appropriate for baby skin. Parents should prepare everything before starting because the baby should never be left alone in or near water. Keeping the setup simple also makes bath time calmer and easier to repeat consistently."),
+              ('Grooming tools should be easy to control',"Baby nail files, soft brushes, thermometers, and other small care tools can be useful, but they should be simple and comfortable for parents to handle. Many grooming tasks are easier when the baby is calm or sleeping. Parents do not need every specialized gadget immediately; a few reliable tools can cover most routine needs during the first months."),
+              ('Prepare a compact diaper bag kit',"For outings, parents can pack a small number of diapers, wipes, a foldable changing mat, spare clothes, disposable bags, and any necessary cream. Packing by category helps parents find items quickly in public places. It is worth checking and restocking the bag after each outing so it remains ready for the next trip."),
+              ('Simple routines are easier to maintain',"Baby care products should support the routine rather than make it complicated. Parents can start with trusted essentials and add products only when a real need appears. This keeps storage manageable, reduces waste, and makes it easier to understand how the baby’s skin responds to each item."),
+            ]
+          },
+          {
+            'title':'Baby Travel Essentials: Strollers, Carriers and On-the-Go Basics',
+            'intro':"Leaving home with a baby becomes easier when parents prepare a small, repeatable travel system. The most useful items depend on the baby’s age, the length of the outing, whether the family uses a car, and how much equipment can be carried comfortably. A stroller, car seat, carrier, diaper bag, feeding supplies, and a few care essentials can cover most situations. The goal is to travel safely without packing so much that every short trip feels difficult.",
+            'sections':[
+              ('Choose one primary travel method',"Some families rely on a stroller for most outings, while others use a car seat and travel system or prefer a baby carrier for shorter trips. Choosing a primary method makes it easier to decide which accessories are truly necessary. Parents can still keep a second option available, but they do not need to carry every piece of equipment on every trip."),
+              ('A stroller should be easy to manage repeatedly',"Parents often focus on how a stroller looks, but daily convenience comes from folding, steering, lifting, cleaning, and storage. A model that folds easily and fits in the car or home storage area may be more useful than a heavier option with extra features. Wheel quality, canopy coverage, basket size, and seat support are also worth comparing according to the family’s normal routes."),
+              ('Use the car seat correctly every time',"Car seats should be selected for the child’s size and installed according to manufacturer instructions. Parents should understand how the harness works and check the fit before each trip. Convenience features can be helpful, but correct installation and consistent use are more important. Families who move the seat between cars should make sure the installation process is practical and can be repeated safely."),
+              ('Carriers can reduce the amount of gear',"A comfortable baby carrier can be especially useful in crowded areas, on stairs, or during short errands where a stroller may be inconvenient. Parents should choose a carrier that supports the baby appropriately and can be adjusted to fit the adult comfortably. Practicing at home before a long outing can make the first trips much easier."),
+              ('Pack the diaper bag by routine',"A practical diaper bag does not need to be overloaded. Diapers, wipes, spare clothes, a changing mat, feeding supplies, and a small care kit can cover most short outings. Parents can use small pouches to separate categories and make items easier to find. The bag should be checked after returning home so used supplies are replaced before the next trip."),
+              ('Plan feeding away from home',"Depending on the baby’s age and feeding method, parents may need bottles, milk-storage items, formula containers, bibs, cups, snacks, or food containers. Keeping only the amount needed for the expected outing reduces weight and clutter. Secure lids and easy-to-clean materials are especially important for travel because spills can quickly make a diaper bag difficult to manage."),
+              ('Prepare for weather and unexpected delays',"A light blanket, sun protection, extra clothing, and a little more feeding or diapering supply than the minimum can be useful when plans change. Parents should balance preparation with portability. A well-organized small kit is usually more effective than carrying multiple bags filled with items that are unlikely to be used."),
+            ]
+          }
+          ]
+
+          def md_article(a):
+            out=[f"# {a['title']}",'',a['intro'],'']
+            for i,(h,p) in enumerate(a['sections']):
+              out += [f'## {h}','',p,'']
+              if i < 5:
+                text,url=LINKS[i]
+                out += [f"For related options, explore [{text}]({url}) from Mommy's Mart.",'']
+            out += ['## Final thoughts','',"Parents usually get better value when they buy around real routines instead of collecting every product at once. Start with safety, comfort, easy cleaning, and products that match the baby’s current stage. As routines become clearer, it is easier to add new items with confidence and avoid unnecessary purchases."]
+            return '\n'.join(out)
+
+          def telegraph(md,title):
+            acc=S.post('https://api.telegra.ph/createAccount',data={'short_name':'MommySmart','author_name':'Parenting Essentials Guide'},timeout=25).json()
+            tok=(acc.get('result') or {}).get('access_token','')
+            nodes=[]
+            for block in re.split(r'\n\s*\n',md):
+              block=block.strip()
+              if not block: continue
+              tag='p'; txt=block
+              if block.startswith('# '): tag='h3'; txt=block[2:]
+              elif block.startswith('## '): tag='h4'; txt=block[3:]
+              ch=[];pos=0
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',txt):
+                if m.start()>pos: ch.append(txt[pos:m.start()])
+                ch.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]}); pos=m.end()
+              if pos<len(txt): ch.append(txt[pos:])
+              nodes.append({'tag':tag,'children':ch})
+            d=S.post('https://api.telegra.ph/createPage',data={'access_token':tok,'title':title,'content':json.dumps(nodes,ensure_ascii=False),'return_content':'false'},timeout=30).json()
+            p=(d.get('result') or {}).get('path','')
+            return 'https://telegra.ph/'+p if p else ''
+
+          def extract(d,domain):
+            vals=[]
+            def walk(v):
+              if isinstance(v,str): vals.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():walk(z)
+              elif isinstance(v,list):
+                for z in v:walk(z)
+            walk(d)
+            vals=[v.rstrip('.,);}') for v in vals]
+            for v in vals:
+              if domain in v:return v
+            return vals[0] if vals else ''
+
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=40,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?mommysmart\.net',r.text,re.I))
+              exact=('baby products online in Egypt' in r.text)
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY {name} STATUS={r.status_code} URL={r.url} HREFS={hrefs} EXACT={int(exact)} NOINDEX={int(noindex)}')
+              if r.status_code<400 and hrefs>=5 and exact and not noindex:return r.url
+            except Exception as e: print('VERIFY_ERR',name,repr(e))
+            return None
+
+          mds=[md_article(a) for a in ARTICLES]
+          for i,m in enumerate(mds,1): print('ARTICLE',i,'WORDS',len(m.split()),'LINKS',m.count('mommysmart.net'))
+          results=[]
+
+          try:
+            u=telegraph(mds[0],ARTICLES[0]['title']); v=verify('Telegra.ph',u)
+            if v:results.append(('Telegra.ph',v))
+          except Exception as e:print('TELE_ERR',repr(e))
+
+          try:
+            r=S.post('https://draftmark.app/api/v1/docs',json={'content':mds[1],'visibility':'public'},timeout=45); print('DRAFTMARK_POST',r.status_code,r.text[:500]); d=r.json() if r.ok else {}; u=extract(d,'draftmark.app'); v=verify('Draftmark',u)
+            if v:results.append(('Draftmark',v))
+          except Exception as e:print('DRAFTMARK_ERR',repr(e))
+
+          try:
+            r=S.post('https://quicky.page/api/v1/publish',json={'title':ARTICLES[2]['title'],'content':mds[2]},timeout=45); print('QUICKY_POST',r.status_code,r.text[:500]); d=r.json() if r.ok else {}; u=extract(d,'quicky.page'); v=verify('Quicky.page',u)
+            if v:results.append(('Quicky.page',v))
+          except Exception as e:print('QUICKY_ERR',repr(e))
+
+          try:
+            r=S.post('https://output.pub/api/publish',json={'content':mds[3],'format':'markdown'},timeout=45); print('OUTPUT_POST',r.status_code,r.text[:500]); d=r.json() if r.ok else {}; u=extract(d,'output.pub'); v=verify('Output.pub',u)
+            if v:results.append(('Output.pub',v))
+          except Exception as e:print('OUTPUT_ERR',repr(e))
+
+          try:
+            r=S.post('https://leafmill.net/api/v1/publish',json={'title':ARTICLES[4]['title'],'body':mds[4]},timeout=45); print('LEAF_POST',r.status_code,r.text[:500]); d=r.json() if r.ok else {}; u=extract(d,'leafmill.net'); v=verify('Leafmill',u)
+            if v:results.append(('Leafmill',v))
+          except Exception as e:print('LEAF_ERR',repr(e))
+
+          print('MOMMYSMART_RESULTS_BEGIN')
+          for n,u in results:print(n+'\t'+u)
+          print('MOMMYSMART_RESULTS_END')
+          print('MOMMYSMART_VALID_COUNT='+str(len(results)))
+          print('MOMMYSMART_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          PY
