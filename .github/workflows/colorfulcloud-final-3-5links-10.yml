@@ -1,0 +1,75 @@
+name: Colorful Cloud Final 3 Five-Link Articles 10
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run Colorful Cloud final 3 five-link articles'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish three backlink articles
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 ColorfulCloudSEO/10.0'})
+          links=[('أفضل شركة تنظيف في الرياض','https://colorfulcloudco.com/شركة-تنظيف-منازل-في-الرياض/'),('خدمات غيمة ملونة','https://colorfulcloudco.com/خدماتنا/'),('شركة غيمة ملونة','https://colorfulcloudco.com/'),('تنظيف بعد التشطيب بالرياض','https://colorfulcloudco.com/شركة-تنظيف-بعد-التشطيب-الرياض/'),('تواصل مع غيمة ملونة','https://colorfulcloudco.com/اتصل-بنا/')]
+          titles=['معايير اختيار أفضل شركة تنظيف في الرياض','تنظيف المنازل والفلل في الرياض بخطوات احترافية','دليل خدمات تنظيف الشقق والمنازل في الرياض']
+          sections=[('جودة التنفيذ أهم من السعر وحده','عند اختيار شركة تنظيف يجب مقارنة مستوى التنفيذ وخبرة الفريق ونوعية المعدات والمواد المستخدمة، لأن السعر المنخفض وحده لا يضمن نتيجة مستقرة. وضوح تفاصيل الخدمة قبل الحجز يساعد العميل على معرفة ما سيحصل عليه ويقلل أي اختلاف في التوقعات.'),('تنظيف المنازل يحتاج تنظيمًا','تقسيم المنزل إلى مناطق عمل وتحديد الأولويات مثل المطابخ والحمامات والمجالس والغرف يجعل التنفيذ أكثر كفاءة. التنظيم الجيد يقلل تكرار الخطوات ويساعد على مراجعة التفاصيل قبل انتهاء الخدمة.'),('التعامل الصحيح مع الأسطح','الرخام والخشب والزجاج والسيراميك والأقمشة تحتاج إلى مواد وأساليب مختلفة. اختيار المنتج المناسب لكل سطح يحافظ على مظهره ويقلل احتمالات التلف أو تغير اللون.'),('تنظيف ما بعد التشطيب','بعد التشطيب تكون الأتربة الدقيقة وبقايا الدهانات والمواد منتشرة في الزوايا والنوافذ والأرضيات. هذه المرحلة تحتاج معدات مناسبة وخبرة في إزالة البقايا دون الإضرار بالأسطح الجديدة.'),('التواصل قبل موعد الخدمة','تحديد مساحة المكان ونوع الخدمة والمناطق التي تحتاج عناية خاصة يساعد الشركة على تجهيز الفريق والمعدات المناسبة. كما يفضل التأكد من السعر والمدة وموعد الوصول قبل تأكيد الحجز.'),('الخلاصة','اختيار شركة تنظيف مناسبة في الرياض يعتمد على التنظيم والخبرة والمعدات وخدمة العملاء. عندما تكون كل التفاصيل واضحة قبل التنفيذ يصبح الوصول إلى نتيجة جيدة أكثر سهولة وراحة.')]
+          def md(i):
+            out=[f'# {titles[i]}','']
+            for n,(h,p) in enumerate(sections):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=links[n];out += [f'راجع [{a}]({u}) لمعرفة المزيد عن الخدمة والتفاصيل المرتبطة بها.','']
+            return '\n'.join(out)
+          def verify(n,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=40,allow_redirects=True);hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?colorfulcloudco\.com',r.text,re.I));noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I));print('VERIFY',n,r.status_code,r.url,'HREFS',hrefs,'NOINDEX',int(noindex));return r.url if r.status_code<400 and hrefs>=5 and not noindex else None
+            except Exception as e:print('VERIFY_ERR',n,repr(e));return None
+          def ex(x,need):
+            vals=[]
+            def w(v):
+              if isinstance(v,str):vals.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():w(z)
+              elif isinstance(v,list):
+                for z in v:w(z)
+            w(x);vals=[v.rstrip('.,);}') for v in vals]
+            for v in vals:
+              if need in v:return v
+            return vals[0] if vals else ''
+          res=[]
+          # Unmarkdown
+          try:
+            r=S.post('https://api.unmarkdown.com/v1/demo/publish',json={'title':titles[0],'content':md(0),'template_id':'github'},timeout=45);print('UNMARKDOWN_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('Unmarkdown',ex(d,'unmarkdown.com'))
+            if u:res.append(('Unmarkdown',u))
+          except Exception as e:print('UNMARKDOWN_ERR',repr(e))
+          # MDView
+          try:
+            r=S.post('https://mdview.io/api/public/publish',json={'title':titles[1],'content':md(1),'expiresInDays':30},timeout=45);print('MDVIEW_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('MDView',ex(d,'mdview.io'))
+            if u:res.append(('MDView',u))
+          except Exception as e:print('MDVIEW_ERR',repr(e))
+          # Quicky
+          try:
+            r=S.post('https://quicky.page/api/v1/publish',json={'title':titles[2],'content':md(2)},timeout=45);print('QUICKY_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('Quicky.page',ex(d,'quicky.page'))
+            if u:res.append(('Quicky.page',u))
+          except Exception as e:print('QUICKY_ERR',repr(e))
+          print('FINAL3_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('FINAL3_END')
+          print('FINAL3_COUNT='+str(len(res)))
+          print('FINAL3_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
