@@ -1,0 +1,166 @@
+name: DermaArt Islam Backlinks Batch 02 New Domains
+on:
+  push:
+    branches: [ main ]
+jobs:
+  publish:
+    if: contains(github.event.head_commit.message, 'Run DermaArt Islam backlink batch 02')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Install parser
+        run: pip install beautifulsoup4
+      - name: Publish and verify new DermaArt domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html,hashlib
+          from urllib.parse import urljoin
+          from bs4 import BeautifulSoup
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/2.0'})
+          LINKS=[
+            ('أفضل دكتورة تجميل في الرياض','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('عيادة ديرما آرت للتجميل','https://dermaart-sa.com/'),
+            ('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),
+            ('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          TITLES=[
+            'كيف تختارين طبيبة تجميل في الرياض لنتائج طبيعية ومدروسة',
+            'دليل العناية بالبشرة والتجميل غير الجراحي في الرياض',
+            'الفيلر والبوتوكس والليزر: كيف تبدأ الاستشارة الصحيحة',
+            'اختيار دكتورة جلدية وتجميل وليزر في الرياض بخطوات واضحة',
+            'لماذا يبدأ التجميل الناجح بتقييم البشرة والملامح',
+            'دليل النتائج الطبيعية في الفيلر والبوتوكس والعناية بالبشرة',
+            'كيف تختارين خطة تجميل مناسبة بدل اتباع الإجراءات الرائجة',
+            'العناية بالبشرة والليزر والتجميل: ما الذي يسبق الجلسة',
+            'متى تحتاجين إلى استشارة تجميل متخصصة في الرياض']
+          SEC=[
+            ('التشخيص هو البداية','الخطة التجميلية الجيدة تبدأ بتقييم البشرة والملامح وحركة العضلات والهدف المطلوب، وليس بمجرد اختيار اسم إجراء شائع. معرفة المشكلة الأساسية تساعد على تحديد ما إذا كانت الحالة تحتاج إلى عناية بالبشرة أو ليزر أو بوتوكس أو فيلر أو مزيج مدروس من أكثر من خيار.'),
+            ('النتيجة الطبيعية تحتاج إلى خطة مخصصة','توزيع الحجم وشكل الوجه ونوعية البشرة يختلف من شخص لآخر، لذلك لا توجد جرعة أو تقنية واحدة تناسب الجميع. التدرج في الإجراءات ومراجعة النتيجة بعد كل مرحلة يساعدان على الحفاظ على التوازن وتجنب المبالغة.'),
+            ('صحة البشرة تؤثر في الشكل النهائي','حتى عند التفكير في الفيلر أو البوتوكس، تبقى جودة البشرة وترطيبها وعلاج التصبغات والملمس عوامل مهمة. أحيانًا يكون تحسين البشرة أولًا هو الخطوة التي تعطي نتيجة أكثر انسجامًا قبل الانتقال إلى إجراءات أخرى.'),
+            ('افهمي الفرق بين الفيلر والبوتوكس','البوتوكس يرتبط غالبًا بحركة العضلات والتجاعيد التعبيرية، بينما يستخدم الفيلر لدعم أو إضافة حجم في مناطق محددة وفق تقييم الحالة. الاختيار بينهما يجب أن يعتمد على السبب الحقيقي للمشكلة وليس على انتشار الإجراء.'),
+            ('الليزر يحتاج إلى اختيار مناسب للحالة','تقنيات الليزر ليست خدمة واحدة، فاختيار التقنية يعتمد على نوع البشرة والمشكلة المراد علاجها والنتيجة المتوقعة. التقييم المسبق مهم خصوصًا عند التعامل مع التصبغات أو آثار البشرة أو إزالة الشعر أو تحسين الملمس.'),
+            ('اسألي عن البدائل والمتابعة','الاستشارة الواضحة تتضمن مناقشة البدائل والنتائج المتوقعة والمدة والتعليمات بعد الجلسة. كما أن المتابعة تساعد على تقييم الاستجابة في الوقت المناسب وتعديل الخطة بدل تكرار الإجراء دون مراجعة.'),
+            ('اختاري على أساس التخصص والخطة','عند مقارنة خيارات التجميل في الرياض، ركزي على التخصص وطريقة التقييم ووضوح الخطة أكثر من التركيز على السعر أو اسم إجراء بعينه. القرار الأفضل هو الذي يوازن بين احتياج الحالة والنتيجة الواقعية والمتابعة.')]
+          def md(i):
+            out=[f'# {TITLES[i]}','', 'عند البحث عن رعاية تجميلية في الرياض، من الأفضل البدء بفهم احتياج البشرة والملامح قبل اختيار أي جلسة. هذا الدليل يوضح نقاطًا عملية تساعد على اتخاذ قرار مدروس في الجلدية والتجميل والليزر مع التركيز على النتائج المتوازنة والطبيعية.','']
+            for n,(h,p) in enumerate(SEC):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n]
+                if n==0: out += [f'لمن تبحث عن [{a}]({u}) يمكن الاطلاع على صفحة د. إسلام اللبودي والتعرف على مجال عملها وخيارات الاستشارة.','']
+                else: out += [f'للمزيد من التفاصيل يمكن زيارة [{a}]({u}).','']
+            out += ['## الخلاصة','','القرار التجميلي الأفضل يبدأ بتقييم واضح وتوقعات واقعية وخطة تناسب الحالة نفسها. الجمع بين صحة البشرة وفهم الملامح والمتابعة بعد الجلسات يساعد على الوصول إلى نتيجة أكثر اتزانًا على المدى الطويل.']
+            return '\n'.join(out)
+          def to_html(text,title):
+            blocks=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b: continue
+              if b.startswith('# '): blocks.append('<h1>'+html.escape(b[2:])+'</h1>'); continue
+              if b.startswith('## '): blocks.append('<h2>'+html.escape(b[3:])+'</h2>'); continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()]));x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>');pos=m.end()
+              x.append(html.escape(b[pos:]));blocks.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:0 24px;font-family:Arial,Tahoma,sans-serif;line-height:2;color:#222">'+''.join(blocks)+'</main></body></html>'
+          def extract(obj,domains=()):
+            vals=[]
+            def w(x):
+              if isinstance(x,str): vals.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values(): w(v)
+              elif isinstance(x,list):
+                for v in x: w(v)
+            w(obj); vals=[v.rstrip('.,);}') for v in vals]
+            for d in domains:
+              for v in vals:
+                if d in v:return v
+            return vals[0] if vals else ''
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?dermaart-sa\.com',r.text,re.I))
+              exact='أفضل دكتورة تجميل في الرياض' in r.text
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e: print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          M=[md(i) for i in range(9)];H=[to_html(M[i],TITLES[i]) for i in range(9)]
+          try:
+            r=S.post('https://ship.page/deploy',data=H[0].encode(),headers={'Content-Type':'text/html; charset=utf-8'},timeout=60);print('SHIPPED_POST',r.status_code,r.text[:300]);
+            try:d=r.json()
+            except:d=r.text
+            add('Shipped.page',extract(d,('shipped.page','ship.page')))
+          except Exception as e:print('SHIPPED_ERR',repr(e))
+          try:
+            r=S.post('https://aired.sh/api/publish',json={'html':H[1]},timeout=50);print('AIRED_POST',r.status_code,r.text[:300]);
+            try:d=r.json()
+            except:d=r.text
+            add('AirED',extract(d,('aired.sh',)))
+          except Exception as e:print('AIRED_ERR',repr(e))
+          try:
+            r=S.post('https://yeetit.site/v1/publish',json={'html':H[2],'title':TITLES[2]},timeout=55);print('YEETIT_POST',r.status_code,r.text[:300]);
+            try:d=r.json()
+            except:d=r.text
+            add('YeetIt',extract(d,('yeetit.site',)))
+          except Exception as e:print('YEETIT_ERR',repr(e))
+          try:
+            home=S.get('https://yourwebs.cc/',timeout=40);soup=BeautifulSoup(home.text,'html.parser')
+            for f in soup.find_all('form'):
+              action=urljoin(home.url,f.get('action') or home.url);method=(f.get('method') or 'post').lower()
+              if method!='post':continue
+              data={};files={}
+              for el in f.find_all(['input','textarea']):
+                n=el.get('name');typ=(el.get('type') or '').lower()
+                if not n or typ in ('submit','button'):continue
+                if typ=='file':files[n]=('riyadh-cosmetic-guide.html',H[3],'text/html')
+                elif 'title' in n.lower() or n.lower()=='name':data[n]=TITLES[3]
+                elif any(k in n.lower() for k in ('html','content','code','text')):data[n]=H[3]
+                else:data[n]=el.get('value','')
+              if not files and H[3] not in data.values():continue
+              rr=S.post(action,data=data,files=files or None,timeout=55,allow_redirects=True);print('YOURWEBS_FORM',rr.status_code,rr.url)
+              cand=extract(rr.text,('yourwebs.app','yourwebs.cc')) or (rr.url if rr.url!=action else '')
+              v=verify('YourWebs',cand)
+              if v:res.append(('YourWebs',v));break
+          except Exception as e:print('YOURWEBS_ERR',repr(e))
+          try:
+            r=S.post('https://thethings.ai/api/scratch/publish',json={'content':H[4],'content_type':'text/html','title':TITLES[4],'summary':'دليل عملي للعناية بالبشرة والتجميل في الرياض'},timeout=50);print('THETHINGS_POST',r.status_code,r.text[:300]);
+            try:d=r.json()
+            except:d=r.text
+            add('TheThings.ai',extract(d,('thethings.ai',)))
+          except Exception as e:print('THETHINGS_ERR',repr(e))
+          try:
+            b=H[5].encode();rr=S.post('https://shipsite.co/api/v1/publish',json={'files':[{'path':'index.html','size':len(b),'contentType':'text/html'}],'viewer':{'title':TITLES[5],'description':'دليل تجميل وعناية بالبشرة'}},timeout=45);print('SHIPSITE_CREATE',rr.status_code,rr.text[:300]);c=rr.json();ups=((c.get('upload') or {}).get('uploads') or []);up=next((x for x in ups if x.get('path')=='index.html'),None)
+            if up:
+              requests.put(up['url'],data=b,headers={'Content-Type':'text/html'},timeout=45);f=S.post((c.get('upload') or {}).get('finalizeUrl'),json={'versionId':(c.get('upload') or {}).get('versionId'),'claimToken':c.get('claimToken')},timeout=45);add('ShipSite',extract(f.json(),('shipsite.co',)) or c.get('siteUrl',''))
+          except Exception as e:print('SHIPSITE_ERR',repr(e))
+          try:
+            r=S.post('https://pubmark.site/api/documents',json={'title':TITLES[6]},timeout=35);print('PUBMARK_CREATE',r.status_code,r.text[:300]);d=r.json();sid=d.get('secretId');u=''
+            if sid:
+              S.put('https://pubmark.site/api/documents/'+sid,json={'content':M[6],'title':TITLES[6],'theme':'clean','colorPreset':'blue'},timeout=35);p=S.post('https://pubmark.site/api/documents/'+sid+'/publish',json={},timeout=35);slug=(p.json() if p.ok else {}).get('slug');u='https://pubmark.site/p/'+slug if slug else ''
+            add('Pubmark',u)
+          except Exception as e:print('PUBMARK_ERR',repr(e))
+          try:
+            b=H[7].encode();sha=hashlib.sha256(b).hexdigest();d=S.post('https://here.now/api/v1/publish',headers={'X-HereNow-Client':'chatgpt/direct-api','Content-Type':'application/json'},json={'files':[{'path':'index.html','size':len(b),'contentType':'text/html; charset=utf-8','hash':sha}],'viewer':{'title':TITLES[7]}},timeout=45).json();site=d.get('siteUrl','');up=d.get('upload') or {};ups=up.get('uploads') or []
+            if ups:requests.put(ups[0]['url'],data=b,headers=ups[0].get('headers') or {'Content-Type':'text/html; charset=utf-8'},timeout=45)
+            if up.get('finalizeUrl') and up.get('versionId'):S.post(up['finalizeUrl'],json={'versionId':up['versionId']},timeout=35)
+            add('Here.now',site)
+          except Exception as e:print('HERENOW_ERR',repr(e))
+          try:
+            r=S.post('https://lfdekutkxwsczpasjgsg.supabase.co/functions/v1/create-share',json={'content':M[8],'title':TITLES[8],'language':'markdown','content_type':'text','expiration':'1M','exposure':'public','source':'api'},timeout=40);print('PASTEBOX_POST',r.status_code,r.text[:300]);
+            try:d=r.json()
+            except:d=r.text
+            add('Pastebox',extract(d,('pastebox.ai',)))
+          except Exception as e:print('PASTEBOX_ERR',repr(e))
+          print('DERMAART2_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('DERMAART2_RESULTS_END')
+          print('DERMAART2_VALID_COUNT='+str(len(res)))
+          print('DERMAART2_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
