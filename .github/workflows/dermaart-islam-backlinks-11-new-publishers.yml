@@ -1,0 +1,193 @@
+name: DermaArt Islam Backlinks Batch 11 New Publishers
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run DermaArt Islam backlink batch 11'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Install browser tools
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Publish and verify new publishers
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,requests,json,secrets
+          from playwright.async_api import async_playwright
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/11.0'})
+          ANCHOR='أفضل دكتورة تجميل في الرياض'
+          LINKS=[
+            (ANCHOR,'https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('ديرما آرت الرياض','https://dermaart-sa.com/'),
+            ('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),
+            ('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          TITLES=[
+            'دليل اختيار طبيبة تجميل في الرياض بخطة واضحة ومتدرجة',
+            'كيف ترتبين أولويات العناية بالبشرة قبل إجراءات التجميل',
+            'الفيلر والبوتوكس والليزر: كيف تختارين ما يناسب حالتك',
+            'خطوات تساعدك على الوصول إلى نتيجة تجميل طبيعية',
+            'متى تحتاج البشرة إلى علاج قبل بدء جلسات التجميل',
+            'استشارة التجميل في الرياض: ما الذي يجب مناقشته قبل الجلسة']
+          SECS=[
+            ('ابدئي من سبب المشكلة','قد يكون الانزعاج مرتبطًا بالملمس أو التصبغات أو الحبوب أو التجاعيد التعبيرية أو فقدان الحجم. تحديد السبب يسبق اختيار اسم الإجراء، لأن الجلسة المناسبة تختلف باختلاف المشكلة الأساسية.'),
+            ('التشخيص يقلل الخطوات غير الضرورية','فحص البشرة والملامح والتاريخ الصحي والتوقعات يساعد على استبعاد خيارات لا تحتاجها الحالة. الخطة الجيدة لا تجمع الخدمات لمجرد توفرها، بل ترتبها حسب الأولوية والاستجابة.'),
+            ('البشرة الصحية أساس مهم','الترطيب والملمس والتصبغات والحبوب وآثارها قد تؤثر في النتيجة أكثر من أي تغيير في الحجم. لذلك قد يبدأ المسار بعلاج جلدي أو جلسات بشرة أو ليزر قبل الانتقال إلى إجراءات أخرى.'),
+            ('الفيلر والبوتوكس ليسا نفس الشيء','البوتوكس يرتبط عادة بحركة العضلات والتجاعيد التعبيرية، بينما يستخدم الفيلر لدعم أو إضافة حجم في مناطق محددة. معرفة سبب المشكلة هي التي تحدد إن كان أحدهما مناسبًا أو أن الأفضل خيار مختلف.'),
+            ('التدرج يحافظ على التناسق','البدء بخطوات محسوبة ثم تقييم النتيجة قبل إضافة إجراء آخر يساعد على الحفاظ على ملامح طبيعية. الجرعات والتقنيات يجب أن تتناسب مع الوجه نفسه لا مع صورة أو نتيجة لشخص آخر.'),
+            ('فهم الليزر يحتاج إلى تقييم','تختلف تقنيات الليزر حسب الهدف ونوع البشرة ودرجة المشكلة. بعض الحالات تحتاج إلى أكثر من جلسة أو إلى علاج تمهيدي، ولهذا لا يمكن اختيار التقنية المناسبة اعتمادًا على اسمها فقط.'),
+            ('المتابعة جزء من العلاج','معرفة تعليمات ما بعد الجلسة وموعد التقييم تساعد على الحكم على النتيجة في الوقت الصحيح. المتابعة تمنع التسرع في تكرار الإجراء قبل اكتمال الاستجابة.'),
+            ('وضوح التوقعات مهم','الاستشارة الجيدة تشرح النتيجة الواقعية والمدة وفترة التعافي والبدائل. كلما كانت هذه النقاط واضحة أصبح القرار أكثر وعيًا وارتباطًا بالاحتياج الحقيقي.'),
+            ('الخلاصة','التجميل الطبي المتوازن يعتمد على التشخيص وصحة البشرة والتدرج والمتابعة. الخطة المخصصة أفضل من الاعتماد على إجراء رائج أو حل واحد لكل الحالات.')]
+          def make_html(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>اختيار الإجراء التجميلي لا يبدأ من اسم الخدمة، بل من فهم البشرة والملامح والهدف المطلوب. الاستشارة المتخصصة تساعد على ترتيب الأولويات ووضع خطة متدرجة بدل تنفيذ جلسات منفصلة دون رابط واضح بينها.</p>']
+            secs=SECS[i:]+SECS[:i]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                if n==0: extra=f'لمن تبحث عن <a href="{u}">{html.escape(a)}</a> يمكن الاطلاع على صفحة د. إسلام اللبودي والتعرف على مجالها وخيارات الاستشارة.'
+                else: extra=f'للمزيد من المعلومات يمكن زيارة <a href="{u}">{html.escape(a)}</a>.'
+                parts.append('<p>'+extra+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,Tahoma,sans-serif;line-height:2;color:#222">'+''.join(parts)+'</main></body></html>'
+          def make_md(i):
+            out=[f'# {TITLES[i]}','','اختيار الإجراء التجميلي لا يبدأ من اسم الخدمة، بل من فهم البشرة والملامح والهدف المطلوب. الاستشارة المتخصصة تساعد على ترتيب الأولويات ووضع خطة متدرجة بدل تنفيذ جلسات منفصلة دون رابط واضح بينها.','']
+            secs=SECS[i:]+SECS[:i]
+            for n,(h,p) in enumerate(secs):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n]
+                out += [(f'لمن تبحث عن [{a}]({u}) يمكن الاطلاع على صفحة د. إسلام اللبودي والتعرف على مجالها وخيارات الاستشارة.' if n==0 else f'للمزيد من المعلومات يمكن زيارة [{a}]({u}).'),'']
+            return '\n'.join(out)
+          H=[make_html(i) for i in range(6)];M=[make_md(i) for i in range(6)]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?dermaart-sa\.com',src,re.I))
+              exact=ANCHOR in re.sub(r'<[^>]+>',' ',src)
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # Aired permanent anonymous publish
+          try:
+            r=S.post('https://aired.sh/api/publish',json={'html':H[0],'title':TITLES[0],'permanent':True},timeout=50);print('AIRED',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('Aired',d.get('url',''))
+          except Exception as e:print('AIRED_ERR',repr(e))
+          # thethings.ai permanent anonymous scratch page
+          try:
+            r=S.post('https://thethings.ai/api/scratch/publish',json={'content':H[1],'content_type':'text/html','title':TITLES[1],'summary':'دليل عربي عن العناية بالبشرة والتجميل في الرياض'},timeout=50);print('THETHINGS',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('TheThings.ai',d.get('url',''))
+          except Exception as e:print('THETHINGS_ERR',repr(e))
+          # HTML Docs anonymous raw HTML
+          try:
+            r=S.post('https://www.html-docs.com/api/v1/docs',data=H[2].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8','x-agent-name':'DermaArt SEO'},timeout=50);print('HTMLDOCS',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('HTML Docs',d.get('url',''))
+          except Exception as e:print('HTMLDOCS_ERR',repr(e))
+          # ShipPage current indexable public mode
+          try:
+            r=S.post('https://shippage.ai/v1/publish',json={'html':H[3],'title':TITLES[3],'public':True},timeout=50);print('SHIPPAGE',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('ShipPage',d.get('url',''))
+          except Exception as e:print('SHIPPAGE_ERR',repr(e))
+          async def browser_sites():
+            out=[]
+            targets=[
+              ('Pubmark','pubmark.site','https://pubmark.site/editor',4,['Publish','Share']),
+              ('StorageBin','storagebin.link','https://storagebin.link/',5,['Create a Bin','Create Bin','Save','Publish','Create'])]
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True)
+              for name,domain,start,i,buttons in targets:
+                ctx=await b.new_context();p=await ctx.new_page();network=[]
+                async def capture(resp):
+                  try:
+                    if resp.request.method in ('POST','PUT'):
+                      txt=await resp.text()
+                      if 'http' in txt:network.append(txt[:5000])
+                  except:pass
+                p.on('response',capture)
+                try:
+                  await p.goto(start,wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1500);print('PAGE',name,p.url,await p.title())
+                  if name=='StorageBin':
+                    # enter create page if homepage
+                    for txt in ['Create a Bin','Try it now']:
+                      loc=p.get_by_role('link',name=re.compile(txt,re.I))
+                      if await loc.count():
+                        try:await loc.first.click();await p.wait_for_timeout(1000);break
+                        except:pass
+                  content=M[i] if name=='Pubmark' else H[i]
+                  used=False
+                  for sel in ['textarea:visible','[contenteditable=true]:visible','textarea','[contenteditable=true]']:
+                    loc=p.locator(sel)
+                    if await loc.count():
+                      try:await loc.first.fill(content);used=True;print('CONTENT_SET',name,sel);break
+                      except:pass
+                  # StorageBin content type HTML if selector exists
+                  if name=='StorageBin':
+                    for sel in ['select','[role=combobox]']:
+                      loc=p.locator(sel)
+                      if await loc.count():
+                        try:
+                          opts=await loc.first.locator('option').all_text_contents()
+                          for o in opts:
+                            if 'html' in o.lower():await loc.first.select_option(label=o);break
+                        except:pass
+                  for sel,val in [('input[placeholder*="title" i]',TITLES[i]),('input[name*="title" i]',TITLES[i]),('input[placeholder*="name" i]','derma-riyadh-'+secrets.token_hex(3))]:
+                    loc=p.locator(sel)
+                    if await loc.count():
+                      try:await loc.first.fill(val)
+                      except:pass
+                  await p.wait_for_timeout(1000)
+                  clicked=False
+                  for pat in buttons:
+                    for role in ['button','link']:
+                      loc=p.get_by_role(role,name=re.compile(pat,re.I))
+                      if await loc.count():
+                        try:await loc.first.click(timeout=8000);clicked=True;print('CLICK',name,pat);break
+                        except Exception as e:print('CLICK_ERR',name,pat,str(e)[:120])
+                    if clicked:break
+                  await p.wait_for_timeout(6000)
+                  cand=[]
+                  if domain in p.url and p.url.rstrip('/')!=start.rstrip('/'):cand.append(p.url)
+                  try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if domain in x]
+                  except:pass
+                  try:cand += [x for x in await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)') if isinstance(x,str) and x.startswith('http')]
+                  except:pass
+                  try:cand += re.findall(r'https?://[^\s<>"\']+',await p.locator('body').inner_text())
+                  except:pass
+                  for t in network:cand += re.findall(r'https?://[^\s<>"\\]+',t)
+                  print('CAND',name,cand[:20])
+                  seen=set()
+                  for u in cand:
+                    u=u.strip().rstrip('.,);]}')
+                    if u in seen:continue
+                    seen.add(u)
+                    if domain not in u:continue
+                    if any(x in u for x in ['/login','/signup','/pricing','/privacy','/terms','/docs']):continue
+                    v=verify(name,u)
+                    if v:out.append((name,v));break
+                except Exception as e:print('BROWSER_ERR',name,repr(e))
+                await ctx.close()
+              await b.close()
+            return out
+          try:res.extend(asyncio.run(browser_sites()))
+          except Exception as e:print('BROWSER_BATCH_ERR',repr(e))
+          final=[];seen=set()
+          for n,u in res:
+            host=re.sub(r'^www\.','',re.sub(r'^https?://','',u).split('/')[0]);root='.'.join(host.split('.')[-2:])
+            if root in seen:continue
+            seen.add(root);final.append((n,u))
+          print('DERMAART11_RESULTS_BEGIN')
+          for n,u in final:print(n+'\t'+u)
+          print('DERMAART11_RESULTS_END')
+          print('DERMAART11_VALID_COUNT='+str(len(final)))
+          print('DERMAART11_RESULTS_JSON='+json.dumps(final,ensure_ascii=False))
+          PY
