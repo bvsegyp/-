@@ -1,0 +1,64 @@
+name: Colorful Cloud Final 2 Five-Link Articles 11
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run Colorful Cloud final 2 five-link articles'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish two clean articles
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 ColorfulCloudSEO/11.0'})
+          links=[('أفضل شركة تنظيف في الرياض','https://colorfulcloudco.com/شركة-تنظيف-منازل-في-الرياض/'),('خدمات غيمة ملونة','https://colorfulcloudco.com/خدماتنا/'),('شركة غيمة ملونة','https://colorfulcloudco.com/'),('تنظيف بعد التشطيب بالرياض','https://colorfulcloudco.com/شركة-تنظيف-بعد-التشطيب-الرياض/'),('تواصل مع غيمة ملونة','https://colorfulcloudco.com/اتصل-بنا/')]
+          def art(title):
+            ss=[('اختيار الخدمة المناسبة','الخدمة الجيدة تبدأ بتحديد مساحة المكان ونوع التنظيف المطلوب ودرجة الاتساخ، ثم تجهيز الفريق والمواد والمعدات المناسبة. هذا التنظيم يجعل النتيجة أكثر ثباتًا ويوفر وقت العميل.'),('تنظيف المطابخ والحمامات','هذه المناطق تحتاج عناية خاصة بسبب الدهون والرطوبة وتراكم الاستخدام اليومي، لذلك يجب استخدام مواد مناسبة وخطوات منظمة للوصول إلى نتيجة نظيفة وآمنة.'),('العناية بالأرضيات والأسطح','اختلاف الرخام والخشب والسيراميك والزجاج يفرض استخدام طرق تنظيف مختلفة حتى لا تتضرر الخامات أو يتغير مظهرها.'),('تنظيف ما بعد التشطيب','إزالة الغبار الدقيق وبقايا الدهانات والمواد من النوافذ والزوايا والأرضيات تحتاج خبرة وأدوات مناسبة حتى يصبح المكان جاهزًا للسكن أو العمل.'),('التواصل والحجز','تحديد موعد واضح ومعرفة ما يشمله السعر والمدة المتوقعة وعدد أفراد الفريق يساعد على تنفيذ الخدمة دون مفاجآت ويجعل تجربة العميل أكثر راحة.'),('الخلاصة','اختيار شركة تنظيف مناسبة في الرياض يعتمد على الخبرة والتنظيم والمعدات وخدمة العملاء، وليس على السعر وحده.')]
+            out=[f'# {title}','']
+            for i,(h,p) in enumerate(ss):
+              out += [f'## {h}','',p,'']
+              if i<5:
+                a,u=links[i];out += [f'للمزيد راجع [{a}]({u}) للتعرف على التفاصيل والخدمات المرتبطة.','']
+            return '\n'.join(out)
+          def ex(x,need):
+            vals=[]
+            def w(v):
+              if isinstance(v,str):vals.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():w(z)
+              elif isinstance(v,list):
+                for z in v:w(z)
+            w(x);vals=[v.rstrip('.,);}') for v in vals]
+            for v in vals:
+              if need in v:return v
+            return vals[0] if vals else ''
+          def verify(n,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=40,allow_redirects=True);h=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?colorfulcloudco\.com',r.text,re.I));ni=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I));print('VERIFY',n,r.status_code,r.url,'HREFS',h,'NOINDEX',int(ni));return r.url if r.status_code<400 and h>=5 and not ni else None
+            except Exception as e:print('VERIFY_ERR',n,repr(e));return None
+          res=[]
+          try:
+            a=art('كيف تحافظ على نظافة المنزل في الرياض بخدمة احترافية');r=S.post('https://output.pub/api/publish',json={'content':a,'format':'markdown'},timeout=45);print('OUTPUT_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('Output.pub',ex(d,'output.pub'))
+            if u:res.append(('Output.pub',u))
+          except Exception as e:print('OUTPUT_ERR',repr(e))
+          try:
+            a=art('دليل اختيار خدمة تنظيف منازل مناسبة في الرياض');r=S.post('https://leafmill.net/api/v1/publish',json={'title':'دليل اختيار خدمة تنظيف منازل مناسبة في الرياض','body':a},timeout=45);print('LEAF_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            u=verify('Leafmill',ex(d,'leafmill.net'))
+            if u:res.append(('Leafmill',u))
+          except Exception as e:print('LEAF_ERR',repr(e))
+          print('FINAL2_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('FINAL2_END')
+          print('FINAL2_COUNT='+str(len(res)))
+          print('FINAL2_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
