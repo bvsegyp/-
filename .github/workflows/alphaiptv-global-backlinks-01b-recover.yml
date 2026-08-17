@@ -1,0 +1,83 @@
+name: AlphaIPTV Global English Backlinks Batch 01B Recover
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run AlphaIPTV global English backlink batch 01b recover'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recover and verify extra AlphaIPTV backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,hashlib,time
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 AlphaIPTVSEO/1.1'})
+          SITE='https://alphaiptv.tn/';ANCHOR='Legal IPTV Subscription'
+          links=[('Legal IPTV Subscription',SITE),('IPTV Subscription',SITE),('Legal IPTV Service',SITE),('Worldwide IPTV Service',SITE),('IPTV Service Provider',SITE)]
+          def make(title,shift=0):
+            secs=[
+              ('Verify licensing and regional rights','Before subscribing to any IPTV provider, users should confirm that the service has appropriate rights for the channels and content it distributes in their location. Regional availability can differ, so published terms and licensing information matter.'),
+              ('Check supported devices','Smart TVs, Android TV devices, streaming sticks, phones and computers can require different setup methods. Confirming compatibility before payment reduces activation problems later.'),
+              ('Compare video quality realistically','HD and higher resolutions depend on the source, the provider infrastructure, the device and the customer’s internet connection. Quality claims should be considered together with real technical requirements.'),
+              ('Review simultaneous connections','Families and multi-device users should check how many streams can run at the same time and whether household or account rules apply.'),
+              ('Compare price and subscription length','Monthly and longer plans should be compared using the total cost, connection limits, support, cancellation terms and refund conditions rather than price alone.'),
+              ('Assess customer support','Clear contact methods and practical response times matter when users face activation or playback issues.'),
+              ('Read the terms carefully','Billing, cancellation, refunds and acceptable use should be understood before choosing a long subscription period.'),
+              ('Conclusion','A careful IPTV comparison should balance rights, compatibility, quality, support, connections and transparent terms.')]
+            secs=secs[shift:]+secs[:shift]
+            parts=[f'<h1>{html.escape(title)}</h1>','<p>Worldwide IPTV users have many options, but a responsible buying decision should consider licensing, device compatibility, service terms, connection requirements and customer support before payment.</p>']
+            for i,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if i<5:
+                a,u=links[i];parts.append(f'<p>Viewers comparing a <a href="{u}">{html.escape(a)}</a> can review Alpha IPTV alongside other providers while independently confirming licensing, regional rights and service conditions.</p>')
+            return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          def verify(name,u):
+            if not u:return None
+            for _ in range(4):
+              try:
+                r=S.get(u,timeout=40,allow_redirects=True);src=html.unescape(r.content.decode('utf-8','ignore'))
+                hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?alphaiptv\.tn',src,re.I));exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+                robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower();noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+                print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+                if r.status_code<400 and hrefs>=5 and exact and not noindex:return r.url
+              except Exception as e:print('VERIFY_ERR',name,repr(e))
+              time.sleep(2)
+            return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # Recover existing ZeroDeploy and Sitebin pages
+          add('ZeroDeploy','https://dry-dawn-9673.zerodeploy.app/')
+          add('Sitebin','https://3djoxm4kgo5nh33bul74b4qxxg.app.sitebin.io/')
+          # Republish XDR correctly
+          try:
+            h=make('Legal IPTV Subscription Guide for International Viewers',1);b=h.encode('utf-8');sha=hashlib.sha256(b).hexdigest()
+            r=S.post('https://api.xdr.no/api/v1/publish',json={'files':[{'path':'index.html','size':len(b),'contentType':'text/html','sha256':sha}]},timeout=45);print('XDR_CREATE',r.status_code,r.text[:650]);d=r.json() if r.ok else {}
+            ups=d.get('uploads') or []
+            if ups:
+              up=ups[0].get('putUrl') or ups[0].get('uploadUrl') or ups[0].get('url')
+              if up:S.put(up,data=b,headers={'Content-Type':'text/html'},timeout=45)
+            fin=d.get('finalize') or d.get('finalizeUrl')
+            if fin:S.post(fin,timeout=45)
+            add('XDR',d.get('url') or d.get('siteUrl') or '')
+          except Exception as e:print('XDR_ERR',repr(e))
+          # Republish Draftlet correctly
+          try:
+            h=make('How to Compare IPTV Subscriptions Across Devices and Regions',3);b=h.encode('utf-8')
+            r=S.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','contentType':'text/html','size':len(b)}]},timeout=45);print('DRAFTLET_CREATE',r.status_code,r.text[:650]);d=r.json() if r.ok else {}
+            ups=d.get('uploads') or []
+            if ups:
+              up=ups[0].get('uploadUrl')
+              if up:S.put(up,data=b,headers={'Content-Type':'text/html'},timeout=45)
+            if d.get('slug') and d.get('versionId') and d.get('editToken'):
+              fr=S.post(f"https://api.draftlet.io/api/v1/publish/{d['slug']}/finalize",json={'versionId':d['versionId'],'editToken':d['editToken']},timeout=45);print('DRAFTLET_FIN',fr.status_code,fr.text[:300])
+            add('Draftlet',d.get('url') or '')
+          except Exception as e:print('DRAFTLET_ERR',repr(e))
+          print('ALPHA1B_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('ALPHA1B_RESULTS_END')
+          print('ALPHA1B_VALID_COUNT='+str(len(res)))
+          print('ALPHA1B_RESULTS_JSON='+json.dumps(res))
+          PY
