@@ -1,0 +1,138 @@
+name: GoodIPTVServices French Backlinks Batch 03 New Domains Direct
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run GoodIPTVServices French backlink batch 03 new domains direct'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify new French backlink domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,hashlib,time,secrets
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 GoodIPTVServicesSEO/3.0'})
+          SITE='https://goodiptvservices.com/'
+          ANCHOR='abonnement IPTV'
+          LINKS=[('abonnement IPTV',SITE),('abonnement IPTV premium',SITE),('meilleur abonnement IPTV',SITE),('service IPTV',SITE),('fournisseur IPTV',SITE)]
+          TITLES=[
+            'Abonnement IPTV : comparer qualité, appareils et conditions en 2026',
+            'Meilleur abonnement IPTV : les critères qui comptent vraiment',
+            'IPTV premium : comment choisir une formule adaptée à son usage',
+            'Service IPTV : stabilité, compatibilité et support à vérifier',
+            'Fournisseur IPTV : guide de comparaison avant de souscrire',
+            'Abonnement IPTV pour Smart TV : points essentiels à contrôler',
+            'IPTV en 2026 : comment comparer prix et qualité de service',
+            'Choisir un abonnement IPTV : connexions, support et appareils',
+            'Abonnement IPTV premium : guide pratique pour comparer les offres'
+          ]
+          SECS=[
+            ('Vérifier la compatibilité des appareils','Avant de souscrire, il est utile de vérifier les appareils réellement utilisés : Smart TV, box Android, ordinateur, téléphone ou tablette. Une compatibilité claire facilite l’installation et limite les problèmes après activation.'),
+            ('Comparer la stabilité du streaming','La fluidité dépend de plusieurs éléments : qualité des serveurs, connexion internet, réseau domestique et performance de l’appareil. Une bonne expérience ne repose donc pas uniquement sur la résolution annoncée.'),
+            ('Regarder les connexions simultanées','Les foyers qui utilisent plusieurs écrans doivent vérifier combien de connexions peuvent fonctionner en même temps et quelles règles sont associées au compte.'),
+            ('Comparer le contenu et la qualité','Les besoins diffèrent selon les utilisateurs. Il est préférable de vérifier le type de contenus proposé, la qualité disponible et la régularité du service plutôt que de choisir uniquement selon le nombre de chaînes annoncé.'),
+            ('Évaluer le support client','Un support accessible est important pour l’activation, la configuration et les problèmes de lecture. Les canaux de contact et les horaires de disponibilité doivent être faciles à identifier.'),
+            ('Comparer le prix avec la durée','Le prix doit être comparé à la durée de l’abonnement, aux connexions incluses, aux fonctionnalités et aux conditions de renouvellement.'),
+            ('Vérifier sa connexion internet','Une connexion stable reste indispensable pour profiter du streaming. La vitesse, la latence et la qualité du Wi-Fi peuvent influencer directement l’expérience.'),
+            ('Lire les conditions du service','Les modalités d’utilisation, de renouvellement et de remboursement doivent être lues avant le paiement afin d’éviter les mauvaises surprises.'),
+            ('Conclusion','Comparer compatibilité, stabilité, connexions, support, prix et conditions permet de choisir une offre IPTV plus adaptée à ses besoins.')]
+          def make(i):
+            secs=SECS[i%len(SECS):]+SECS[:i%len(SECS)]
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>Le choix d’un service IPTV mérite une comparaison structurée. Qualité de diffusion, compatibilité, connexions simultanées, support et conditions de service sont autant de critères à vérifier avant de souscrire.</p>']
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                extras=[
+                  f'Pour comparer un <a href="{u}">{html.escape(a)}</a>, Good IPTV Services présente ses formules et informations de service.',
+                  f'Les utilisateurs qui recherchent un <a href="{u}">{html.escape(a)}</a> peuvent consulter les offres de Good IPTV Services parmi les options à comparer.',
+                  f'Pour évaluer le <a href="{u}">{html.escape(a)}</a>, il est possible de consulter les caractéristiques proposées par Good IPTV Services.',
+                  f'Good IPTV Services présente également son <a href="{u}">{html.escape(a)}</a> afin de faciliter la comparaison des fonctionnalités.',
+                  f'Avant de retenir un <a href="{u}">{html.escape(a)}</a>, il reste recommandé de vérifier les conditions et la compatibilité avec ses appareils.'
+                ]
+                parts.append('<p>'+extras[n]+'</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          H=[make(i) for i in range(len(TITLES))]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True);src=html.unescape(r.content.decode('utf-8','ignore'))
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?goodiptvservices\.com',src,re.I))
+              exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # XDR
+          try:
+            b=H[0].encode();sha=hashlib.sha256(b).hexdigest();r=S.post('https://api.xdr.no/api/v1/publish',json={'files':[{'path':'index.html','size':len(b),'contentType':'text/html','sha256':sha}]},timeout=50);print('XDR',r.status_code,r.text[:500]);d=r.json() if r.ok else {};ups=d.get('uploads') or []
+            if ups:S.put(ups[0].get('putUrl') or ups[0].get('uploadUrl') or ups[0].get('url'),data=b,headers={'Content-Type':'text/html'},timeout=50)
+            fin=d.get('finalize') or d.get('finalizeUrl')
+            if fin:S.post(fin,timeout=45)
+            add('XDR',d.get('url') or d.get('siteUrl') or '')
+          except Exception as e:print('XDR_ERR',repr(e))
+          # Draftlet
+          try:
+            b=H[1].encode();r=S.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','contentType':'text/html','size':len(b)}]},timeout=50);print('DRAFTLET',r.status_code,r.text[:500]);d=r.json() if r.ok else {};ups=d.get('uploads') or []
+            if ups:S.put(ups[0].get('uploadUrl'),data=b,headers={'Content-Type':'text/html'},timeout=50)
+            if d.get('slug') and d.get('versionId') and d.get('editToken'):S.post(f"https://api.draftlet.io/api/v1/publish/{d['slug']}/finalize",json={'versionId':d['versionId'],'editToken':d['editToken']},timeout=45)
+            add('Draftlet',d.get('url') or '')
+          except Exception as e:print('DRAFTLET_ERR',repr(e))
+          # ZeroDeploy
+          try:
+            r=S.post('https://api.zerodeploy.dev/drop',files={'file':('index.html',H[2].encode(),'text/html')},timeout=60);print('ZERO',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('ZeroDeploy',(d.get('data') or {}).get('url') or d.get('url') or '')
+          except Exception as e:print('ZERO_ERR',repr(e))
+          # Sitebin
+          try:
+            r=S.post('https://app.sitebin.io/api/sites',files={'files':('index.html',H[3].encode(),'text/html')},timeout=60);print('SITEBIN',r.status_code,r.text[:700]);d=r.json() if r.ok else {};u=d.get('url') or d.get('site_url') or d.get('public_url') or ''
+            if not u and d.get('id'):u=f"https://{d['id']}.app.sitebin.io/"
+            add('Sitebin',u)
+          except Exception as e:print('SITEBIN_ERR',repr(e))
+          # Pubmark
+          try:
+            r=S.post('https://pubmark.site/api/documents',json={'title':TITLES[4]},timeout=40);d=r.json() if r.ok else {};sid=d.get('secretId');u=''
+            if sid:
+              S.put('https://pubmark.site/api/documents/'+sid,json={'content':H[4],'title':TITLES[4],'theme':'clean','colorPreset':'blue'},timeout=40)
+              p=S.post('https://pubmark.site/api/documents/'+sid+'/publish',json={},timeout=40);j=p.json() if p.ok else {};slug=j.get('slug');u='https://pubmark.site/p/'+slug if slug else ''
+            add('Pubmark',u)
+          except Exception as e:print('PUBMARK_ERR',repr(e))
+          # YeetIt
+          try:
+            r=S.post('https://yeetit.site/v1/publish',json={'html':H[5],'title':TITLES[5]},timeout=45);d=r.json() if r.ok else {};add('YeetIt',d.get('url') or '')
+          except Exception as e:print('YEETIT_ERR',repr(e))
+          # Shippage
+          try:
+            r=S.post('https://shippage.ai/v1/publish',json={'html':H[6],'title':TITLES[6],'public':True},timeout=50);print('SHIPPAGE',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('Shippage.ai',d.get('url') or '')
+          except Exception as e:print('SHIPPAGE_ERR',repr(e))
+          # SSHGrid
+          try:
+            r=S.post('https://sshgrid.com/api/v1/deploy',json={'files':[{'path':'index.html','content':H[7]}],'label':'Good IPTV Services Guide'},timeout=45);print('SSHGRID',r.status_code,r.text[:700]);d=r.json() if r.ok else {};u=d.get('url_live') or d.get('url') or d.get('site_url') or d.get('public_url') or ''
+            if not u and d.get('slug'):
+              for _ in range(10):
+                try:
+                  sd=S.get('https://sshgrid.com/api/v1/sites/'+d['slug'],timeout=20).json();u=sd.get('url_live') or sd.get('url') or ''
+                  if u:break
+                except:pass
+                time.sleep(2)
+            add('SSHGrid',u)
+          except Exception as e:print('SSHGRID_ERR',repr(e))
+          # BotSite create + upload
+          try:
+            c=S.post('https://botsite.dev/api/v1/sites',headers={'X-Botsite-Client':'goodiptv-seo/3.0'},timeout=35);d=c.json() if c.ok else {};slug=d.get('subdomain');token=d.get('claimToken');live=d.get('url')
+            if slug and token and live:
+              S.put('https://botsite.dev/api/v1/sites/'+slug+'/files/index.html',data=H[8].encode(),headers={'Authorization':'Bearer '+token,'Content-Type':'text/html'},timeout=40)
+              time.sleep(2)
+            add('BotSite',live or '')
+          except Exception as e:print('BOTSITE_ERR',repr(e))
+          print('GOODIPTV3_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('GOODIPTV3_RESULTS_END')
+          print('GOODIPTV3_VALID_COUNT='+str(len(res)))
+          print('GOODIPTV3_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
