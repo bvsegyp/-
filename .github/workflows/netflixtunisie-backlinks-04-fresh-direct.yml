@@ -1,0 +1,167 @@
+name: NetflixTunisie French Backlinks Batch 04 Fresh Direct
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run NetflixTunisie French backlink batch 04 fresh direct'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify fresh direct French backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,hashlib,secrets,time
+          from urllib.parse import urlparse
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 NetflixTunisieSEO/4.0'})
+          SITE='https://netflixtunisie.com.tn/'
+          ANCHOR='Netflix Tunisie'
+          LINKS=[
+            ('Netflix Tunisie',SITE),
+            ('abonnement Netflix en Tunisie',SITE),
+            ('prix Netflix en Tunisie',SITE),
+            ('regarder Netflix en Tunisie',SITE),
+            ('service Netflix en Tunisie',SITE),
+          ]
+          TITLES=[
+            'Netflix Tunisie : choisir une formule adaptée à son usage quotidien',
+            'Abonnement Netflix en Tunisie : les critères à vérifier avant de choisir',
+            'Prix Netflix en Tunisie : organiser son budget streaming plus simplement',
+            'Regarder Netflix en Tunisie : conseils pour une expérience plus fluide',
+            'Netflix en Tunisie : bien comparer écrans, qualité et budget',
+            'Streaming en Tunisie : comment choisir une offre Netflix pratique',
+            'Netflix Tunisie : guide pour les foyers avec plusieurs utilisateurs',
+            'Abonnement Netflix Tunisie : éviter les options inutiles',
+            'Netflix en Tunisie : critères utiles avant de souscrire en ligne',
+          ]
+          SECS=[
+            ('Identifier le nombre d’utilisateurs','Le nombre de personnes qui utilisent le service influence directement le choix de la formule. Un usage individuel reste différent d’un foyer où plusieurs profils regardent des contenus au même moment.'),
+            ('Comparer les écrans simultanés','Avant de choisir, il est utile d’évaluer combien d’écrans sont réellement utilisés en parallèle. Cela permet d’éviter une formule trop limitée ou au contraire plus coûteuse que nécessaire.'),
+            ('Vérifier la qualité vidéo','La résolution disponible doit correspondre à la qualité de la connexion internet et aux appareils utilisés à la maison. Une meilleure qualité n’apporte un avantage réel que si les conditions techniques suivent.'),
+            ('Maîtriser le budget mensuel','Le prix doit être comparé à la fréquence d’utilisation et aux fonctions réellement utilisées. Une formule cohérente permet de garder un budget divertissement plus prévisible.'),
+            ('Tenir compte de la connexion internet','Une connexion stable réduit les interruptions, les baisses de résolution et les temps de chargement. C’est un critère important avant de choisir une offre orientée haute définition.'),
+            ('Organiser les profils du foyer','Des profils séparés facilitent les recommandations et l’organisation du visionnage pour chaque membre du foyer. Cela devient particulièrement utile lorsque les goûts et les horaires sont différents.'),
+            ('Lire les conditions avant de payer','Avant la souscription, il faut vérifier les modalités d’utilisation, les fonctions incluses et les règles applicables. Cette étape évite les mauvaises surprises et les choix précipités.'),
+            ('Éviter les fonctions inutiles','La formule la plus complète n’est pas toujours la plus adaptée. Il vaut mieux choisir selon les besoins réels et ajouter uniquement les fonctions qui améliorent concrètement l’usage quotidien.'),
+            ('Conclusion','Comparer les utilisateurs, les écrans, la qualité, la connexion et le budget permet de choisir plus sereinement une solution de streaming adaptée en Tunisie.'),
+          ]
+          def make(i):
+            secs=SECS[i%len(SECS):]+SECS[:i%len(SECS)]
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>', '<p>Le streaming fait partie des habitudes de nombreux foyers tunisiens. Pour choisir une formule cohérente, il est préférable de comparer les usages, les écrans, la qualité vidéo, la connexion internet et le budget avant de souscrire.</p>']
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>', f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                phrases=[
+                  f'Pour consulter une solution destinée au marché tunisien, découvrez <a href="{u}">{html.escape(a)}</a>.',
+                  f'Vous pouvez retrouver davantage d’informations sur <a href="{u}">{html.escape(a)}</a>.',
+                  f'Pour comparer les possibilités disponibles, consultez <a href="{u}">{html.escape(a)}</a>.',
+                  f'Les utilisateurs souhaitant <a href="{u}">{html.escape(a)}</a> peuvent consulter les options proposées.',
+                  f'Pour en savoir plus sur <a href="{u}">{html.escape(a)}</a>, consultez le site dédié.',
+                ]
+                parts.append('<p>'+phrases[n]+'</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          H=[make(i) for i in range(len(TITLES))]
+          def urls(obj):
+            out=[]
+            def walk(x):
+              if isinstance(x,str): out.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values(): walk(v)
+              elif isinstance(x,list):
+                for v in x: walk(v)
+            walk(obj); return [u.rstrip('.,);}') for u in out]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              src=html.unescape(r.text)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?netflixtunisie\.com\.tn',src,re.I))
+              exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e: print('VERIFY_ERR',name,repr(e)); return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # XDR
+          try:
+            b=H[0].encode(); sha=hashlib.sha256(b).hexdigest()
+            r=S.post('https://api.xdr.no/api/v1/publish',json={'files':[{'path':'index.html','size':len(b),'contentType':'text/html','sha256':sha}]},timeout=50); print('XDR_CREATE',r.status_code,r.text[:700]); d=r.json() if r.ok else {}
+            ups=d.get('uploads') or []
+            if ups:
+              up=ups[0]; S.put(up.get('putUrl') or up.get('uploadUrl') or up.get('url'),data=b,headers={'Content-Type':'text/html'},timeout=50)
+            fin=d.get('finalize') or d.get('finalizeUrl')
+            if fin: S.post(fin,timeout=45)
+            add('XDR',d.get('url') or d.get('siteUrl') or '')
+          except Exception as e: print('XDR_ERR',repr(e))
+          # Draftlet
+          try:
+            b=H[1].encode(); r=S.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','contentType':'text/html','size':len(b)}]},timeout=50); print('DRAFTLET_CREATE',r.status_code,r.text[:700]); d=r.json() if r.ok else {}
+            ups=d.get('uploads') or []
+            if ups: S.put(ups[0].get('uploadUrl'),data=b,headers={'Content-Type':'text/html'},timeout=50)
+            if d.get('slug') and d.get('versionId') and d.get('editToken'):
+              fr=S.post(f"https://api.draftlet.io/api/v1/publish/{d['slug']}/finalize",json={'versionId':d['versionId'],'editToken':d['editToken']},timeout=45); print('DRAFTLET_FIN',fr.status_code,fr.text[:350])
+            add('Draftlet',d.get('url') or '')
+          except Exception as e: print('DRAFTLET_ERR',repr(e))
+          # ZeroDeploy
+          try:
+            r=S.post('https://api.zerodeploy.dev/drop',files={'file':('index.html',H[2].encode(),'text/html')},timeout=60); print('ZERODEPLOY',r.status_code,r.text[:650]); d=r.json() if r.ok else {}; add('ZeroDeploy',(d.get('data') or {}).get('url') or d.get('url') or '')
+          except Exception as e: print('ZERODEPLOY_ERR',repr(e))
+          # Sitebin
+          try:
+            r=S.post('https://app.sitebin.io/api/sites',files={'files':('index.html',H[3].encode(),'text/html')},timeout=60); print('SITEBIN',r.status_code,r.text[:900]); d=r.json() if r.ok else {}; c=[]
+            for k in ('url','site_url','siteUrl','public_url','publicUrl','live_url','liveUrl'):
+              if isinstance(d,dict) and isinstance(d.get(k),str): c.append(d[k])
+            c += [u for u in urls(d) if 'sitebin.io' in u and '/e/' not in u]
+            if d.get('id'): c += [f"https://{d['id']}.app.sitebin.io/", f"https://app.sitebin.io/s/{d['id']}"]
+            seen=set()
+            for u in c:
+              if u in seen: continue
+              seen.add(u); v=verify('Sitebin',u)
+              if v:res.append(('Sitebin',v)); break
+          except Exception as e: print('SITEBIN_ERR',repr(e))
+          # Pubmark
+          try:
+            r=S.post('https://pubmark.site/api/documents',json={'title':TITLES[4]},timeout=40); print('PUBMARK_CREATE',r.status_code,r.text[:500]); d=r.json() if r.ok else {}; sid=d.get('secretId'); u=''
+            if sid:
+              S.put('https://pubmark.site/api/documents/'+sid,json={'content':H[4],'title':TITLES[4],'theme':'clean','colorPreset':'blue'},timeout=40)
+              p=S.post('https://pubmark.site/api/documents/'+sid+'/publish',json={},timeout=40); print('PUBMARK_PUB',p.status_code,p.text[:500]); j=p.json() if p.ok else {}; slug=j.get('slug'); u='https://pubmark.site/p/'+slug if slug else ''
+            add('Pubmark',u)
+          except Exception as e: print('PUBMARK_ERR',repr(e))
+          # YeetIt
+          try:
+            r=S.post('https://yeetit.site/v1/publish',json={'html':H[5],'title':TITLES[5]},timeout=45); print('YEETIT',r.status_code,r.text[:600]); d=r.json() if r.ok else {}; add('YeetIt',d.get('url') or '')
+          except Exception as e: print('YEETIT_ERR',repr(e))
+          # BrewPage
+          try:
+            r=S.post('https://brewpage.app/api/html?ns=public&ttl=30',json={'content':H[6],'ttl':30},timeout=45); print('BREWPAGE',r.status_code,r.text[:700]); d=r.json() if r.ok else {}; c=urls(d)
+            for u in c:
+              if 'brewpage' in u:
+                v=verify('BrewPage',u)
+                if v:res.append(('BrewPage',v)); break
+          except Exception as e: print('BREWPAGE_ERR',repr(e))
+          # ShowYourCode
+          try:
+            r=S.post('https://www.showyourcode.app/api/works',json={'htmlContent':H[7],'title':TITLES[7],'topicIds':[],'type':'html','templateId':None},timeout=45); print('SHOWYOURCODE',r.status_code,r.text[:700]); d=r.json() if r.ok else {}; uid=d.get('uuid') or d.get('id'); u='https://www.showyourcode.app/share/'+uid if uid else ''; add('ShowYourCode',u)
+          except Exception as e: print('SHOWYOURCODE_ERR',repr(e))
+          # BotSite
+          try:
+            r=S.post('https://botsite.dev/api/v1/sites',data=H[8].encode(),headers={'Content-Type':'text/html'},timeout=45); print('BOTSITE',r.status_code,r.text[:700]); d=r.json() if r.ok else {}; c=urls(d)
+            if isinstance(d,dict):
+              for k in ('url','siteUrl','publicUrl','link'):
+                if isinstance(d.get(k),str): c.insert(0,d[k])
+            for u in c:
+              if 'botsite' in u:
+                v=verify('BotSite',u)
+                if v:res.append(('BotSite',v)); break
+          except Exception as e: print('BOTSITE_ERR',repr(e))
+          print('NETFLIXTN4_RESULTS_BEGIN')
+          for n,u in res: print(n+'\t'+u)
+          print('NETFLIXTN4_RESULTS_END')
+          print('NETFLIXTN4_VALID_COUNT='+str(len(res)))
+          print('NETFLIXTN4_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
