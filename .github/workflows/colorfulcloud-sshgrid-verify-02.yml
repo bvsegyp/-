@@ -1,0 +1,12 @@
+name: Colorful Cloud SSHGrid Final Verify
+on:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Run Colorful Cloud SSHGrid final verify'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify SSHGrid live backlink
+        run: python scripts/colorfulcloud_sshgrid_verify_02.py
