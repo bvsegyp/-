@@ -1,0 +1,201 @@
+name: GoodIPTVServices French Backlinks Batch 04 New Domains Browser
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run GoodIPTVServices French backlink batch 04 new domains browser'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install browser tools
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Publish and verify new browser domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,json,os,secrets,requests
+          from playwright.async_api import async_playwright
+          SITE='https://goodiptvservices.com/';ANCHOR='abonnement IPTV'
+          LINKS=[('abonnement IPTV',SITE),('abonnement IPTV premium',SITE),('meilleur abonnement IPTV',SITE),('service IPTV',SITE),('fournisseur IPTV',SITE)]
+          TITLES=[
+            'Abonnement IPTV : guide pratique pour comparer les offres en 2026',
+            'IPTV premium : comment choisir selon ses appareils et son budget',
+            'Meilleur abonnement IPTV : stabilité, support et qualité à comparer',
+            'Service IPTV : les points essentiels avant de souscrire',
+            'Fournisseur IPTV : comment évaluer une offre avant de payer',
+            'Abonnement IPTV pour plusieurs appareils : guide de comparaison',
+            'IPTV en 2026 : choisir une offre adaptée à son usage',
+            'Abonnement IPTV premium : compatibilité, qualité et support'
+          ]
+          SECS=[
+            ('Compatibilité des appareils','Avant de choisir, il est utile de vérifier la compatibilité avec Smart TV, box Android, ordinateur, mobile et autres appareils utilisés au quotidien.'),
+            ('Stabilité de diffusion','La fluidité dépend des serveurs, de la connexion internet, du réseau local et de la performance de l’appareil.'),
+            ('Connexions simultanées','Pour plusieurs écrans, vérifiez le nombre de connexions autorisées et les règles associées au compte.'),
+            ('Qualité et contenu','Comparez la qualité vidéo et la pertinence du contenu par rapport à vos habitudes plutôt que le nombre annoncé uniquement.'),
+            ('Support client','Un support accessible aide lors de l’activation, de la configuration et des éventuels problèmes de lecture.'),
+            ('Prix et durée','Comparez le coût total, la durée, les fonctionnalités incluses et les conditions de renouvellement.'),
+            ('Connexion internet','Une connexion stable et un Wi-Fi correctement configuré influencent directement l’expérience de streaming.'),
+            ('Conditions du service','Lisez les modalités d’utilisation et de remboursement avant de souscrire.'),
+            ('Conclusion','Une comparaison structurée aide à choisir une offre IPTV correspondant réellement aux besoins du foyer.')]
+          def md(i):
+            out=[f'# {TITLES[i]}','','Choisir un service IPTV demande de comparer la compatibilité, la stabilité, les connexions, le support, le prix et les conditions avant de souscrire.','']
+            secs=SECS[i:]+SECS[:i]
+            for n,(h,p) in enumerate(secs):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n];out += [f'Pour comparer un [{a}]({u}), Good IPTV Services présente ses formules et informations de service parmi les options disponibles.','']
+            return '\n'.join(out)
+          def htm(i):
+            text=md(i);parts=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b:continue
+              if b.startswith('# '):parts.append('<h1>'+html.escape(b[2:])+'</h1>');continue
+              if b.startswith('## '):parts.append('<h2>'+html.escape(b[3:])+'</h2>');continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()]));x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>');pos=m.end()
+              x.append(html.escape(b[pos:]));parts.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          M=[md(i) for i in range(8)];H=[htm(i) for i in range(8)]
+          async def verify(browser,name,u):
+            p=await browser.new_page();resp=None
+            try:
+              resp=await p.goto(u,wait_until='domcontentloaded',timeout=40000);await p.wait_for_timeout(1500)
+              n=await p.locator('a[href*="goodiptvservices.com"]').count();content=await p.content();exact=ANCHOR.lower() in content.lower();robots=''
+              try:robots=(await p.locator('meta[name="robots"],meta[name="googlebot"]').evaluate_all("els=>els.map(e=>e.content||'').join(' ')")).lower()
+              except:pass
+              xrob=''
+              try:xrob=(await resp.all_headers()).get('x-robots-tag','').lower() if resp else ''
+              except:pass
+              noindex='noindex' in robots or 'noindex' in xrob;final=p.url;print('VERIFY',name,final,'HREFS',n,'EXACT',int(exact),'NOINDEX',int(noindex));await p.close();return final if n>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));
+            try:await p.close()
+            except:pass
+            return None
+          async def generic(browser,name,domain,start,i,mode='html'):
+            p=await browser.new_page();network=[];content=M[i] if mode=='md' else H[i]
+            async def cap(resp):
+              try:
+                if resp.request.method in ('POST','PUT'):
+                  t=await resp.text()
+                  if 'http' in t:network.append(t[:8000])
+              except:pass
+            p.on('response',cap)
+            try:
+              await p.goto(start,wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1200);filled=False
+              for sel in ['input[placeholder*=title i]','input[name*=title i]']:
+                loc=p.locator(sel)
+                if await loc.count():
+                  try:await loc.first.fill(TITLES[i])
+                  except:pass
+              ta=p.locator('textarea:visible')
+              if await ta.count():
+                try:await ta.first.fill(content);filled=True
+                except:pass
+              if not filled:
+                ce=p.locator('[contenteditable=true]:visible')
+                if await ce.count():
+                  try:await ce.first.fill(content);filled=True
+                  except:pass
+              if not filled:
+                fi=p.locator('input[type=file]')
+                if await fi.count():
+                  fn=f'/tmp/goodiptv-{i}.html';open(fn,'w',encoding='utf-8').write(H[i]);
+                  try:await fi.first.set_input_files(fn);filled=True
+                  except:pass
+              if not filled:await p.close();return None
+              for pat in ['Get my shareable link','Get shareable link','Generate link','Generate Live Page','Deploy Page','Deploy Site','Deploy','Publish & Share','Publish','Share Note','Share','Host','Upload','Generate','Create Link','Create','Save','Post']:
+                loc=p.get_by_role('button',name=re.compile(pat,re.I))
+                if await loc.count():
+                  try:await loc.first.click(timeout=7000);break
+                  except:pass
+              await p.wait_for_timeout(4500);cand=[]
+              if domain in p.url and p.url.rstrip('/')!=start.rstrip('/'):cand.append(p.url)
+              try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if domain in x]
+              except:pass
+              try:cand += [x for x in await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)') if isinstance(x,str) and domain in x]
+              except:pass
+              try:cand += [x for x in re.findall(r'https?://[^\s<>"\']+',await p.locator('body').inner_text()) if domain in x]
+              except:pass
+              for t in network:cand += [x for x in re.findall(r'https?://[^\s<>"\\]+',t) if domain in x]
+              seen=set()
+              for u in cand:
+                u=u.strip().rstrip('.,);]}')
+                if u in seen or any(x in u for x in ['/login','/signup','/register','/pricing','/privacy','/terms','/docs']):continue
+                seen.add(u);v=await verify(browser,name,u)
+                if v:await p.close();return v
+            except Exception as e:print(name,'ERR',repr(e))
+            try:await p.close()
+            except:pass
+            return None
+          async def storage(browser,i):
+            p=await browser.new_page();network=[]
+            async def cap(resp):
+              try:
+                if resp.request.method in ('POST','PUT'):
+                  t=await resp.text()
+                  if 'http' in t:network.append(t[:8000])
+              except:pass
+            p.on('response',cap)
+            try:
+              await p.goto('https://storagebin.link/',wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1000)
+              for txt in ['Create a Bin','Try it now']:
+                for role in ['link','button']:
+                  loc=p.get_by_role(role,name=re.compile(txt,re.I))
+                  if await loc.count():
+                    try:await loc.first.click();await p.wait_for_timeout(1000);break
+                    except:pass
+              ta=p.locator('textarea:visible')
+              if await ta.count():await ta.first.fill(H[i])
+              sels=p.locator('select')
+              for j in range(await sels.count()):
+                try:
+                  opts=await sels.nth(j).locator('option').all_text_contents()
+                  for o in opts:
+                    if 'html' in o.lower():await sels.nth(j).select_option(label=o);break
+                except:pass
+              for pat in ['Create a Bin','Create Bin','Save','Publish','Create']:
+                loc=p.get_by_role('button',name=re.compile(pat,re.I))
+                if await loc.count():
+                  try:await loc.first.click(timeout=7000);break
+                  except:pass
+              await p.wait_for_timeout(4000);cand=[]
+              if '/bin/view/' in p.url:cand.append(p.url)
+              try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if '/bin/view/' in x]
+              except:pass
+              for t in network:cand += re.findall(r'https?://[^\s<>"\\]+',t)
+              for u in cand:
+                if 'storagebin.link/bin/view/' not in u:continue
+                v=await verify(browser,'StorageBin',u.rstrip('.,);]}'))
+                if v:await p.close();return v
+            except Exception as e:print('STORAGE_ERR',repr(e))
+            try:await p.close()
+            except:pass
+            return None
+          async def main():
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True);out=[]
+              targets=[
+                ('Yapp','yapp.page','https://yapp.page/',0,'html'),
+                ('PagePaste','pagepaste.com','https://pagepaste.com/',1,'html'),
+                ('Fylo','fylo.live','https://fylo.host/html-viewer-online',2,'html'),
+                ('ShareMyHTML','sharemyhtml.com','https://sharemyhtml.com/',3,'html'),
+                ('YourWebs','yourwebs.app','https://yourwebs.cc/',4,'html'),
+                ('PublishMarkdown','publishmarkdown.com','https://publishmarkdown.com/',5,'md'),
+                ('MarkdShare','markdshare.com','https://markdshare.com/',6,'md')]
+              for t in targets:
+                u=await generic(b,*t)
+                if u:out.append((t[0],u))
+              u=await storage(b,7)
+              if u:out.append(('StorageBin',u))
+              print('GOODIPTV4_RESULTS_BEGIN')
+              for n,u in out:print(n+'\t'+u)
+              print('GOODIPTV4_RESULTS_END')
+              print('GOODIPTV4_VALID_COUNT='+str(len(out)))
+              print('GOODIPTV4_RESULTS_JSON='+json.dumps(out,ensure_ascii=False))
+              await b.close()
+          asyncio.run(main())
+          PY
