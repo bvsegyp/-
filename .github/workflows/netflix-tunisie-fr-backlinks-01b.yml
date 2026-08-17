@@ -1,0 +1,123 @@
+name: Netflix Tunisie French Backlinks Batch 01B
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run Netflix Tunisie French backlink batch 01b'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify French backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,secrets,subprocess,os
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 NetflixTunisieSEO/1.1'})
+          SITE='https://netflixtunisie.com.tn/'
+          EXACT='Netflix Tunisie'
+          LINKS=[('Netflix Tunisie',SITE),('abonnement Netflix en Tunisie',SITE),('prix Netflix Tunisie',SITE),('compte Netflix en Tunisie',SITE),('streaming en Tunisie',SITE)]
+          TITLES=[
+            "Netflix en Tunisie : comment choisir un abonnement adapté à ses besoins",
+            "Guide pratique pour regarder Netflix en Tunisie simplement",
+            "Abonnement Netflix en Tunisie : points à vérifier avant de choisir",
+            "Prix et options Netflix en Tunisie : comprendre les différences",
+            "Comment organiser son abonnement Netflix en Tunisie sans se compliquer",
+            "Netflix Tunisie : conseils pour choisir la formule qui vous convient",
+            "Streaming en Tunisie : bien préparer son expérience Netflix",
+            "Compte Netflix en Tunisie : les éléments importants à connaître",
+            "Regarder Netflix en Tunisie : guide simple pour les nouveaux utilisateurs",
+            "Abonnement Netflix Tunisie : comparer les besoins avant de se décider"
+          ]
+          SECS=[
+            ("Commencer par définir ses habitudes de visionnage","Le meilleur choix dépend d'abord de la manière dont vous regardez vos séries et films. Une personne qui regarde surtout seule n'a pas les mêmes besoins qu'une famille qui utilise plusieurs appareils à des moments différents. Définir les usages avant de choisir évite de payer pour des options inutiles."),
+            ("Comparer les offres avec attention","Avant de prendre une décision, il est utile de comparer les formules disponibles, le nombre d'utilisateurs, la qualité vidéo et les modalités de paiement. Une comparaison simple permet de choisir une solution cohérente avec le budget et les habitudes du foyer."),
+            ("Vérifier la simplicité du paiement","Pour de nombreux utilisateurs en Tunisie, la facilité de paiement est un critère important. Il vaut mieux comprendre clairement le mode de règlement, la durée de l'abonnement et les conditions associées avant de finaliser une commande."),
+            ("Penser au nombre d'utilisateurs","Le nombre de personnes qui utilisent le service influence directement le choix de la formule. Si plusieurs membres de la famille regardent du contenu en même temps, il devient important de prévoir une option adaptée aux usages simultanés."),
+            ("La qualité vidéo doit correspondre à la connexion","Choisir une qualité élevée n'a de sens que si la connexion Internet et l'équipement utilisés peuvent réellement en profiter. Une bonne expérience dépend autant de la stabilité du réseau que de la formule choisie."),
+            ("Éviter de choisir uniquement selon le prix","Le tarif est important, mais il ne doit pas être le seul critère. La simplicité d'utilisation, les conditions de l'offre, la durée et les besoins réels comptent aussi. Une formule moins chère n'est pas toujours la plus pratique pour chaque foyer."),
+            ("Préparer les appareils utilisés","Avant de commencer, vérifiez que les appareils utilisés sont compatibles et correctement connectés. Télévision, ordinateur, tablette ou téléphone peuvent offrir des expériences différentes selon la connexion et les réglages disponibles."),
+            ("Garder une approche simple","Il n'est pas nécessaire de compliquer le choix. En identifiant le budget, le nombre d'utilisateurs et la qualité souhaitée, il devient beaucoup plus facile de sélectionner une formule adaptée et d'éviter les options qui ne seront pas utilisées."),
+            ("Conclusion","Choisir un abonnement adapté en Tunisie revient surtout à faire correspondre l'offre aux habitudes réelles. Une comparaison claire des besoins, du budget, du paiement et du nombre d'utilisateurs permet de prendre une décision plus simple et plus cohérente.")]
+          def make_html(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>',"<p>Netflix reste une référence du streaming pour les amateurs de séries, films et documentaires. En Tunisie, le choix d'une formule doit surtout tenir compte du budget, du nombre d'utilisateurs, du mode de paiement et de la qualité souhaitée.</p>"]
+            secs=SECS[i%len(SECS):]+SECS[:i%len(SECS)]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                extra=(f'Pour découvrir une option dédiée à <a href="{u}">{html.escape(a)}</a>, il est possible de consulter les informations proposées sur le site.' if n==0 else f'Pour aller plus loin, consultez <a href="{u}">{html.escape(a)}</a>.')
+                parts.append('<p>'+extra+'</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          def make_md(i):
+            out=[f'# {TITLES[i]}','',"Netflix reste une référence du streaming pour les amateurs de séries, films et documentaires. En Tunisie, le choix d'une formule doit surtout tenir compte du budget, du nombre d'utilisateurs, du mode de paiement et de la qualité souhaitée.",'']
+            secs=SECS[i%len(SECS):]+SECS[:i%len(SECS)]
+            for n,(h,p) in enumerate(secs):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n]
+                out += [(f'Pour découvrir une option dédiée à [{a}]({u}), il est possible de consulter les informations proposées sur le site.' if n==0 else f'Pour aller plus loin, consultez [{a}]({u}).'),'']
+            return '\n'.join(out)
+          H=[make_html(i) for i in range(10)];M=[make_md(i) for i in range(10)]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=50,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?netflixtunisie\.com\.tn',src,re.I))
+              exact=EXACT.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          try:
+            r=S.post('https://aired.sh/api/publish',json={'html':H[0],'title':TITLES[0],'permanent':True},timeout=55);print('AIRED',r.status_code,r.text[:400]);d=r.json() if r.ok else {};add('Aired',d.get('url',''))
+          except Exception as e:print('AIRED_ERR',repr(e))
+          try:
+            r=S.post('https://thethings.ai/api/scratch/publish',json={'content':H[1],'content_type':'text/html','title':TITLES[1],'summary':'Guide français sur Netflix en Tunisie'},timeout=55);print('THETHINGS',r.status_code,r.text[:400]);d=r.json() if r.ok else {};add('TheThings.ai',d.get('url',''))
+          except Exception as e:print('THETHINGS_ERR',repr(e))
+          try:
+            a=S.get('https://api.telegra.ph/createAccount',params={'short_name':'netflix_tn','author_name':'Guide Streaming Tunisie'},timeout=30).json()['result']['access_token'];content=[]
+            for tag,inner in re.findall(r'<(h1|h2|p)>(.*?)</\1>',H[2],re.S):
+              children=[];pos=0
+              for m in re.finditer(r'<a href="([^"]+)">(.*?)</a>',inner,re.S):
+                if m.start()>pos:children.append(re.sub('<[^>]+>','',inner[pos:m.start()]))
+                children.append({'tag':'a','attrs':{'href':m.group(1)},'children':[re.sub('<[^>]+>','',m.group(2))]});pos=m.end()
+              if pos<len(inner):children.append(re.sub('<[^>]+>','',inner[pos:]))
+              content.append({'tag':tag,'children':children})
+            d=S.post('https://api.telegra.ph/createPage',data={'access_token':a,'title':TITLES[2],'author_name':'Guide Streaming Tunisie','content':json.dumps(content,ensure_ascii=False),'return_content':'false'},timeout=55).json();print('TELEGRAPH',str(d)[:400]);add('Telegra.ph',d.get('result',{}).get('url',''))
+          except Exception as e:print('TELEGRAPH_ERR',repr(e))
+          for name,url,payload in [
+            ('Quicky.page','https://quicky.page/api/v1/publish',{'title':TITLES[3],'content':M[3]}),
+            ('Leafmill','https://leafmill.net/api/v1/publish',{'title':TITLES[4],'body':M[4]}),
+            ('Draftmark','https://draftmark.app/api/v1/docs',{'content':M[5],'visibility':'public'}),
+            ('Output.pub','https://output.pub/api/publish',{'content':M[6],'format':'markdown'})]:
+            try:
+              r=S.post(url,json=payload,timeout=55);print(name,r.status_code,r.text[:400]);d=r.json() if r.ok else {};add(name,d.get('url','') or d.get('share_url',''))
+            except Exception as e:print(name+'_ERR',repr(e))
+          try:
+            d='/tmp/netflix-shipstatic';os.makedirs(d,exist_ok=True);open(d+'/index.html','w',encoding='utf-8').write(H[7]);p=subprocess.run(['npx','-y','@shipstatic/ship',d,'--json'],capture_output=True,text=True,timeout=150);out=(p.stdout or '')+'\n'+(p.stderr or '');print('SHIPSTATIC',p.returncode,out[:900]);urls=re.findall(r'https?://[^\s"\']+',out);u=next((x.rstrip('.,);}') for x in urls if 'shipstatic.com' in x),'');add('ShipStatic',u)
+          except Exception as e:print('SHIPSTATIC_ERR',repr(e))
+          try:
+            fn='/tmp/netflix-based.html';open(fn,'w',encoding='utf-8').write(H[8]);slug='netflix-tunisie-'+secrets.token_hex(3);p=subprocess.run(['npx','-y','based-page@latest','deploy','--file',fn,'--slug',slug,'--title',TITLES[8]],capture_output=True,text=True,timeout=150);out=(p.stdout or '')+'\n'+(p.stderr or '');print('BASED',p.returncode,out[:900]);urls=re.findall(r'https?://[^\s"\']+',out);u=next((x.rstrip('.,);}') for x in urls if 'based.page' in x),'');add('Based.page',u)
+          except Exception as e:print('BASED_ERR',repr(e))
+          try:
+            r=S.post('https://shippage.ai/v1/publish',json={'html':H[9],'title':TITLES[9],'public':True},timeout=55);print('SHIPPAGE',r.status_code,r.text[:400]);d=r.json() if r.ok else {};add('ShipPage',d.get('url',''))
+          except Exception as e:print('SHIPPAGE_ERR',repr(e))
+          final=[];seen=set()
+          for n,u in res:
+            host=re.sub(r'^www\.','',re.sub(r'^https?://','',u).split('/')[0]);root='.'.join(host.split('.')[-2:])
+            if root in seen:continue
+            seen.add(root);final.append((n,u))
+          print('NETFLIX_TN_RESULTS_BEGIN')
+          for n,u in final:print(n+'\t'+u)
+          print('NETFLIX_TN_RESULTS_END')
+          print('NETFLIX_TN_VALID_COUNT='+str(len(final)))
+          print('NETFLIX_TN_RESULTS_JSON='+json.dumps(final,ensure_ascii=False))
+          PY
