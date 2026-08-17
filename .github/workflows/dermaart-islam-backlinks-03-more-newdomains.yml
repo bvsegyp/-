@@ -1,0 +1,128 @@
+name: DermaArt Islam Backlinks Batch 03 More New Domains
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: contains(github.event.head_commit.message, 'Run DermaArt Islam backlink batch 03')
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish and verify seven fresh domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html,hashlib,secrets
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/3.0'})
+          LINKS=[
+            ('أفضل دكتورة تجميل في الرياض','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('ديرما آرت الرياض','https://dermaart-sa.com/'),
+            ('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),
+            ('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          TITLES=[
+            'اختيار طبيبة تجميل في الرياض: دليل قبل الفيلر والبوتوكس',
+            'كيف تحافظين على نتائج تجميل طبيعية ومتوازنة',
+            'دليل الجلدية والتجميل والليزر للباحثات عن خطة مدروسة',
+            'الاستشارة التجميلية في الرياض: ماذا تسألين قبل الجلسة',
+            'العناية بالبشرة قبل وبعد الإجراءات التجميلية',
+            'متى يكون الفيلر أو البوتوكس أو الليزر هو الاختيار المناسب',
+            'خطوات عملية لاختيار خطة تجميل تناسب بشرتك وملامحك']
+          SEC=[
+            ('ابدئي من الهدف وليس اسم الإجراء','من الأفضل تحديد ما تريدين تحسينه فعليًا قبل اختيار اسم جلسة أو تقنية. قد يكون مصدر الانزعاج مرتبطًا بجودة البشرة أو حركة العضلات أو فقدان الحجم أو التصبغات، ولكل حالة تقييم مختلف يحدد الأولوية المناسبة.'),
+            ('التقييم المتخصص يقلل القرارات العشوائية','فحص البشرة والملامح ومناقشة التاريخ الصحي والتوقعات يساعد على استبعاد الخيارات غير المناسبة وتحديد البدائل. هذه الخطوة مهمة للحصول على خطة متدرجة بدل جمع إجراءات متعددة دون سبب واضح.'),
+            ('النتيجة الطبيعية تعتمد على التوازن','الهدف من التجميل الطبي ليس تغيير الملامح بالكامل، بل معالجة نقطة محددة مع الحفاظ على التناسق. الجرعات والخطوات يجب أن تتناسب مع الوجه نفسه، لذلك تختلف الخطة من حالة لأخرى حتى عند وجود المشكلة نفسها.'),
+            ('صحة البشرة جزء من الخطة','الترطيب والملمس والتصبغات والحبوب وآثارها قد تؤثر في الانطباع النهائي أكثر من إضافة الحجم في بعض الحالات. لهذا قد تكون جلسات البشرة أو العلاج الجلدي أو الليزر مرحلة تسبق الفيلر أو البوتوكس.'),
+            ('المتابعة بعد الإجراء مهمة','معرفة التعليمات بعد الجلسة وموعد تقييم النتيجة وما هو طبيعي خلال فترة التعافي يقلل القلق ويساعد على التعامل الصحيح مع البشرة. المتابعة تسمح أيضًا بتعديل الخطة إذا احتاجت الحالة إلى خطوة إضافية.'),
+            ('قارني الخبرة وطريقة التخطيط','عند اختيار طبيبة تجميل، ركزي على التخصص ووضوح التشخيص وطريقة شرح البدائل والنتيجة المتوقعة. وجود خطة مفهومة ومتابعة واضحة أهم من اختيار الإجراء لمجرد أنه رائج.'),
+            ('الخلاصة','التجميل المدروس يبدأ بتشخيص جيد وينتهي بمتابعة مناسبة. كلما كانت الخطة مرتبطة باحتياج البشرة والملامح والتوقعات الواقعية، أصبح الوصول إلى نتيجة متوازنة أسهل.')]
+          def md(i):
+            out=[f'# {TITLES[i]}','','أصبحت خيارات الجلدية والتجميل والليزر متعددة، ولهذا يحتاج القرار الجيد إلى فهم الحالة قبل اختيار التقنية. في هذا الدليل نراجع أهم النقاط التي تساعد على اختيار خطة تجميلية واقعية في الرياض مع الاهتمام بجودة البشرة والتوازن الطبيعي للملامح.','']
+            for n,(h,p) in enumerate(SEC):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n]
+                out += [(f'يمكن التعرف على صفحة [{a}]({u}) ود. إسلام اللبودي ضمن خيارات الاستشارة المتخصصة.' if n==0 else f'للتفاصيل ذات الصلة يمكن زيارة [{a}]({u}).'),'']
+            return '\n'.join(out)
+          def htm(i):
+            text=md(i);parts=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b:continue
+              if b.startswith('# '):parts.append('<h1>'+html.escape(b[2:])+'</h1>');continue
+              if b.startswith('## '):parts.append('<h2>'+html.escape(b[3:])+'</h2>');continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()]));x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>');pos=m.end()
+              x.append(html.escape(b[pos:]));parts.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,Tahoma,sans-serif;line-height:2">'+''.join(parts)+'</main></body></html>'
+          def urls(obj):
+            out=[]
+            def walk(x):
+              if isinstance(x,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values():walk(v)
+              elif isinstance(x,list):
+                for v in x:walk(v)
+            walk(obj);return [u.rstrip('.,);}') for u in out]
+          def choose(obj,domains=()):
+            us=urls(obj)
+            for d in domains:
+              for u in us:
+                if d in u:return u
+            return us[0] if us else ''
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?dermaart-sa\.com',r.text,re.I));exact='أفضل دكتورة تجميل في الرياض' in r.text
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          results=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:results.append((n,v))
+          H=[htm(i) for i in range(7)]
+          try:
+            data=H[0].encode();sha=hashlib.sha256(data).hexdigest();r=S.post('https://api.xdr.no/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html','sha256':sha}]},timeout=55);print('XDR_CREATE',r.status_code,r.text[:400]);d=r.json();ups=d.get('uploads') or [];live=d.get('url');fin=d.get('finalize')
+            if ups:
+              requests.put(ups[0].get('putUrl'),data=data,headers={'Content-Type':'text/html'},timeout=60)
+              if fin:S.post(fin,timeout=50)
+            add('XDR',live)
+          except Exception as e:print('XDR_ERR',repr(e))
+          try:
+            data=H[1].encode();r=S.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','contentType':'text/html','size':len(data)}]},timeout=55);print('DRAFTLET_CREATE',r.status_code,r.text[:400]);d=r.json();slug=d['slug'];ver=d['versionId'];tok=d['editToken'];up=d['uploads'][0]['uploadUrl'];live=d['url'];requests.put(up,data=data,headers={'content-type':'text/html','content-length':str(len(data))},timeout=60);S.post(f'https://api.draftlet.io/api/v1/publish/{slug}/finalize',json={'versionId':ver,'editToken':tok},timeout=55);add('Draftlet',live)
+          except Exception as e:print('DRAFTLET_ERR',repr(e))
+          try:
+            r=S.post('https://api.htmlshare.net/v1/publish',json={'html':H[2]},timeout=50);print('HTMLSHARE_POST',r.status_code,r.text[:400]);d=r.json() if r.ok else {};add('HTMLShare',d.get('url',''))
+          except Exception as e:print('HTMLSHARE_ERR',repr(e))
+          try:
+            r=S.post('https://api.zerodeploy.dev/drop',files={'file':('index.html',H[3],'text/html')},timeout=65);print('ZERODEPLOY_POST',r.status_code,r.text[:500]);d=r.json() if r.ok else {};dat=d.get('data') or {};add('ZeroDeploy',dat.get('url','') or d.get('url',''))
+          except Exception as e:print('ZERODEPLOY_ERR',repr(e))
+          try:
+            r=S.post('https://app.sitebin.io/api/sites',files={'files':('index.html',H[4],'text/html')},timeout=65);print('SITEBIN_POST',r.status_code,r.text[:600]);d=r.json() if r.ok else {};c=[u for u in urls(d) if 'sitebin.io' in u and '/e/' not in u]
+            for u in c:
+              v=verify('Sitebin',u)
+              if v:results.append(('Sitebin',v));break
+          except Exception as e:print('SITEBIN_ERR',repr(e))
+          try:
+            r=S.post('https://api.ht-ml.app/v1/sites',json={'html_content':H[5]},timeout=50);print('HTMLAPP_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('HT-ML',choose(d,('ht-ml.app',)))
+          except Exception as e:print('HTMLAPP_ERR',repr(e))
+          try:
+            r=S.post('https://pitchey.app/api/pages',json={'html':H[6],'ttl':'30d'},timeout=50);print('PITCHEY_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('Pitchey',choose(d,('pitchey.app',)))
+          except Exception as e:print('PITCHEY_ERR',repr(e))
+          print('DERMAART3_RESULTS_BEGIN')
+          for n,u in results:print(n+'\t'+u)
+          print('DERMAART3_RESULTS_END')
+          print('DERMAART3_VALID_COUNT='+str(len(results)))
+          print('DERMAART3_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          PY
