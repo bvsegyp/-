@@ -1,0 +1,138 @@
+name: AlphaIPTV English Backlinks Batch 01
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run AlphaIPTV English backlink batch 01'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify English backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,time
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 AlphaIPTVSEO/1.0'})
+          SITE='https://alphaiptv.tn/'
+          ANCHOR='IPTV Tunisia'
+          LINKS=[
+            ('IPTV Tunisia',SITE),
+            ('IPTV subscription Tunisia',SITE),
+            ('best IPTV service in Tunisia',SITE),
+            ('IPTV for Tunisia',SITE),
+            ('Alpha IPTV Tunisia',SITE),
+          ]
+          TITLES=[
+            'IPTV Tunisia: How to Choose a Reliable Streaming Subscription',
+            'Best IPTV Service in Tunisia: What to Compare Before Subscribing',
+            'IPTV Subscription Tunisia: A Practical Buyer Guide',
+            'IPTV Tunisia for Smart TVs: Key Features to Check',
+            'Choosing IPTV in Tunisia: Quality, Devices and Support',
+            'IPTV Tunisia: What Matters Most for a Smooth Experience',
+            'Streaming in Tunisia: How to Compare IPTV Subscription Options',
+            'Alpha IPTV Tunisia: A Simple Guide to Choosing the Right Plan',
+          ]
+          SECTIONS=[
+            ('Start with your viewing needs','The right subscription depends on how many people use the service, the types of channels they watch, and whether the household prefers live television, movies, series, or sports.'),
+            ('Check device compatibility','A useful IPTV service should clearly explain which devices are supported. Smart TVs, Android TV boxes, phones, tablets, computers, and streaming devices may require different apps or setup methods.'),
+            ('Compare streaming quality','Resolution matters, but stability matters just as much. A service that offers HD or higher quality should also provide a smooth experience that matches the speed and consistency of the internet connection.'),
+            ('Review channel and content coverage','Before subscribing, viewers should confirm that the service includes the categories and regional content they actually want instead of choosing only by the total number of channels advertised.'),
+            ('Look at support and activation','Fast activation and clear support can make setup easier, especially for users who need help with apps, login details, device configuration, or troubleshooting.'),
+            ('Understand pricing and duration','Monthly, quarterly, and annual plans can offer different value. The best option depends on budget, expected usage, and whether the user wants a shorter commitment before choosing a longer plan.'),
+            ('Check connection requirements','A stable internet connection is essential for consistent streaming. Households with several devices online at the same time should consider their available bandwidth before choosing higher video quality.'),
+            ('Read the terms before buying','Subscription conditions, supported devices, renewal rules, and included features should be reviewed before payment so the customer knows exactly what is being purchased.'),
+            ('Conclusion','Comparing devices, quality, content, support, connection needs, and pricing makes it easier to choose a streaming subscription that fits a household in Tunisia.'),
+          ]
+          def make(i):
+            secs=SECTIONS[i%len(SECTIONS):]+SECTIONS[:i%len(SECTIONS)]
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>Choosing an IPTV service in Tunisia is easier when the decision is based on real viewing habits, device compatibility, streaming quality, customer support, and budget rather than on a single advertised feature.</p>']
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                phrases=[
+                  f'Users comparing options can explore <a href="{u}">{html.escape(a)}</a> for more information.',
+                  f'For subscription details, review <a href="{u}">{html.escape(a)}</a>.',
+                  f'Another useful reference when comparing providers is <a href="{u}">{html.escape(a)}</a>.',
+                  f'For a Tunisia-focused option, visit <a href="{u}">{html.escape(a)}</a>.',
+                  f'You can also check <a href="{u}">{html.escape(a)}</a> before making a decision.',
+                ]
+                parts.append('<p>'+phrases[n]+'</p>')
+            return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          P=[make(i) for i in range(len(TITLES))]
+          def verify(name,u):
+            if not u:return None
+            for _ in range(5):
+              try:
+                r=S.get(u,timeout=40,allow_redirects=True)
+                src=html.unescape(r.text)
+                hrefs=len(re.findall(r'<a[^>]+href=["\'][^"\']*alphaiptv\.tn[^"\']*["\']',src,re.I))
+                exact=bool(re.search(r'>\s*IPTV Tunisia\s*</a>',src,re.I)) or ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+                robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+                noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+                print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+                if r.status_code<400 and hrefs>=5 and exact and not noindex:return r.url
+              except Exception as e:print('VERIFY_ERR',name,repr(e))
+              time.sleep(2)
+            return None
+          out=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:out.append((n,v))
+          # Telegraph
+          try:
+            acc=S.get('https://api.telegra.ph/createAccount',params={'short_name':'alphaiptv','author_name':'Alpha IPTV Guide'},timeout=30).json()['result']['access_token']
+            nodes=[]
+            import xml.etree.ElementTree as ET
+            root=ET.fromstring('<root>'+''.join(re.findall(r'<h1>.*?</h1>|<h2>.*?</h2>|<p>.*?</p>',P[0],re.S))+'</root>')
+            def conv(e):
+              d={'tag':e.tag}
+              ch=[]
+              if e.text:ch.append(e.text)
+              for c in list(e):
+                ch.append(conv(c))
+                if c.tail:ch.append(c.tail)
+              if ch:d['children']=ch
+              if e.tag=='a':d['attrs']={'href':e.attrib.get('href','')}
+              return d
+            nodes=[conv(e) for e in list(root)]
+            r=S.post('https://api.telegra.ph/createPage',data={'access_token':acc,'title':TITLES[0],'author_name':'Alpha IPTV Guide','content':json.dumps(nodes),'return_content':'false'},timeout=40).json(); add('Telegra.ph',r.get('result',{}).get('url',''))
+          except Exception as e:print('TELEGRAPH_ERR',repr(e))
+          # Draftmark
+          try:
+            md=re.sub(r'<h1>(.*?)</h1>',r'# \1\n\n',P[1]);md=re.sub(r'<h2>(.*?)</h2>',r'## \1\n\n',md);md=re.sub(r'<p>(.*?)</p>',r'\1\n\n',md);md=re.sub(r'<a href="([^"]+)">(.*?)</a>',r'[\2](\1)',md);md=re.sub(r'<[^>]+>','',md)
+            r=S.post('https://draftmark.app/api/v1/docs',json={'content':md,'visibility':'public'},timeout=40);d=r.json() if r.ok else {};add('Draftmark',d.get('url') or d.get('share_url') or '')
+          except Exception as e:print('DRAFTMARK_ERR',repr(e))
+          # Quicky
+          try:
+            md=re.sub(r'<h1>(.*?)</h1>',r'# \1\n\n',P[2]);md=re.sub(r'<h2>(.*?)</h2>',r'## \1\n\n',md);md=re.sub(r'<p>(.*?)</p>',r'\1\n\n',md);md=re.sub(r'<a href="([^"]+)">(.*?)</a>',r'[\2](\1)',md);md=re.sub(r'<[^>]+>','',md)
+            r=S.post('https://quicky.page/api/v1/publish',json={'title':TITLES[2],'content':md},timeout=40);d=r.json() if r.ok else {};add('Quicky.page',d.get('url') or '')
+          except Exception as e:print('QUICKY_ERR',repr(e))
+          # Output
+          try:
+            md=re.sub(r'<h1>(.*?)</h1>',r'# \1\n\n',P[3]);md=re.sub(r'<h2>(.*?)</h2>',r'## \1\n\n',md);md=re.sub(r'<p>(.*?)</p>',r'\1\n\n',md);md=re.sub(r'<a href="([^"]+)">(.*?)</a>',r'[\2](\1)',md);md=re.sub(r'<[^>]+>','',md)
+            r=S.post('https://output.pub/api/publish',json={'content':md,'format':'markdown'},timeout=40);d=r.json() if r.ok else {};add('Output.pub',d.get('url') or '')
+          except Exception as e:print('OUTPUT_ERR',repr(e))
+          # Leafmill
+          try:
+            md=re.sub(r'<h1>(.*?)</h1>',r'# \1\n\n',P[4]);md=re.sub(r'<h2>(.*?)</h2>',r'## \1\n\n',md);md=re.sub(r'<p>(.*?)</p>',r'\1\n\n',md);md=re.sub(r'<a href="([^"]+)">(.*?)</a>',r'[\2](\1)',md);md=re.sub(r'<[^>]+>','',md)
+            r=S.post('https://leafmill.net/api/v1/publish',json={'title':TITLES[4],'body':md},timeout=40);d=r.json() if r.ok else {};add('Leafmill',d.get('url') or '')
+          except Exception as e:print('LEAFMILL_ERR',repr(e))
+          # AirED
+          try:
+            r=S.post('https://aired.sh/api/publish',json={'html':P[5]},timeout=45);d=r.json() if r.ok else {};add('AirED',d.get('url') or '')
+          except Exception as e:print('AIRED_ERR',repr(e))
+          # TheThings
+          try:
+            r=S.post('https://thethings.ai/api/scratch/publish',json={'content':P[6],'content_type':'text/html','title':TITLES[6],'summary':'English guide to choosing IPTV in Tunisia'},timeout=45);d=r.json() if r.ok else {};add('TheThings.ai',d.get('url') or '')
+          except Exception as e:print('THETHINGS_ERR',repr(e))
+          # HTMLShare
+          try:
+            r=S.post('https://api.htmlshare.net/v1/publish',json={'html':P[7]},timeout=45);d=r.json() if r.ok else {};add('HTMLShare',d.get('url') or '')
+          except Exception as e:print('HTMLSHARE_ERR',repr(e))
+          print('ALPHAIPTV_RESULTS_BEGIN')
+          for n,u in out:print(n+'\t'+u)
+          print('ALPHAIPTV_RESULTS_END')
+          print('ALPHAIPTV_VALID_COUNT='+str(len(out)))
+          print('ALPHAIPTV_RESULTS_JSON='+json.dumps(out,ensure_ascii=False))
+          PY
