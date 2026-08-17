@@ -1,0 +1,226 @@
+name: GoodIPTVServices French Backlinks Batch 05c Recover Three
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run GoodIPTVServices French backlink batch 05c recover three'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install browser
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Recover Fylo StorageBin PastePage
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,requests,json,secrets,os
+          from playwright.async_api import async_playwright
+          SITE='https://goodiptvservices.com/';ANCHOR='abonnement IPTV'
+          links=[('abonnement IPTV',SITE),('abonnement IPTV premium',SITE),('meilleur abonnement IPTV',SITE),('service IPTV',SITE),('fournisseur IPTV',SITE)]
+          titles=['Abonnement IPTV : guide pratique pour comparer stabilité et qualité','Meilleur abonnement IPTV : appareils, support et prix à comparer','IPTV premium : comment choisir une formule adaptée en 2026']
+          secs=[('Compatibilité','Vérifiez les appareils utilisés avant de souscrire, notamment Smart TV, box Android, ordinateur et mobile.'),('Stabilité','La fluidité dépend des serveurs, de la connexion internet et de la qualité du réseau domestique.'),('Connexions simultanées','Le nombre de connexions autorisées doit correspondre au nombre d’écrans utilisés dans le foyer.'),('Qualité','Comparez la qualité réelle et les fonctions utiles plutôt que de regarder uniquement les chiffres promotionnels.'),('Support','Un support accessible facilite l’activation, la configuration et la résolution des problèmes.'),('Prix','Comparez le coût total, la durée et les conditions de renouvellement.'),('Conditions','Lisez les modalités d’utilisation et de remboursement avant de payer.')]
+          def make(i):
+            parts=[f'<h1>{html.escape(titles[i])}</h1>','<p>Avant de choisir un service IPTV, il est utile de comparer la compatibilité, la stabilité, les connexions, le support, le prix et les conditions.</p>']
+            ss=secs[i:]+secs[:i]
+            for n,(h,p) in enumerate(ss):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=links[n];parts.append(f'<p>Pour comparer un <a href="{u}">{html.escape(a)}</a>, Good IPTV Services présente ses offres et informations de service parmi les options disponibles.</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(titles[i])+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          H=[make(i) for i in range(3)]
+          def verify_http(name,u):
+            if not u:return None
+            try:
+              r=requests.get(u,headers={'User-Agent':'Mozilla/5.0'},timeout=45,allow_redirects=True);src=html.unescape(r.content.decode('utf-8','ignore'));hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?goodiptvservices\.com',src,re.I));exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower();robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower();noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower();print('VERIFY_HTTP',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex));return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_HTTP_ERR',name,repr(e));return None
+          async def verify_browser(b,name,u):
+            p=await b.new_page();resp=None
+            try:
+              resp=await p.goto(u,wait_until='domcontentloaded',timeout=40000);await p.wait_for_timeout(1800);n=0;exact=False
+              for fr in p.frames:
+                try:n+=await fr.locator('a[href*="goodiptvservices.com"]').count()
+                except:pass
+                try:
+                  if ANCHOR.lower() in (await fr.content()).lower():exact=True
+                except:pass
+              robots=''
+              try:robots=(await p.locator('meta[name="robots"],meta[name="googlebot"]').evaluate_all("els=>els.map(e=>e.content||'').join(' ')")).lower()
+              except:pass
+              xrob=''
+              try:xrob=(await resp.all_headers()).get('x-robots-tag','').lower() if resp else ''
+              except:pass
+              noindex='noindex' in robots or 'noindex' in xrob;final=p.url;print('VERIFY_BROWSER',name,final,'HREFS',n,'EXACT',int(exact),'NOINDEX',int(noindex));await p.close();return final if n>=5 and exact and not noindex else None
+            except Exception as e:print('BVERIFY_ERR',name,repr(e))
+            try:await p.close()
+            except:pass
+            return None
+          async def main():
+            out=[]
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True)
+              # Fylo exact flow
+              try:
+                ctx=await b.new_context();p=await ctx.new_page();network=[];fn='/tmp/good-fylo.html';open(fn,'w',encoding='utf-8').write(H[0])
+                async def capf(resp):
+                  try:
+                    if resp.request.method in ('POST','PUT'):
+                      t=await resp.text()
+                      if 'http' in t:network.append(t[:12000])
+                  except:pass
+                p.on('response',capf);await p.goto('https://fylo.host/html-viewer-online',wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1200);fis=p.locator('input[type=file]');used=False
+                for k in range(await fis.count()):
+                  try:await fis.nth(k).set_input_files(fn);used=True;print('FYLO_FILE',k);break
+                  except:pass
+                if not used:
+                  ta=p.locator('textarea:visible')
+                  if await ta.count():await ta.first.fill(H[0]);used=True
+                for pat in ['Publish & Share','Publish']:
+                  loc=p.get_by_role('button',name=re.compile(pat,re.I))
+                  if await loc.count():
+                    try:await loc.first.click(timeout=8000);print('FYLO_CLICK',pat);break
+                    except:pass
+                await p.wait_for_timeout(6000);cand=[]
+                if 'fylo.live' in p.url:cand.append(p.url)
+                try:cand += await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)')
+                except:pass
+                try:cand += await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(v=>v && v.startsWith("http"))')
+                except:pass
+                try:cand += re.findall(r'https?://[^\s<>"\']+',await p.locator('body').inner_text())
+                except:pass
+                for t in network:cand += re.findall(r'https?://[^\s<>"\\]+',t)
+                print('FYLO_CAND',cand[:30]);seen=set()
+                for u in cand:
+                  u=u.strip().rstrip('.,);]}')
+                  if u in seen or 'fylo.live' not in u:continue
+                  seen.add(u);v=await verify_browser(b,'Fylo',u)
+                  if v:out.append(('Fylo',v));break
+                await ctx.close()
+              except Exception as e:print('FYLO_ERR',repr(e))
+              # StorageBin exact known flow
+              try:
+                p=await b.new_page();network=[]
+                async def caps(resp):
+                  try:
+                    if resp.request.method in ('POST','PUT'):
+                      t=await resp.text()
+                      if 'http' in t:network.append(t[:10000])
+                  except:pass
+                p.on('response',caps);await p.goto('https://storagebin.link/',wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1500)
+                for txt in ['Create a Bin','Try it now']:
+                  for role in ['link','button']:
+                    loc=p.get_by_role(role,name=re.compile(txt,re.I))
+                    if await loc.count():
+                      try:await loc.first.click();await p.wait_for_timeout(1200);break
+                      except:pass
+                for sel in ['textarea:visible','[contenteditable=true]:visible','textarea','[contenteditable=true]']:
+                  loc=p.locator(sel)
+                  if await loc.count():
+                    try:await loc.first.fill(H[1]);break
+                    except:pass
+                for sel in ['select','[role=combobox]']:
+                  loc=p.locator(sel)
+                  if await loc.count():
+                    try:
+                      opts=await loc.first.locator('option').all_text_contents()
+                      for o in opts:
+                        if 'html' in o.lower():await loc.first.select_option(label=o);break
+                    except:pass
+                for sel,val in [('input[placeholder*="title" i]',titles[1]),('input[name*="title" i]',titles[1]),('input[placeholder*="name" i]','good-iptv-'+secrets.token_hex(3))]:
+                  loc=p.locator(sel)
+                  if await loc.count():
+                    try:await loc.first.fill(val)
+                    except:pass
+                clicked=False
+                for pat in ['Create a Bin','Create Bin','Save','Publish','Create']:
+                  for role in ['button','link']:
+                    loc=p.get_by_role(role,name=re.compile(pat,re.I))
+                    if await loc.count():
+                      try:await loc.first.click(timeout=8000);clicked=True;break
+                      except:pass
+                  if clicked:break
+                await p.wait_for_timeout(6000);cand=[]
+                if 'storagebin.link' in p.url and p.url.rstrip('/')!='https://storagebin.link':cand.append(p.url)
+                try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if 'storagebin.link' in x]
+                except:pass
+                try:cand += [x for x in await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)') if isinstance(x,str) and 'storagebin.link' in x]
+                except:pass
+                try:cand += re.findall(r'https?://[^\s<>"\']+',await p.locator('body').inner_text())
+                except:pass
+                for t in network:cand += re.findall(r'https?://[^\s<>"\\]+',t)
+                print('STORAGE_CAND',cand[:30]);seen=set()
+                for u in cand:
+                  u=u.strip().rstrip('.,);]}')
+                  if u in seen or 'storagebin.link' not in u:continue
+                  seen.add(u)
+                  if any(x in u for x in ['/login','/signup','/pricing','/privacy','/terms','/docs']):continue
+                  v=verify_http('StorageBin',u)
+                  if not v:v=await verify_browser(b,'StorageBin',u)
+                  if v:out.append(('StorageBin',v));break
+                await p.close()
+              except Exception as e:print('STORAGE_ERR',repr(e))
+              # Paste.page exact Netflix-style flow
+              try:
+                p=await b.new_page();network=[]
+                async def capp(resp):
+                  try:
+                    if resp.request.method in ('POST','PUT'):
+                      t=await resp.text()
+                      if 'http' in t:network.append(t[:12000])
+                  except:pass
+                p.on('response',capp);await p.goto('https://paste.page/',wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1200)
+                for sel in ['input[name*=title i]','input[placeholder*=title i]','input[type=text]']:
+                  loc=p.locator(sel)
+                  if await loc.count():
+                    try:await loc.first.fill(titles[2]);break
+                    except:pass
+                filled=False;tas=p.locator('textarea:visible')
+                if await tas.count():
+                  best=None;area=-1
+                  for j in range(await tas.count()):
+                    e=tas.nth(j)
+                    try:
+                      bb=await e.bounding_box();a=bb['width']*bb['height'] if bb else 0
+                      if a>area:best=e;area=a
+                    except:pass
+                  if best:
+                    try:await best.fill(H[2]);filled=True
+                    except:pass
+                if not filled:
+                  ce=p.locator('[contenteditable=true]:visible')
+                  if await ce.count():
+                    try:await ce.first.fill(H[2]);filled=True
+                    except:pass
+                for pat in ['Publish','Create','Share','Generate']:
+                  btn=p.get_by_role('button',name=re.compile(pat,re.I))
+                  if await btn.count():
+                    try:await btn.first.click(timeout=7000);print('PASTE_CLICK',pat);break
+                    except:pass
+                await p.wait_for_timeout(5500);cand=[]
+                if p.url.rstrip('/')!='https://paste.page':cand.append(p.url)
+                try:cand += await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)')
+                except:pass
+                try:cand += await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(v=>v && v.startsWith("http"))')
+                except:pass
+                try:cand += re.findall(r'https?://[^\s<>"\']+',await p.locator('body').inner_text())
+                except:pass
+                for t in network:cand += re.findall(r'https?://[^\s<>"\\]+',t)
+                print('PASTE_CAND',cand[:40]);seen=set()
+                for u in cand:
+                  u=u.strip().rstrip('.,);]}')
+                  if u in seen or 'paste.page' not in u:continue
+                  seen.add(u)
+                  if any(x in u for x in ['/login','/signup','/privacy','/terms','/templates','/about','/html-to-website','/html-viewer','/free-html-hosting']):continue
+                  v=await verify_browser(b,'Paste.page',u)
+                  if v:out.append(('Paste.page',v));break
+                await p.close()
+              except Exception as e:print('PASTE_ERR',repr(e))
+              await b.close()
+            print('GOODIPTV5C_RESULTS_BEGIN')
+            for n,u in out:print(n+'\t'+u)
+            print('GOODIPTV5C_RESULTS_END')
+            print('GOODIPTV5C_VALID_COUNT='+str(len(out)))
+            print('GOODIPTV5C_RESULTS_JSON='+json.dumps(out,ensure_ascii=False))
+          asyncio.run(main())
+          PY
