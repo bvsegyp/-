@@ -1,0 +1,59 @@
+name: MommySmart Parallel Backlinks Batch 06 New Domains
+on:
+  push:
+    branches: [ main ]
+jobs:
+  publish:
+    if: contains(github.event.head_commit.message, 'Run MommySmart parallel backlink batch 06')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright requests
+          python -m playwright install chromium --with-deps
+      - name: Publish candidates in parallel
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src=Path('scripts/mommysmart_newdomains_browser_05.py').read_text(encoding='utf-8')
+          old='''async def main():
+              async with async_playwright() as p:
+                  browser=await p.chromium.launch(headless=True)
+                  out=[]
+                  for i,t in enumerate(TARGETS):
+                      u=await publish(browser,i,*t)
+                      if u: out.append((t[0],u))
+                  print('MOMMYSMART5_RESULTS_BEGIN')
+                  for d,u in out: print(d+'\\t'+u)
+                  print('MOMMYSMART5_RESULTS_END')
+                  print('MOMMYSMART5_VALID_COUNT='+str(len(out)))
+                  print('MOMMYSMART5_RESULTS_JSON='+json.dumps([{'source':d,'url':u} for d,u in out]))
+                  await browser.close()
+          
+          asyncio.run(main())
+          '''
+          new='''async def main():
+              async with async_playwright() as p:
+                  browser=await p.chromium.launch(headless=True)
+                  vals=await asyncio.gather(*[publish(browser,i,*t) for i,t in enumerate(TARGETS)],return_exceptions=True)
+                  out=[]
+                  for t,v in zip(TARGETS,vals):
+                      if isinstance(v,Exception):
+                          print('PARALLEL_ERR',t[0],repr(v)); continue
+                      if v: out.append((t[0],v))
+                  print('MOMMYSMART6_RESULTS_BEGIN')
+                  for d,u in out: print(d+'\\t'+u)
+                  print('MOMMYSMART6_RESULTS_END')
+                  print('MOMMYSMART6_VALID_COUNT='+str(len(out)))
+                  print('MOMMYSMART6_RESULTS_JSON='+json.dumps([{'source':d,'url':u} for d,u in out]))
+                  await browser.close()
+          
+          asyncio.run(main())
+          '''
+          if old not in src:
+              raise SystemExit('main block not found')
+          exec(compile(src.replace(old,new),'mommysmart_parallel','exec'))
+          PY
