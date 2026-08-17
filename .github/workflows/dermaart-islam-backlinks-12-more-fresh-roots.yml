@@ -1,0 +1,196 @@
+name: DermaArt Islam Backlinks Batch 12 More Fresh Roots
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run DermaArt Islam backlink batch 12'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Install browser
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Publish and verify more fresh roots
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,requests,json,secrets,hashlib
+          from playwright.async_api import async_playwright
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/12.0'})
+          ANCHOR='أفضل دكتورة تجميل في الرياض'
+          LINKS=[
+            (ANCHOR,'https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('ديرما آرت الرياض','https://dermaart-sa.com/'),
+            ('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),
+            ('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          TITLES=[
+            'كيف تختارين جلسات التجميل حسب احتياج بشرتك الحقيقي',
+            'دليل مبسط قبل البوتوكس والفيلر والليزر في الرياض',
+            'العناية بالبشرة قبل الإجراءات التجميلية خطوة بخطوة',
+            'كيف تختارين طبيبة تجميل مع خطة علاج واضحة',
+            'ما الذي يجعل نتيجة التجميل طبيعية ومتوازنة',
+            'أسئلة مهمة قبل حجز جلسة تجميل أو ليزر في الرياض']
+          SECS=[
+            ('حددي الهدف أولًا','القرار الأفضل يبدأ بتحديد المشكلة التي تريدين تحسينها. قد تكون مرتبطة بالتصبغات أو الملمس أو الحبوب أو التجاعيد التعبيرية أو فقدان الحجم، وكل سبب يحتاج إلى تقييم وخطة مختلفة.'),
+            ('التشخيص يحدد ترتيب الخطوات','تقييم البشرة والملامح والتاريخ الصحي والتوقعات يساعد على معرفة ما يجب أن يبدأ أولًا وما يمكن تأجيله. هذا يقلل تنفيذ إجراءات غير ضرورية أو الجمع بين خدمات بلا هدف واضح.'),
+            ('صحة البشرة تسبق بعض الإجراءات','في حالات كثيرة يكون تحسين الترطيب والملمس أو علاج الحبوب والتصبغات خطوة أولى مهمة. جودة البشرة تؤثر على الشكل النهائي حتى عندما تكون هناك حاجة لاحقًا إلى فيلر أو بوتوكس.'),
+            ('الفيلر والبوتوكس مختلفان','البوتوكس يرتبط عادة بحركة العضلات والتجاعيد التعبيرية، بينما يستخدم الفيلر لدعم أو إضافة حجم في مناطق محددة. الاختيار الصحيح يعتمد على سبب المشكلة وتقييم المنطقة.'),
+            ('الليزر يحتاج إلى اختيار مناسب','تقنيات الليزر تختلف حسب الهدف ونوع البشرة ودرجة المشكلة. تحديد التقنية وعدد الجلسات وفترة التعافي يحتاج إلى تقييم قبل بدء الخطة.'),
+            ('التدرج يحافظ على الملامح','النتيجة الطبيعية لا تعتمد على كثرة الإجراءات. البدء بخطوات محسوبة ثم تقييم الاستجابة قبل إضافة خطوة جديدة يساعد على الحفاظ على التناسق وتقليل المبالغة.'),
+            ('المتابعة مهمة','معرفة تعليمات ما بعد الجلسة وموعد التقييم يسمحان بالحكم على النتيجة في الوقت الصحيح وتعديل الخطة عند الحاجة بدل تكرار الإجراء بسرعة.'),
+            ('اختيار الطبيبة يعتمد على طريقة العمل','عند المقارنة بين خيارات التجميل في الرياض، من المفيد التركيز على التخصص والتشخيص وشرح البدائل والتوقعات والمتابعة، وليس على السعر أو اسم إجراء واحد.'),
+            ('الخلاصة','الخطة التجميلية المدروسة تربط التشخيص بصحة البشرة والتدرج والمتابعة. كلما كانت الخطة مخصصة للحالة كانت النتيجة أكثر توازنًا.')]
+          def make(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>تعدد جلسات الجلدية والتجميل والليزر يجعل اختيار الخطة المناسبة أهم من اختيار اسم إجراء رائج. الاستشارة الجيدة تربط احتياج البشرة والملامح بالهدف الواقعي ثم ترتب الخطوات بطريقة متدرجة.</p>']
+            secs=SECS[i:]+SECS[:i]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                extra=(f'لمن تبحث عن <a href="{u}">{html.escape(a)}</a> يمكن الاطلاع على صفحة د. إسلام اللبودي وخيارات الاستشارة.' if n==0 else f'للمزيد من المعلومات يمكن زيارة <a href="{u}">{html.escape(a)}</a>.')
+                parts.append('<p>'+extra+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,Tahoma,sans-serif;line-height:2;color:#222">'+''.join(parts)+'</main></body></html>'
+          H=[make(i) for i in range(6)]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?dermaart-sa\.com',src,re.I))
+              exact=ANCHOR in re.sub(r'<[^>]+>',' ',src)
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          def deploy_upload_finalize(name,create_url,page,client_header=None):
+            data=page.encode('utf-8');sha=hashlib.sha256(data).hexdigest()
+            headers={'Content-Type':'application/json'}
+            if client_header:headers.update(client_header)
+            body={'files':[{'path':'index.html','size':len(data),'contentType':'text/html; charset=utf-8','hash':sha}]}
+            r=S.post(create_url,json=body,headers=headers,timeout=55);print(name+'_CREATE',r.status_code,r.text[:900]);d=r.json();
+            ups=((d.get('upload') or {}).get('uploads') or d.get('uploads') or [])
+            for up in ups:
+              url=up.get('url') or up.get('putUrl') or up.get('uploadUrl')
+              if url:requests.put(url,data=data,headers={'Content-Type':'text/html; charset=utf-8'},timeout=60)
+            fin=d.get('finalizeUrl') or d.get('finalize') or (d.get('upload') or {}).get('finalizeUrl')
+            ver=d.get('versionId') or (d.get('upload') or {}).get('versionId')
+            claim=d.get('claimToken')
+            if fin:
+              payload={}
+              if ver:payload['versionId']=ver
+              if claim:payload['claimToken']=claim
+              fr=S.post(fin,json=payload,headers=client_header or {},timeout=55);print(name+'_FINALIZE',fr.status_code,fr.text[:500])
+              try:fd=fr.json()
+              except:fd={}
+            else:fd={}
+            u=d.get('siteUrl') or d.get('url') or fd.get('siteUrl') or fd.get('url')
+            return u
+          # ship.page direct raw HTML (7 days)
+          try:
+            r=S.post('https://ship.page/deploy',data=H[0].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=55);print('SHIPPAGE2',r.status_code,r.text[:600]);
+            try:d=r.json();u=d.get('url','')
+            except:
+              m=re.search(r'https?://[^\s"\']+shipped\.page/?',r.text);u=m.group(0) if m else ''
+            add('Ship.page',u)
+          except Exception as e:print('SHIPPAGE2_ERR',repr(e))
+          # here.now anonymous API (24h)
+          try:add('Here.now',deploy_upload_finalize('HERENOW','https://here.now/api/v1/publish',H[1],{'X-HereNow-Client':'dermaart/direct-api'}))
+          except Exception as e:print('HERENOW_ERR',repr(e))
+          # shipsite anonymous API (24h)
+          try:add('ShipSite',deploy_upload_finalize('SHIPSITE','https://shipsite.co/api/v1/publish',H[2]))
+          except Exception as e:print('SHIPSITE_ERR',repr(e))
+          async def browser_sites():
+            out=[]
+            targets=[
+              ('Fylo','fylo.host','https://fylo.host/html-viewer-online',3,['Publish & Share','Publish']),
+              ('Crevioo','crevioo.com','https://crevioo.com/',4,['Generate Live Page','Publish']),
+              ('HTMLPeek','htmlpeek.com','https://htmlpeek.com/',5,['Publish & Share','Publish'])]
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True)
+              for name,domain,start,i,buttons in targets:
+                ctx=await b.new_context();p=await ctx.new_page();network=[]
+                async def capture(resp):
+                  try:
+                    if resp.request.method in ('POST','PUT'):
+                      txt=await resp.text()
+                      if 'http' in txt:network.append(txt[:10000])
+                  except:pass
+                p.on('response',capture)
+                try:
+                  await p.goto(start,wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1500);print('PAGE',name,p.url,await p.title())
+                  used=False
+                  fis=p.locator('input[type=file]')
+                  if await fis.count():
+                    fn=f'/tmp/derma12-{i}.html';open(fn,'w',encoding='utf-8').write(H[i])
+                    for k in range(await fis.count()):
+                      try:await fis.nth(k).set_input_files(fn);used=True;print('FILE',name,k);break
+                      except:pass
+                  if not used:
+                    for sel in ['textarea:visible','.monaco-editor textarea','[contenteditable=true]:visible','textarea','[contenteditable=true]']:
+                      loc=p.locator(sel)
+                      if await loc.count():
+                        try:await loc.first.fill(H[i]);used=True;print('CONTENT',name,sel);break
+                        except:pass
+                  slug='derma-riyadh-'+secrets.token_hex(3)
+                  for sel,val in [('input[placeholder*="title" i]',TITLES[i]),('input[name*="title" i]',TITLES[i]),('input[placeholder*="page" i]',slug),('input[placeholder*="slug" i]',slug),('input[name*="slug" i]',slug)]:
+                    loc=p.locator(sel)
+                    if await loc.count():
+                      try:await loc.first.fill(val)
+                      except:pass
+                  await p.wait_for_timeout(1000)
+                  clicked=False
+                  for pat in buttons:
+                    for role in ['button','link']:
+                      loc=p.get_by_role(role,name=re.compile(pat,re.I))
+                      if await loc.count():
+                        try:await loc.first.click(timeout=8000);clicked=True;print('CLICK',name,pat);break
+                        except Exception as e:print('CLICK_ERR',name,pat,str(e)[:120])
+                    if clicked:break
+                  await p.wait_for_timeout(6000)
+                  cand=[]
+                  if domain in p.url and p.url.rstrip('/')!=start.rstrip('/'):cand.append(p.url)
+                  try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if domain in x or (name=='Fylo' and 'fylo.live' in x)]
+                  except:pass
+                  try:cand += [x for x in await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)') if isinstance(x,str) and x.startswith('http')]
+                  except:pass
+                  try:cand += re.findall(r'https?://[^\s<>"\']+',await p.locator('body').inner_text())
+                  except:pass
+                  for t in network:cand += re.findall(r'https?://[^\s<>"\\]+',t)
+                  print('CAND',name,cand[:30])
+                  seen=set()
+                  for u in cand:
+                    u=u.strip().rstrip('.,);]}')
+                    if u in seen:continue
+                    seen.add(u)
+                    allowed=(domain in u) or (name=='Fylo' and 'fylo.live' in u)
+                    if not allowed:continue
+                    if any(x in u for x in ['/login','/signup','/pricing','/privacy','/terms','/docs','/features']):continue
+                    v=verify(name,u)
+                    if v:out.append((name,v));break
+                except Exception as e:print('BROWSER_ERR',name,repr(e))
+                await ctx.close()
+              await b.close()
+            return out
+          try:res.extend(asyncio.run(browser_sites()))
+          except Exception as e:print('BROWSER_BATCH_ERR',repr(e))
+          final=[];seen=set()
+          for n,u in res:
+            host=re.sub(r'^www\.','',re.sub(r'^https?://','',u).split('/')[0]);root='.'.join(host.split('.')[-2:])
+            if root in seen:continue
+            seen.add(root);final.append((n,u))
+          print('DERMAART12_RESULTS_BEGIN')
+          for n,u in final:print(n+'\t'+u)
+          print('DERMAART12_RESULTS_END')
+          print('DERMAART12_VALID_COUNT='+str(len(final)))
+          print('DERMAART12_RESULTS_JSON='+json.dumps(final,ensure_ascii=False))
+          PY
