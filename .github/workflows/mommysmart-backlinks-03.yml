@@ -1,0 +1,106 @@
+name: MommySmart English Backlinks Batch 03
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run MommySmart backlink batch 03'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify third MommySmart batch
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 MommySmartSEO/3.0'})
+          LINKS=[
+            ('baby products online in Egypt','https://mommysmart.net/'),
+            ('baby strollers in Egypt','https://mommysmart.net/collections/baby-transport'),
+            ('baby feeding essentials','https://mommysmart.net/collections/frontpage'),
+            ('baby diapering products','https://mommysmart.net/collections/diapering'),
+            ('baby carriers','https://mommysmart.net/collections/baby-carriers')
+          ]
+          TITLES=[
+            'Best Newborn Essentials to Buy Before Your Baby Arrives',
+            'How to Build a Practical Baby Travel Kit for Everyday Outings',
+            'Baby Feeding Products That Make Daily Routines Easier',
+            'A Simple Diapering and Baby Care Checklist for New Parents',
+            'How to Choose Safe and Comfortable Baby Gear for Daily Use'
+          ]
+          SECTIONS=[
+            ('Start with the essentials you will use every day','New parents often feel pressure to buy everything before the baby arrives, but the most useful setup is usually built around everyday routines. Feeding, diaper changes, sleep, hygiene, and safe travel should come first. Starting with a smaller group of reliable products gives parents time to learn what their baby actually prefers before buying more.'),
+            ('Choose products that are easy to clean and maintain','Baby products are used frequently and many of them need regular washing. Bottles, feeding tools, changing accessories, carriers, and travel items are easier to live with when they have simple designs and washable materials. A product that is easy to clean often becomes more valuable than one with extra features that rarely get used.'),
+            ('Think about travel and storage before buying large gear','Strollers, car seats, travel systems, and carriers take up space and are used in different ways depending on the family routine. Parents should think about car size, apartment storage, stairs, elevators, and how often the equipment will be carried. A compact product that fits daily life can be a better choice than a larger option with more features.'),
+            ('Buy feeding products in stages','Feeding needs change quickly as babies grow. Bottles, nipples, bibs, cups, bowls, and storage containers become useful at different stages, so parents do not need to buy a complete feeding collection at once. Testing a smaller number of products first can reduce waste and help families choose the items that work best for their baby.'),
+            ('Keep diapering and hygiene simple','A practical changing setup needs diapers, wipes, a changing mat, spare clothes, and a small number of gentle care products. Keeping these items together makes frequent changes faster and easier. Parents should focus on fit, comfort, and skin response rather than collecting too many different products before knowing what the baby needs.'),
+            ('Organize products by routine','Daily care becomes easier when feeding items, diapering products, travel gear, and bath supplies each have a clear place. Good organization saves time and makes it easier to notice when something needs to be replaced. This is especially useful during the newborn stage when the same routines happen many times throughout the day.'),
+            ('Focus on safety and real value','A useful baby product should be suitable for the child’s age and size, easy to use correctly, durable enough for regular use, and realistic for the family lifestyle. Parents should compare value based on safety, convenience, and how often the product will actually be used instead of choosing only by price or popularity.'),
+          ]
+          def md(title):
+            out=[f'# {title}','', 'Shopping for a baby is easier when parents focus on real routines instead of long generic lists. A practical setup should support feeding, diapering, hygiene, comfort, and safe travel while remaining easy to clean and organize. The following guide explains how to choose baby essentials in a way that fits everyday family life in Egypt.','']
+            for i,(h,p) in enumerate(SECTIONS):
+              out += [f'## {h}','',p,'']
+              if i<5:
+                a,u=LINKS[i];out += [f'For related options, explore [{a}]({u}) from Mommy\'s Mart.','']
+            out += ['## Final thoughts','', 'Parents usually get better value when they buy in stages and choose products that match the baby’s current needs. Keeping routines simple, organized, and safe makes it easier to add new products with confidence as the baby grows.']
+            return '\n'.join(out)
+          def extract(d,domain):
+            vals=[]
+            def w(x):
+              if isinstance(x,str):vals.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values():w(v)
+              elif isinstance(x,list):
+                for v in x:w(v)
+            w(d);vals=[v.rstrip('.,);}') for v in vals]
+            for v in vals:
+              if domain in v:return v
+            return vals[0] if vals else ''
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=40,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?mommysmart\.net',r.text,re.I))
+              exact=('baby products online in Egypt' in r.text)
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY {name} STATUS={r.status_code} URL={r.url} HREFS={hrefs} EXACT={int(exact)} NOINDEX={int(noindex)}')
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          def telegraph(content,title):
+            acc=S.post('https://api.telegra.ph/createAccount',data={'short_name':'MommySmart','author_name':'Baby Essentials Guide'},timeout=25).json();tok=(acc.get('result') or {}).get('access_token','');nodes=[]
+            for block in re.split(r'\n\s*\n',content):
+              block=block.strip()
+              if not block:continue
+              tag='p';txt=block
+              if block.startswith('# '):tag='h3';txt=block[2:]
+              elif block.startswith('## '):tag='h4';txt=block[3:]
+              ch=[];pos=0
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',txt):
+                if m.start()>pos:ch.append(txt[pos:m.start()])
+                ch.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]});pos=m.end()
+              if pos<len(txt):ch.append(txt[pos:])
+              nodes.append({'tag':tag,'children':ch})
+            d=S.post('https://api.telegra.ph/createPage',data={'access_token':tok,'title':title,'content':json.dumps(nodes),'return_content':'false'},timeout=30).json();p=(d.get('result') or {}).get('path','');return 'https://telegra.ph/'+p if p else ''
+          mds=[md(t) for t in TITLES];results=[]
+          for i,m in enumerate(mds,1):print('ARTICLE',i,'WORDS',len(m.split()),'LINKS',m.count('mommysmart.net'))
+          try:
+            u=telegraph(mds[0],TITLES[0]);v=verify('Telegra.ph',u);results += [('Telegra.ph',v)] if v else []
+          except Exception as e:print('TELE_ERR',repr(e))
+          try:
+            r=S.post('https://draftmark.app/api/v1/docs',json={'content':mds[1],'visibility':'public'},timeout=45);d=r.json() if r.ok else {};u=extract(d,'draftmark.app');v=verify('Draftmark',u);results += [('Draftmark',v)] if v else []
+          except Exception as e:print('DRAFTMARK_ERR',repr(e))
+          try:
+            r=S.post('https://quicky.page/api/v1/publish',json={'title':TITLES[2],'content':mds[2]},timeout=45);d=r.json() if r.ok else {};u=extract(d,'quicky.page');v=verify('Quicky.page',u);results += [('Quicky.page',v)] if v else []
+          except Exception as e:print('QUICKY_ERR',repr(e))
+          try:
+            r=S.post('https://output.pub/api/publish',json={'content':mds[3],'format':'markdown'},timeout=45);d=r.json() if r.ok else {};u=extract(d,'output.pub');v=verify('Output.pub',u);results += [('Output.pub',v)] if v else []
+          except Exception as e:print('OUTPUT_ERR',repr(e))
+          try:
+            r=S.post('https://leafmill.net/api/v1/publish',json={'title':TITLES[4],'body':mds[4]},timeout=45);d=r.json() if r.ok else {};u=extract(d,'leafmill.net');v=verify('Leafmill',u);results += [('Leafmill',v)] if v else []
+          except Exception as e:print('LEAF_ERR',repr(e))
+          print('MOMMYSMART3_RESULTS_BEGIN')
+          for n,u in results:print(n+'\t'+u)
+          print('MOMMYSMART3_RESULTS_END')
+          print('MOMMYSMART3_VALID_COUNT='+str(len(results)))
+          print('MOMMYSMART3_RESULTS_JSON='+json.dumps(results))
+          PY
