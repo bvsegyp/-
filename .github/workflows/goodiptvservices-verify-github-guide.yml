@@ -1,0 +1,22 @@
+name: Verify GoodIPTVServices GitHub Guide Backlink
+on:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Verify GoodIPTVServices GitHub guide backlink'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify rendered GitHub article
+        run: |
+          python - <<'PY'
+          import requests,re,html
+          u='https://github.com/bvsegyp/-/blob/main/goodiptv-guides/abonnement-iptv-guide-francais.md'
+          r=requests.get(u,headers={'User-Agent':'Mozilla/5.0'},timeout=45,allow_redirects=True);src=html.unescape(r.text)
+          hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?goodiptvservices\.com',src,re.I))
+          exact='abonnement IPTV'.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+          robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+          noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+          print('GOODIPTV_GITHUB_VERIFY',r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+          print('GOODIPTV_GITHUB_VALID='+str(int(r.status_code<400 and hrefs>=5 and exact and not noindex)))
+          PY
