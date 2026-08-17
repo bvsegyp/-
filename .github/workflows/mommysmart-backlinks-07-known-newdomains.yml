@@ -1,0 +1,161 @@
+name: MommySmart Known New-Domain Backlinks Batch 07
+on:
+  push:
+    branches: [ main ]
+jobs:
+  publish:
+    if: contains(github.event.head_commit.message, 'Run MommySmart known new-domain batch 07')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install parser
+        run: pip install beautifulsoup4
+      - name: Publish and verify known new domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html,secrets,hashlib
+          from urllib.parse import urljoin
+          from bs4 import BeautifulSoup
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 MommySmartSEO/7.0'})
+          LINKS=[
+            ('baby products online in Egypt','https://mommysmart.net/'),
+            ('baby strollers in Egypt','https://mommysmart.net/collections/baby-transport'),
+            ('baby feeding essentials','https://mommysmart.net/collections/frontpage'),
+            ('baby diapering products','https://mommysmart.net/collections/diapering'),
+            ('baby carriers','https://mommysmart.net/collections/baby-carriers')]
+          TITLES=['Newborn Essentials Guide for Parents in Egypt','Baby Travel Gear for Everyday Family Life','Feeding and Diapering Essentials for New Parents','Smart Baby Shopping for First-Time Parents','Practical Baby Products for the First Months','Baby Strollers Carriers and Feeding Essentials','A Simple Baby Care Shopping Checklist','How to Choose Useful Baby Products in Egypt','Everyday Baby Essentials Parents Actually Need']
+          SEC=[
+            ('Start with everyday routines','New parents get better value when they build a shopping list around feeding, diaper changes, hygiene, comfort, sleep, and safe travel. Buying a smaller group of useful products first gives families time to learn what their baby prefers before spending on extra items.'),
+            ('Choose products that are easy to clean','Baby products are handled constantly, so washable materials and simple designs make daily care easier. Bottles, feeding accessories, diapering items, carriers, and travel gear should be practical to wash, dry, store, and use again without adding unnecessary work.'),
+            ('Match travel gear to real life','Strollers and carriers should fit the family lifestyle. Parents should consider car size, apartment storage, stairs, elevators, walking distances, folding size, and how often the product will be lifted or carried before choosing a model.'),
+            ('Buy feeding products in stages','Feeding needs change quickly as babies grow. Bottles, nipples, bibs, cups, bowls, spoons, and storage containers become useful at different ages, so it is usually better to test a few products first and expand the setup gradually.'),
+            ('Keep diapering and hygiene simple','A practical changing setup needs diapers, wipes, a changing mat, spare clothes, and a few gentle care products. Keeping these items organized saves time and helps parents maintain a consistent routine at home and during outings.'),
+            ('Focus on safety and value','A useful baby product should be appropriate for the child’s age and size, easy to use correctly, durable enough for regular use, and realistic for the family routine. Safety and frequent use matter more than collecting the largest number of products.'),
+            ('Final thoughts','Shopping in stages helps parents avoid clutter and focus on products that actually support daily life. A practical list built around feeding, diapering, travel, and care makes it easier to compare quality and add new items only when they become useful.')]
+          def md(i):
+            out=[f'# {TITLES[i]}','', 'Preparing for a baby becomes easier when parents focus on practical products that support real daily routines. This guide explains how to choose useful baby essentials in Egypt without overbuying, while still covering feeding, diapering, hygiene, travel, and comfort.','']
+            for n,(h,p) in enumerate(SEC):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n];out += [f'For related options, explore [{a}]({u}) from Mommy\'s Mart.','']
+            return '\n'.join(out)
+          def to_html(text,title):
+            blocks=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b:continue
+              if b.startswith('# '):blocks.append('<h1>'+html.escape(b[2:])+'</h1>');continue
+              if b.startswith('## '):blocks.append('<h2>'+html.escape(b[3:])+'</h2>');continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()]));x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>');pos=m.end()
+              x.append(html.escape(b[pos:]));blocks.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.85;color:#222">'+''.join(blocks)+'</main></body></html>'
+          def extract(obj,domains=()):
+            vals=[]
+            def w(x):
+              if isinstance(x,str):vals.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values():w(v)
+              elif isinstance(x,list):
+                for v in x:w(v)
+            w(obj);vals=[v.rstrip('.,);}') for v in vals]
+            for d in domains:
+              for v in vals:
+                if d in v:return v
+            return vals[0] if vals else ''
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?mommysmart\.net',r.text,re.I));exact='baby products online in Egypt' in r.text
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          M=[md(i) for i in range(9)];H=[to_html(M[i],TITLES[i]) for i in range(9)]
+          # Shipped.page
+          try:
+            r=S.post('https://ship.page/deploy',data=H[0].encode(),headers={'Content-Type':'text/html; charset=utf-8'},timeout=60);print('SHIPPED_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('Shipped.page',extract(d,('shipped.page','ship.page')))
+          except Exception as e:print('SHIPPED_ERR',repr(e))
+          # AirED
+          try:
+            r=S.post('https://aired.sh/api/publish',json={'html':H[1]},timeout=50);print('AIRED_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('AirED',extract(d,('aired.sh',)))
+          except Exception as e:print('AIRED_ERR',repr(e))
+          # YeetIt
+          try:
+            r=S.post('https://yeetit.site/v1/publish',json={'html':H[2],'title':TITLES[2]},timeout=55);print('YEETIT_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('YeetIt',extract(d,('yeetit.site',)))
+          except Exception as e:print('YEETIT_ERR',repr(e))
+          # YourWebs form
+          try:
+            home=S.get('https://yourwebs.cc/',timeout=40);soup=BeautifulSoup(home.text,'html.parser');done=False
+            for f in soup.find_all('form'):
+              action=urljoin(home.url,f.get('action') or home.url);method=(f.get('method') or 'post').lower()
+              if method!='post':continue
+              data={};files={}
+              for el in f.find_all(['input','textarea']):
+                n=el.get('name');typ=(el.get('type') or '').lower()
+                if not n or typ in ('submit','button'):continue
+                if typ=='file':files[n]=('baby-essentials.html',H[3],'text/html')
+                elif 'title' in n.lower() or n.lower()=='name':data[n]=TITLES[3]
+                elif any(k in n.lower() for k in ('html','content','code','text')):data[n]=H[3]
+                else:data[n]=el.get('value','')
+              if not files and H[3] not in data.values():continue
+              rr=S.post(action,data=data,files=files or None,timeout=55,allow_redirects=True);print('YOURWEBS_FORM',rr.status_code,rr.url)
+              cand=extract(rr.text,('yourwebs.app','yourwebs.cc')) or (rr.url if rr.url!=action else '')
+              v=verify('YourWebs',cand)
+              if v:res.append(('YourWebs',v));break
+          except Exception as e:print('YOURWEBS_ERR',repr(e))
+          # TheThings.ai
+          try:
+            r=S.post('https://thethings.ai/api/scratch/publish',json={'content':H[4],'content_type':'text/html','title':TITLES[4],'summary':'Practical baby products guide for new parents'},timeout=50);print('THETHINGS_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('TheThings.ai',extract(d,('thethings.ai',)))
+          except Exception as e:print('THETHINGS_ERR',repr(e))
+          # ShipSite
+          try:
+            b=H[5].encode();rr=S.post('https://shipsite.co/api/v1/publish',json={'files':[{'path':'index.html','size':len(b),'contentType':'text/html'}],'viewer':{'title':TITLES[5],'description':'Baby essentials guide'}},timeout=45);print('SHIPSITE_CREATE',rr.status_code,rr.text[:500]);c=rr.json();ups=((c.get('upload') or {}).get('uploads') or []);up=next((x for x in ups if x.get('path')=='index.html'),None)
+            if up:
+              requests.put(up['url'],data=b,headers={'Content-Type':'text/html'},timeout=45);f=S.post((c.get('upload') or {}).get('finalizeUrl'),json={'versionId':(c.get('upload') or {}).get('versionId'),'claimToken':c.get('claimToken')},timeout=45);add('ShipSite',extract(f.json(),('shipsite.co',)) or c.get('siteUrl',''))
+          except Exception as e:print('SHIPSITE_ERR',repr(e))
+          # Pubmark
+          try:
+            r=S.post('https://pubmark.site/api/documents',json={'title':TITLES[6]},timeout=35);print('PUBMARK_CREATE',r.status_code,r.text[:300]);d=r.json();sid=d.get('secretId');u=''
+            if sid:
+              S.put('https://pubmark.site/api/documents/'+sid,json={'content':M[6],'title':TITLES[6],'theme':'clean','colorPreset':'blue'},timeout=35);p=S.post('https://pubmark.site/api/documents/'+sid+'/publish',json={},timeout=35);slug=(p.json() if p.ok else {}).get('slug');u='https://pubmark.site/p/'+slug if slug else ''
+            add('Pubmark',u)
+          except Exception as e:print('PUBMARK_ERR',repr(e))
+          # Here.now
+          try:
+            b=H[7].encode();sha=hashlib.sha256(b).hexdigest();d=S.post('https://here.now/api/v1/publish',headers={'X-HereNow-Client':'chatgpt/direct-api','Content-Type':'application/json'},json={'files':[{'path':'index.html','size':len(b),'contentType':'text/html; charset=utf-8','hash':sha}],'viewer':{'title':TITLES[7]}},timeout=45).json();site=d.get('siteUrl','');up=d.get('upload') or {};ups=up.get('uploads') or []
+            if ups:requests.put(ups[0]['url'],data=b,headers=ups[0].get('headers') or {'Content-Type':'text/html; charset=utf-8'},timeout=45)
+            if up.get('finalizeUrl') and up.get('versionId'):S.post(up['finalizeUrl'],json={'versionId':up['versionId']},timeout=35)
+            add('Here.now',site)
+          except Exception as e:print('HERENOW_ERR',repr(e))
+          # Pastebox
+          try:
+            r=S.post('https://lfdekutkxwsczpasjgsg.supabase.co/functions/v1/create-share',json={'content':M[8],'title':TITLES[8],'language':'markdown','content_type':'text','expiration':'1M','exposure':'public','source':'api'},timeout=40);print('PASTEBOX_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('Pastebox',extract(d,('pastebox.ai',)))
+          except Exception as e:print('PASTEBOX_ERR',repr(e))
+          print('MOMMYSMART7_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('MOMMYSMART7_RESULTS_END')
+          print('MOMMYSMART7_VALID_COUNT='+str(len(res)))
+          print('MOMMYSMART7_RESULTS_JSON='+json.dumps(res))
+          PY
