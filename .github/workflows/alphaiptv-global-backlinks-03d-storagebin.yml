@@ -1,0 +1,97 @@
+name: AlphaIPTV Global English Backlink Batch 03D StorageBin
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run AlphaIPTV global English backlink batch 03d storagebin'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install browser
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Publish and verify StorageBin
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,requests,json,secrets
+          from playwright.async_api import async_playwright
+          SITE='https://alphaiptv.tn/';ANCHOR='Legal IPTV Subscription'
+          links=[('Legal IPTV Subscription',SITE),('IPTV Subscription',SITE),('Legal IPTV Service',SITE),('Worldwide IPTV Service',SITE),('IPTV Service Provider',SITE)]
+          title='Legal IPTV Subscription: A Responsible Global Comparison Guide'
+          secs=[('Verify licensing and regional rights','Viewers should confirm that a provider has appropriate distribution rights for the content it offers in the locations where the service will be used.'),('Check device compatibility','Smart TVs, Android TV devices, streaming sticks, phones and computers may require different apps or setup methods.'),('Review simultaneous connections','Households using several screens should check how many concurrent streams are included and whether account or household rules apply.'),('Compare streaming quality','Picture quality depends on the source, provider infrastructure, internet connection and device performance.'),('Evaluate customer support','Clear support channels and response expectations matter when activation or playback issues occur.'),('Compare pricing and terms','Subscription length, connection limits, cancellation conditions and refund rules should be compared before payment.'),('Conclusion','A responsible IPTV comparison balances licensing, compatibility, quality, connections, support and transparent terms.')]
+          parts=[f'<h1>{html.escape(title)}</h1>','<p>Global IPTV viewers should compare licensing, device support, connection limits, streaming quality, support and published terms before subscribing.</p>']
+          for i,(h,p) in enumerate(secs):
+            parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+            if i<5:
+              a,u=links[i];parts.append(f'<p>Viewers researching a <a href="{u}">{html.escape(a)}</a> can review Alpha IPTV as one option while independently confirming licensing and regional availability.</p>')
+          page='<!doctype html><html lang="en"><head><meta charset="utf-8"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(parts)+'</main></body></html>'
+          def verify(u):
+            try:
+              r=requests.get(u,headers={'User-Agent':'Mozilla/5.0'},timeout=45,allow_redirects=True);src=html.unescape(r.content.decode('utf-8','ignore'));hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?alphaiptv\.tn',src,re.I));exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower();robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower();noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower();print('VERIFY',r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex));return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',repr(e));return None
+          async def main():
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True);p=await b.new_page();network=[]
+              async def cap(resp):
+                try:
+                  if resp.request.method in ('POST','PUT'):
+                    t=await resp.text()
+                    if 'http' in t:network.append(t[:6000])
+                except:pass
+              p.on('response',cap);await p.goto('https://storagebin.link/',wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1500)
+              for txt in ['Create a Bin','Try it now']:
+                for role in ['link','button']:
+                  loc=p.get_by_role(role,name=re.compile(txt,re.I))
+                  if await loc.count():
+                    try:await loc.first.click();await p.wait_for_timeout(1200);break
+                    except:pass
+              used=False
+              for sel in ['textarea:visible','[contenteditable=true]:visible','textarea','[contenteditable=true]']:
+                loc=p.locator(sel)
+                if await loc.count():
+                  try:await loc.first.fill(page);used=True;break
+                  except:pass
+              for sel in ['select','[role=combobox]']:
+                loc=p.locator(sel)
+                if await loc.count():
+                  try:
+                    opts=await loc.first.locator('option').all_text_contents()
+                    for o in opts:
+                      if 'html' in o.lower():await loc.first.select_option(label=o);break
+                  except:pass
+              for sel,val in [('input[placeholder*="title" i]',title),('input[name*="title" i]',title),('input[placeholder*="name" i]','alpha-iptv-'+secrets.token_hex(3))]:
+                loc=p.locator(sel)
+                if await loc.count():
+                  try:await loc.first.fill(val)
+                  except:pass
+              for pat in ['Create a Bin','Create Bin','Save','Publish','Create']:
+                for role in ['button','link']:
+                  loc=p.get_by_role(role,name=re.compile(pat,re.I))
+                  if await loc.count():
+                    try:await loc.first.click(timeout=8000);await p.wait_for_timeout(6000);raise StopAsyncIteration
+                    except StopAsyncIteration:break
+                    except:pass
+                else:continue
+                break
+              cand=[]
+              if 'storagebin.link' in p.url and p.url.rstrip('/')!='https://storagebin.link':cand.append(p.url)
+              try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if 'storagebin.link' in x]
+              except:pass
+              try:cand += [x for x in await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)') if isinstance(x,str) and 'storagebin.link' in x]
+              except:pass
+              try:cand += re.findall(r'https?://[^\s<>"\']+',await p.locator('body').inner_text())
+              except:pass
+              for t in network:cand += re.findall(r'https?://[^\s<>"\\]+',t)
+              good='';seen=set()
+              for u in cand:
+                u=u.strip().rstrip('.,);]}')
+                if u in seen or 'storagebin.link' not in u:continue
+                seen.add(u)
+                if any(x in u for x in ['/login','/signup','/pricing','/privacy','/terms','/docs']):continue
+                v=verify(u)
+                if v:good=v;break
+              print('ALPHA3D_RESULT='+good);print('ALPHA3D_VALID_COUNT='+str(1 if good else 0));await b.close()
+          asyncio.run(main())
+          PY
