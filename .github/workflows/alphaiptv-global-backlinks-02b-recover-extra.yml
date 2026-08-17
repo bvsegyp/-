@@ -1,0 +1,122 @@
+name: AlphaIPTV Global English Backlinks Batch 02B Recover Extra
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run AlphaIPTV global English backlink batch 02b recover extra'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify five extra domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html,time
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 AlphaIPTVSEO/2.1'})
+          SITE='https://alphaiptv.tn/';ANCHOR='Legal IPTV Subscription'
+          LINKS=[('Legal IPTV Subscription',SITE),('IPTV Subscription',SITE),('Legal IPTV Service',SITE),('Worldwide IPTV Service',SITE),('IPTV Service Provider',SITE)]
+          TITLES=[
+            'Legal IPTV Subscription: A Practical Guide for Global Viewers',
+            'How to Compare IPTV Subscriptions Before Choosing a Provider',
+            'IPTV Service Guide: Devices, Connections and Support',
+            'Worldwide IPTV Subscription Checklist for New Customers',
+            'How to Review an IPTV Provider Responsibly Before Subscribing']
+          SECS=[
+            ('Confirm licensing and regional rights','Before choosing any IPTV provider, users should confirm that the service has appropriate rights to distribute the content it offers in the regions where it will be used. Availability and licensing can differ by country.'),
+            ('Check supported devices','Smart TVs, Android TV boxes, streaming sticks, phones, tablets and computers may require different apps or setup methods. Device compatibility should be checked before payment.'),
+            ('Compare connection limits','Households using multiple screens should understand how many simultaneous connections are included and whether account or household restrictions apply.'),
+            ('Review streaming quality','Picture quality depends on the source, provider infrastructure, device performance and the customer’s internet connection. Marketing claims should be assessed together with realistic technical requirements.'),
+            ('Evaluate customer support','Clear contact methods and practical response times matter when activation, compatibility or playback problems occur.'),
+            ('Compare prices carefully','The lowest price is not automatically the best value. Subscription length, connection limits, support, cancellation rules and refund terms should all be compared.'),
+            ('Read the terms','Customers should understand billing, cancellation, refund and acceptable-use terms before paying for a long subscription period.'),
+            ('Conclusion','A responsible IPTV decision balances licensing, compatibility, quality, connections, support and transparent terms rather than relying on a single promotional claim.')]
+          def md(i):
+            secs=SECS[i:]+SECS[:i]
+            out=[f'# {TITLES[i]}','','IPTV can provide flexible viewing across many devices, but buyers should compare providers carefully. Licensing, compatibility, internet requirements, simultaneous connections, customer support, pricing and published terms all matter before subscribing.','']
+            for n,(h,p) in enumerate(secs):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n]
+                out += [f'Viewers researching a [{a}]({u}) can review Alpha IPTV as one option while independently confirming licensing, regional availability and service conditions.','']
+            return '\n'.join(out)
+          def htm(i):
+            text=md(i);parts=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b:continue
+              if b.startswith('# '):parts.append('<h1>'+html.escape(b[2:])+'</h1>');continue
+              if b.startswith('## '):parts.append('<h2>'+html.escape(b[3:])+'</h2>');continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()]));x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>');pos=m.end()
+              x.append(html.escape(b[pos:]));parts.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          M=[md(i) for i in range(5)];H=[htm(i) for i in range(5)]
+          def urls(obj):
+            vals=[]
+            def w(x):
+              if isinstance(x,str):vals.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values():w(v)
+              elif isinstance(x,list):
+                for v in x:w(v)
+            w(obj);return [v.rstrip('.,);}') for v in vals]
+          def choose(obj,domain):
+            for u in urls(obj):
+              if domain in u:return u
+            return ''
+          def verify(name,u):
+            if not u:return None
+            for _ in range(4):
+              try:
+                r=S.get(u,timeout=40,allow_redirects=True);src=html.unescape(r.content.decode('utf-8','ignore'))
+                hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?alphaiptv\.tn',src,re.I));exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+                robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower();noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+                print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+                if r.status_code<400 and hrefs>=5 and exact and not noindex:return r.url
+              except Exception as e:print('VERIFY_ERR',name,repr(e))
+              time.sleep(2)
+            return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # Telegra.ph
+          try:
+            acc=S.post('https://api.telegra.ph/createAccount',data={'short_name':'AlphaIPTVGuide','author_name':'Streaming Guide'},timeout=25).json();tok=(acc.get('result') or {}).get('access_token','');nodes=[]
+            for block in re.split(r'\n\s*\n',M[0]):
+              block=block.strip()
+              if not block:continue
+              tag='p';txt=block
+              if block.startswith('# '):tag='h3';txt=block[2:]
+              elif block.startswith('## '):tag='h4';txt=block[3:]
+              ch=[];pos=0
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',txt):
+                if m.start()>pos:ch.append(txt[pos:m.start()])
+                ch.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]});pos=m.end()
+              if pos<len(txt):ch.append(txt[pos:])
+              nodes.append({'tag':tag,'children':ch})
+            d=S.post('https://api.telegra.ph/createPage',data={'access_token':tok,'title':TITLES[0],'content':json.dumps(nodes,ensure_ascii=False),'return_content':'false'},timeout=30).json();p=(d.get('result') or {}).get('path','');add('Telegra.ph','https://telegra.ph/'+p if p else '')
+          except Exception as e:print('TELEGRAPH_ERR',repr(e))
+          # Quicky markdown schema
+          try:
+            r=S.post('https://quicky.page/api/v1/publish',json={'title':TITLES[1],'content':M[1]},timeout=45);print('QUICKY',r.status_code);d=r.json() if r.ok else r.text;add('Quicky.page',choose(d,'quicky.page'))
+          except Exception as e:print('QUICKY_ERR',repr(e))
+          # Output markdown schema
+          try:
+            r=S.post('https://output.pub/api/publish',json={'content':M[2],'format':'markdown'},timeout=45);print('OUTPUT',r.status_code);d=r.json() if r.ok else r.text;add('Output.pub',choose(d,'output.pub'))
+          except Exception as e:print('OUTPUT_ERR',repr(e))
+          # Leafmill markdown schema
+          try:
+            r=S.post('https://leafmill.net/api/v1/publish',json={'title':TITLES[3],'body':M[3]},timeout=45);print('LEAFMILL',r.status_code);d=r.json() if r.ok else r.text;add('Leafmill',choose(d,'leafmill.net'))
+          except Exception as e:print('LEAFMILL_ERR',repr(e))
+          # TheThings html schema
+          try:
+            r=S.post('https://thethings.ai/api/scratch/publish',json={'content':H[4],'content_type':'text/html','title':TITLES[4],'summary':'Independent guide to reviewing IPTV providers, licensing, devices and terms.'},timeout=50);print('THETHINGS',r.status_code);d=r.json() if r.ok else r.text;add('TheThings.ai',choose(d,'thethings.ai'))
+          except Exception as e:print('THETHINGS_ERR',repr(e))
+          print('ALPHA2B_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('ALPHA2B_RESULTS_END')
+          print('ALPHA2B_VALID_COUNT='+str(len(res)))
+          print('ALPHA2B_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
