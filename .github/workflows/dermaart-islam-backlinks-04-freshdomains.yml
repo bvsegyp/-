@@ -1,0 +1,139 @@
+name: DermaArt Islam Backlinks Batch 04 Fresh Domains
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run DermaArt Islam backlink batch 04'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Publish and verify fresh DermaArt domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/4.0'})
+          LINKS=[
+            ('أفضل دكتورة تجميل في الرياض','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('عيادة ديرما آرت للتجميل','https://dermaart-sa.com/'),
+            ('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),
+            ('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          TITLES=[
+            'دليل اختيار دكتورة تجميل في الرياض بخطة علاجية متوازنة',
+            'كيف تختارين جلسات البشرة والتجميل المناسبة في الرياض',
+            'الفيلر والبوتوكس والليزر: دليل لاتخاذ قرار تجميلي مدروس',
+            'العناية بالبشرة قبل الإجراءات التجميلية وبعدها في الرياض',
+            'متى تحتاجين إلى استشارة جلدية وتجميل قبل بدء العلاج',
+            'كيف تساعد المتابعة الطبية في تحسين نتائج التجميل غير الجراحي',
+            'اختيار خطة تجميل تناسب ملامح الوجه ونوع البشرة']
+          SEC=[
+            ('ابدئي بتقييم الحالة','الاستشارة الجيدة تبدأ بفهم نوع البشرة وتوزيع الملامح وحركة العضلات والهدف الحقيقي من العلاج. اختيار الإجراء قبل التشخيص قد يؤدي إلى خطوات لا يحتاجها الوجه أو البشرة، بينما يساعد التقييم الصحيح على ترتيب الأولويات.'),
+            ('النتائج الطبيعية تحتاج إلى التدرج','الإجراءات التجميلية لا يجب أن تبدأ بكميات كبيرة أو خطوات متعددة في جلسة واحدة دون سبب. التدرج يسمح بمراجعة النتيجة والحفاظ على التوازن العام للوجه وتعديل الخطة عند الحاجة.'),
+            ('البشرة الصحية جزء من النتيجة','الترطيب والملمس والتصبغات والحبوب وآثارها عوامل تؤثر في الشكل النهائي. لذلك قد تكون جلسات العناية أو العلاج الجلدي أو الليزر خطوة مهمة قبل التفكير في الفيلر أو البوتوكس.'),
+            ('الفيلر والبوتوكس لكل منهما دور مختلف','البوتوكس يرتبط غالبًا بحركة العضلات والتجاعيد التعبيرية، بينما يستخدم الفيلر لدعم أو إضافة حجم في مناطق محددة. تحديد الخيار المناسب يعتمد على سبب المشكلة وتقييم الملامح.'),
+            ('المتابعة بعد الجلسة مهمة','معرفة التعليمات بعد الإجراء وموعد تقييم النتيجة وما هو طبيعي خلال فترة التعافي يقلل القرارات العشوائية ويساعد على ضبط الخطة المستقبلية.'),
+            ('اختاري على أساس الخبرة والوضوح','عند مقارنة خيارات التجميل في الرياض، من المفيد التركيز على التخصص وطريقة التشخيص وشرح البدائل والنتائج المتوقعة، بدل الاعتماد على اسم إجراء رائج فقط.'),
+            ('الخلاصة','التجميل الطبي المدروس يعتمد على تشخيص واضح وخطة مخصصة وتوقعات واقعية. الجمع بين صحة البشرة وتوازن الملامح والمتابعة بعد الجلسات يجعل القرار أكثر وعيًا.')]
+          def md(i):
+            out=[f'# {TITLES[i]}','','تعدد خيارات الجلدية والتجميل والليزر يجعل الاستشارة المتخصصة خطوة أساسية قبل اختيار أي إجراء. هذا الدليل يوضح نقاطًا عملية تساعد على فهم الخطة التجميلية واختيار ما يناسب البشرة والملامح بصورة متوازنة.','']
+            for n,(h,p) in enumerate(SEC):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n]
+                out += [(f'لمن تبحث عن [{a}]({u}) يمكن الاطلاع على صفحة د. إسلام اللبودي والتعرف على خيارات الاستشارة.' if n==0 else f'للمزيد من التفاصيل يمكن زيارة [{a}]({u}).'),'']
+            return '\n'.join(out)
+          def htm(i):
+            text=md(i);parts=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b:continue
+              if b.startswith('# '):parts.append('<h1>'+html.escape(b[2:])+'</h1>');continue
+              if b.startswith('## '):parts.append('<h2>'+html.escape(b[3:])+'</h2>');continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()]));x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>');pos=m.end()
+              x.append(html.escape(b[pos:]));parts.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,Tahoma,sans-serif;line-height:2;color:#222">'+''.join(parts)+'</main></body></html>'
+          def urls(obj):
+            out=[]
+            def walk(x):
+              if isinstance(x,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values():walk(v)
+              elif isinstance(x,list):
+                for v in x:walk(v)
+            walk(obj);return [u.rstrip('.,);}') for u in out]
+          def choose(obj,domain):
+            for u in urls(obj):
+              if domain in u:return u
+            return ''
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?dermaart-sa\.com',r.text,re.I))
+              exact='أفضل دكتورة تجميل في الرياض' in r.text
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          results=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:results.append((n,v))
+          M=[md(i) for i in range(7)];H=[htm(i) for i in range(7)]
+          # Telegra.ph
+          try:
+            acc=S.post('https://api.telegra.ph/createAccount',data={'short_name':'DermaArt','author_name':'Cosmetic Care Guide'},timeout=25).json();tok=(acc.get('result') or {}).get('access_token','');nodes=[]
+            for block in re.split(r'\n\s*\n',M[0]):
+              block=block.strip()
+              if not block:continue
+              tag='p';txt=block
+              if block.startswith('# '):tag='h3';txt=block[2:]
+              elif block.startswith('## '):tag='h4';txt=block[3:]
+              ch=[];pos=0
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',txt):
+                if m.start()>pos:ch.append(txt[pos:m.start()])
+                ch.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]});pos=m.end()
+              if pos<len(txt):ch.append(txt[pos:])
+              nodes.append({'tag':tag,'children':ch})
+            d=S.post('https://api.telegra.ph/createPage',data={'access_token':tok,'title':TITLES[0],'content':json.dumps(nodes,ensure_ascii=False),'return_content':'false'},timeout=30).json();p=(d.get('result') or {}).get('path','');add('Telegra.ph','https://telegra.ph/'+p if p else '')
+          except Exception as e:print('TELEGRAPH_ERR',repr(e))
+          # Quicky
+          try:
+            r=S.post('https://quicky.page/api/v1/publish',json={'title':TITLES[1],'content':M[1]},timeout=45);print('QUICKY_POST',r.status_code,r.text[:400]);add('Quicky.page',choose(r.json() if r.ok else r.text,'quicky.page'))
+          except Exception as e:print('QUICKY_ERR',repr(e))
+          # Output
+          try:
+            r=S.post('https://output.pub/api/publish',json={'content':M[2],'format':'markdown'},timeout=45);print('OUTPUT_POST',r.status_code,r.text[:400]);add('Output.pub',choose(r.json() if r.ok else r.text,'output.pub'))
+          except Exception as e:print('OUTPUT_ERR',repr(e))
+          # Leafmill
+          try:
+            r=S.post('https://leafmill.net/api/v1/publish',json={'title':TITLES[3],'body':M[3]},timeout=45);print('LEAF_POST',r.status_code,r.text[:400]);add('Leafmill',choose(r.json() if r.ok else r.text,'leafmill.net'))
+          except Exception as e:print('LEAF_ERR',repr(e))
+          # PageDrop
+          try:
+            r=S.post('https://pagedrop.dev/api/v1/sites',json={'html':H[4],'title':TITLES[4]},timeout=50);print('PAGEDROP_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('PageDrop',choose(d,'pagedrop.dev'))
+          except Exception as e:print('PAGEDROP_ERR',repr(e))
+          # FreeKit
+          try:
+            r=S.post('https://freekit.dev/api/v1/sites',json={'html':H[5],'title':TITLES[5]},timeout=50);print('FREEKIT_POST',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('FreeKit',choose(d,'freekit.dev'))
+          except Exception as e:print('FREEKIT_ERR',repr(e))
+          # PasteHTML
+          try:
+            r=S.post('https://pastehtml.com/upload/create?input_type=html&result=address',data={'txt':H[6]},timeout=50);print('PASTEHTML_POST',r.status_code,r.text[:500]);add('PasteHTML',choose(r.text,'pastehtml.com') or r.text.strip())
+          except Exception as e:print('PASTEHTML_ERR',repr(e))
+          print('DERMAART4_RESULTS_BEGIN')
+          for n,u in results:print(n+'\t'+u)
+          print('DERMAART4_RESULTS_END')
+          print('DERMAART4_VALID_COUNT='+str(len(results)))
+          print('DERMAART4_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          PY
