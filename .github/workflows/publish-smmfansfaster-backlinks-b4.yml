@@ -1,0 +1,255 @@
+name: Publish SMMFansFaster Backlink Batch 4
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run SMMFansFaster backlink batch 4'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish and verify fresh backlink domains
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4
+          cat > /tmp/b4.py <<'PY'
+          import requests,re,json,html,time,os
+          from urllib.parse import urlparse,urljoin
+          from bs4 import BeautifulSoup
+
+          TARGET='smmfansfaster.com'
+          TITLES=[
+            'Social Media Growth Forecasting for Agencies in 2026',
+            'How to Measure Retained Followers and Audience Quality',
+            'TikTok Campaign Testing for Ecommerce Brands',
+            'Instagram Profile Conversion Optimization Guide',
+            'SMM Delivery Speed Versus Retention: What to Measure',
+            'Agency SMM Automation and Order Quality Control',
+            'Social Proof and Conversion Funnel Alignment',
+            'Multi-Client Social Media Reporting Framework'
+          ]
+          INTRO=[
+            'Agencies need a way to forecast social media growth without pretending that every platform, client, and campaign will behave the same way. A useful forecast combines historical performance, content capacity, distribution plans, realistic retention assumptions, and a clear business objective.',
+            'Follower acquisition is only the first measurement point. Marketers learn much more when they record how many followers remain over time, what those users do after arriving, and whether the account converts additional attention into meaningful actions.',
+            'Ecommerce teams can test social growth more intelligently when creative, audience, distribution, product pages, and reporting are treated as one connected experiment. TikTok is especially useful for rapid learning because hooks and formats can be tested quickly.',
+            'Instagram profiles should be designed to convert new attention into deeper behavior. The bio, pinned posts, highlights, recent content, social proof, and call to action all influence whether a visitor follows, messages the brand, or clicks to a website.',
+            'Fast delivery can look attractive when comparing social media growth services, but speed alone does not explain value. Retention, account fit, support, refill conditions, and downstream behavior determine whether an apparently efficient order actually supports the campaign.',
+            'Automation can reduce repetitive SMM order entry for agencies, but it should not remove validation, approval, logging, or human review. A scalable workflow combines API efficiency with clear quality-control rules before and after each order.',
+            'Social proof is most useful when it supports a credible offer and a well-designed conversion path. Visible audience numbers may improve first impressions, but content, positioning, landing pages, proof, and follow-up still determine whether attention becomes business value.',
+            'Agencies managing many client accounts need reporting that is consistent enough to compare campaigns but flexible enough to reflect different objectives. A layered reporting model separates delivery, platform behavior, traffic quality, and business outcomes.'
+          ]
+          SECTIONS=[
+            ('Set a measurable objective before selecting tactics','Every campaign should begin with one primary outcome such as awareness, qualified profile visits, website traffic, leads, purchases, bookings, or community participation. The objective determines which platform metrics deserve attention and prevents the team from optimizing a visible number that does not support the real business goal.'),
+            ('Use real audience signals to shape the plan','Search terms, comments, direct messages, sales calls, support tickets, reviews, and competitor communities reveal how customers describe their problems. These signals can shape hooks, content topics, offers, and landing-page copy more effectively than broad demographic assumptions that provide little guidance for actual creative decisions.'),
+            ('Make the destination ready for additional attention','A profile or landing page should quickly explain who the brand serves, what it offers, why it is credible, and what the visitor should do next. Extra distribution creates more value when the destination loads quickly, works well on mobile, presents relevant proof, and continues the promise that attracted the visitor.'),
+            ('Keep content quality at the center','Distribution can increase exposure, but content determines whether people watch, save, share, comment, follow, click, or return. Useful content can teach, demonstrate, compare alternatives, answer objections, show proof, or entertain. Scaling weak content usually increases impressions without solving the underlying conversion problem.'),
+            ('Separate reach from audience building','Views and impressions show that content was displayed, while follows, returning viewers, profile visits, repeat engagement, and direct traffic show whether reach is becoming a durable audience. Teams should avoid assuming that one distribution spike automatically represents long-term growth.'),
+            ('Measure retention over realistic windows','Record the starting audience count, immediate change, short-term retention, later retention, and downstream account behavior. Some fluctuation is normal, so a time-based view is more useful than judging a growth activity at the exact moment it completes. Retention also makes effective acquisition cost easier to calculate.'),
+            ('Run controlled pilots before scaling volume','A small pilot can reveal delivery speed, support quality, retention, and account behavior without committing a large budget. Define the service, quantity, starting condition, review period, and success criteria before the test begins. If the result is useful, increase volume gradually rather than making a large first decision.'),
+            ('Compare providers with one consistent scorecard','Useful comparison fields include platform coverage, service relevance, pricing, delivery expectations, minimum and maximum quantities, support, refill conditions, data requirements, order history, retention, and downstream performance. A standard scorecard reduces bias and makes decisions easier to explain internally or to clients.'),
+            ('Protect credentials and account access','External growth services should not require unnecessary passwords, recovery codes, or private account access. Agencies should separate client permissions from vendor activity, document approvals, and keep an audit trail of orders. Strong access rules become more important as the number of managed accounts increases.'),
+            ('Connect platform metrics to business outcomes','A layered dashboard can group metrics into discovery, engagement, intent, and conversion. Reach and views explain exposure; watch time, saves, and shares show engagement; profile visits and clicks show intent; leads, bookings, or purchases show business impact. This structure helps identify the stage where performance actually breaks down.'),
+            ('Use a weekly optimization rhythm','A weekly review should compare content, distribution, retention, traffic quality, conversion, and active tests. The team should leave with specific decisions about what to repeat, stop, change, or test next. A consistent rhythm produces cumulative learning and reduces emotional reactions to normal daily fluctuations.'),
+            ('Document every meaningful experiment','Record the hypothesis, audience, creative, provider or distribution method, quantity, timing, cost, result, problem, and next action. A simple experiment log turns scattered activity into an operating playbook that helps teams avoid repeating mistakes and makes future campaigns faster to plan.'),
+            ('Adapt tactics to the platform and account stage','A new account may need discovery and credibility, while an established account may focus on conversion efficiency or entering a new market. TikTok, Instagram, YouTube, and Facebook also reward different user behavior. Tactics should reflect both the maturity of the brand and the native format of the platform.'),
+            ('Keep trust as the long-term constraint','Visible social proof can support a first impression, but it cannot replace a credible product, useful content, transparent communication, responsive support, and a strong customer experience. Additional attention becomes more valuable when every later touchpoint reinforces the same trustworthy positioning.')
+          ]
+          LINKS=[
+            ('SMMFansFaster','https://smmfansfaster.com/'),
+            ('social media growth resources','https://smmfansfaster.com/blog'),
+            ('TikTok followers guide','https://smmfansfaster.com/blog/buytiktokfollowers'),
+            ('TikTok growth guide','https://smmfansfaster.com/blog/increasetiktokfollowers'),
+            ('Instagram follower retention guide','https://smmfansfaster.com/blog/iboughtinstagramfollowersandtheydecreasedthesolution'),
+            ('Instagram follower pricing guide','https://smmfansfaster.com/blog/howmuchdoes1000instagramfollowerscost')
+          ]
+          def build(i):
+            selected=[SECTIONS[(i+j*3)%len(SECTIONS)] for j in range(12)]
+            hp=[f'<h1>{html.escape(TITLES[i])}</h1>',f'<p>{html.escape(INTRO[i])} The goal is to create a repeatable decision process rather than chase isolated numbers.</p>']
+            md=[f'# {TITLES[i]}','',INTRO[i]+' The goal is to create a repeatable decision process rather than chase isolated numbers.','']
+            li=0
+            for n,(head,para) in enumerate(selected):
+              hp += [f'<h2>{html.escape(head)}</h2>',f'<p>{html.escape(para)}</p>']
+              md += [f'## {head}','',para,'']
+              if n in (0,2,4,6,8,10):
+                anchor,url=LINKS[li]
+                extra='For additional context, marketers can review this resource as one reference point and compare it with native analytics, platform policies, account conditions, and the campaign objective before making a decision.'
+                hp.append(f'<p>For additional context, marketers can review <a href="{url}">{html.escape(anchor)}</a> as one reference point and compare it with native analytics, platform policies, account conditions, and the campaign objective before making a decision.</p>')
+                md += [f'For additional context, marketers can review [{anchor}]({url}) as one reference point and compare it with native analytics, platform policies, account conditions, and the campaign objective before making a decision.','']
+                li+=1
+            closing='Reliable social growth comes from clear objectives, strong content, controlled distribution, safe account practices, measured retention, and reporting that follows attention through to meaningful business action. External services can be one component of that system, but they should be evaluated with the same discipline as any other marketing supplier.'
+            hp += ['<h2>Final perspective</h2>',f'<p>{closing}</p>'];md += ['## Final perspective','',closing]
+            body=''.join(hp)
+            page=f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(TITLES[i])}</title><meta name="description" content="Practical social media growth, SMM measurement and provider evaluation guide."><style>body{{font-family:Arial,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:1.82;color:#222}}h1,h2{{line-height:1.35}}a{{color:#2454b8;text-decoration:underline}}p{{margin:0 0 18px}}</style></head><body>{body}</body></html>'
+            text='\n'.join(md)
+            wc=len(re.findall(r"\b[\w'-]+\b",BeautifulSoup(page,'html.parser').get_text(' ')))
+            return text,page,wc
+          ARTS=[]
+          for i in range(8):
+            m,h,w=build(i);cnt=len(BeautifulSoup(h,'html.parser').find_all('a',href=re.compile(r'^https?://(?:www\.)?smmfansfaster\.com',re.I)))
+            print(f'ARTICLE_{i+1}_WORDS={w} HREFS={cnt}')
+            if w<700 or cnt<6:raise SystemExit('ARTICLE_INVALID')
+            ARTS.append((m,h,w))
+
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 SMMFansFasterEditorial/4.0'})
+          PREV={'shipped.page','here.now','shipsite.co','xdr.no','draftlet.io','based.page','thethings.ai','output.pub','draftmark.app','telegra.ph','ht-ml.app','pitchey.app','aired.sh','sitebin.io','zerodeploy','yeetit.site','htmlshare.net','shippage.ai','leafmill.net','yourwebs'}
+          used=set(PREV);results=[]
+          def provider(host):
+            host=host.lower().removeprefix('www.')
+            groups={
+              'github.com':['github.com'], 'stacktree':['stacktr.ee','stacktree.app'], 'html-docs.com':['html-docs.com'],
+              'meethtml.com':['meethtml.com','meetmarkdown.com'], 'sshgrid.com':['sshgrid.com'], 'hurl.page':['hurl.page','hurled.page'],
+              'htmldrop.app':['htmldrop.app'], 'htmlput.com':['htmlput.com','share.htmlput.com']
+            }
+            for root,vals in groups.items():
+              for p in vals:
+                if host==p or host.endswith('.'+p):return root
+            ps=host.split('.');return '.'.join(ps[-2:]) if len(ps)>1 else host
+          def noindex(r):
+            if 'noindex' in r.headers.get('x-robots-tag','').lower():return True
+            soup=BeautifulSoup(r.text,'html.parser')
+            for m in soup.find_all('meta'):
+              if (m.get('name') or '').lower() in ('robots','googlebot','bingbot') and 'noindex' in (m.get('content') or '').lower():return True
+            return False
+          def verify(name,u):
+            if not u:return False
+            try:
+              r=s.get(u,timeout=45,allow_redirects=True)
+              host=urlparse(r.url).netloc.lower().removeprefix('www.');prov=provider(host)
+              soup=BeautifulSoup(r.text,'html.parser')
+              hrefs=sum(1 for a in soup.find_all('a',href=True) if re.match(r'^https?://(?:www\.)?smmfansfaster\.com',a['href'],re.I))
+              ni=noindex(r)
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} PROVIDER={prov} HREFS={hrefs} NOINDEX={int(ni)}')
+              if r.status_code<400 and hrefs>=6 and not ni and prov not in used:
+                used.add(prov);results.append({'platform':name,'provider':prov,'url':r.url,'hrefs':hrefs});print('VALID_'+name+'='+r.url);return True
+            except Exception as e:print(name+'_VERIFY_ERR',type(e).__name__,e)
+            return False
+          def all_urls(obj):
+            out=[]
+            def walk(v):
+              if isinstance(v,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():walk(z)
+              elif isinstance(v,list):
+                for z in v:walk(z)
+            walk(obj);return [u.rstrip('.,);}') for u in out]
+          def verify_data(name,obj,prefer=()):
+            us=all_urls(obj);ordered=[]
+            for p in prefer:ordered += [u for u in us if p in u and u not in ordered]
+            ordered += [u for u in us if u not in ordered]
+            for u in ordered:
+              if '/claim' in u.lower() or '/api/' in u.lower():continue
+              if verify(name,u):return True
+            return False
+
+          # 1 GitHub rendered markdown: new referring domain and durable repository page
+          verify('GITHUB','https://github.com/bvsegyp/-/blob/main/smmfansfaster-backlinks-b4/social-media-growth-measurement-guide.md')
+
+          # 2 Stacktree anonymous static hosting
+          try:
+            r=s.post('https://api.stacktr.ee/sites',files={'file':('index.html',ARTS[1][1],'text/html')},timeout=60);print('STACKTREE_POST',r.status_code,r.text[:1400].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify_data('STACKTREE',d,('stacktr.ee','stacktree'))
+          except Exception as e:print('STACKTREE_ERR',type(e).__name__,e)
+
+          # 3 HTML Docs
+          try:
+            r=s.post('https://www.html-docs.com/api/v1/docs',data=ARTS[2][1].encode(),headers={'Content-Type':'text/html','x-agent-name':'SMMFansFaster Editorial'},timeout=55);print('HTMLDOCS_POST',r.status_code,r.text[:1400].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify_data('HTMLDOCS',d,('html-docs.com',))
+          except Exception as e:print('HTMLDOCS_ERR',type(e).__name__,e)
+
+          # 4 MeetHTML
+          try:
+            r=s.post('https://api.meethtml.com/api/v1/publish',json={'html':ARTS[3][1]},timeout=55);print('MEETHTML_POST',r.status_code,r.text[:1400].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify_data('MEETHTML',d,('meethtml.com','meetmarkdown.com'))
+          except Exception as e:print('MEETHTML_ERR',type(e).__name__,e)
+
+          # 5 SSHGrid with proper provisioning polling
+          try:
+            r=s.post('https://sshgrid.com/api/v1/deploy',json={'files':[{'path':'index.html','content':ARTS[4][1]}],'label':'SMM growth measurement guide'},timeout=55);print('SSHGRID_POST',r.status_code,r.text[:1600].replace('\n',' '))
+            d=r.json() if r.text else {}; status=d.get('status_url','');live=d.get('url_live') or ''
+            if not live and status:
+              for n in range(24):
+                time.sleep(4)
+                try:
+                  q=s.get(status,timeout=20);qd=q.json() if q.text else {};live=qd.get('url_live') or (qd.get('url') if qd.get('overall')=='live' else '') or ''
+                  print('SSHGRID_POLL',n+1,q.status_code,qd.get('overall'),qd.get('provisioning'),live)
+                  if live:break
+                except Exception as ee:print('SSHGRID_POLL_ERR',type(ee).__name__,ee)
+            if live:verify('SSHGRID',live)
+            else:verify_data('SSHGRID',d,('sshgrid.com',))
+          except Exception as e:print('SSHGRID_ERR',type(e).__name__,e)
+
+          # 6 Hurl retry
+          try:
+            r=s.post('https://hurl.page/deploy?ttl=7d',data=ARTS[5][1].encode(),headers={'Content-Type':'text/html'},timeout=55);print('HURL_POST',r.status_code,r.text[:1400].replace('\n',' '))
+            try:d=r.json()
+            except:d=r.text
+            verify_data('HURL',d,('hurled.page','hurl.page'))
+          except Exception as e:print('HURL_ERR',type(e).__name__,e)
+
+          # 7/8 discover anonymous upload forms/endpoints on HTMLDrop and HTMLPUT
+          def form_publish(name,home,page,title,prefer):
+            try:
+              g=s.get(home,timeout=40);print(name+'_GET',g.status_code,g.url)
+              soup=BeautifulSoup(g.text,'html.parser')
+              # standard forms
+              for f in soup.find_all('form'):
+                if (f.get('method') or 'post').lower()!='post':continue
+                action=urljoin(g.url,f.get('action') or g.url);data={};files={};has=False
+                for el in f.find_all(['input','textarea']):
+                  n=el.get('name');typ=(el.get('type') or '').lower();nl=(n or '').lower()
+                  if not n or typ in ('submit','button','image'):continue
+                  if typ=='file':files[n]=('index.html',page,'text/html');has=True
+                  elif 'title' in nl or nl in ('name','slug'):data[n]=title[:60]
+                  elif any(k in nl for k in ('html','content','code','text','body')):data[n]=page;has=True
+                  else:data[n]=el.get('value','')
+                if has:
+                  try:
+                    rr=s.post(action,data=data,files=files or None,timeout=55,allow_redirects=True);print(name+'_FORM',rr.status_code,rr.url,rr.text[:900].replace('\n',' '))
+                    try:dd=rr.json()
+                    except:dd=rr.text
+                    if verify_data(name,dd,prefer):return True
+                    if rr.url!=action and verify(name,rr.url):return True
+                  except Exception as ee:print(name+'_FORM_ERR',type(ee).__name__,ee)
+              # inspect same-origin JS for API endpoint strings, then try plausible payloads
+              scripts=[]
+              for sc in soup.find_all('script',src=True):
+                u=urljoin(g.url,sc['src'])
+                if urlparse(u).netloc==urlparse(g.url).netloc:scripts.append(u)
+              endpoints=set()
+              for su in scripts[:12]:
+                try:
+                  js=s.get(su,timeout=25).text
+                  for ep in re.findall(r'["\'](/api/[A-Za-z0-9_./?=&-]+)["\']',js):endpoints.add(urljoin(g.url,ep))
+                except:pass
+              print(name+'_ENDPOINTS',list(endpoints)[:20])
+              for ep in list(endpoints)[:20]:
+                if any(x in ep.lower() for x in ('delete','login','auth','user','account','analytics')):continue
+                attempts=[('json',{'html':page,'title':title}),('json',{'content':page,'title':title}),('file',None)]
+                for mode,payload in attempts:
+                  try:
+                    if mode=='json':rr=s.post(ep,json=payload,timeout=35)
+                    else:rr=s.post(ep,files={'file':('index.html',page,'text/html')},timeout=35)
+                    if rr.status_code>=500:continue
+                    print(name+'_API',ep,mode,rr.status_code,rr.text[:700].replace('\n',' '))
+                    try:dd=rr.json()
+                    except:dd=rr.text
+                    if verify_data(name,dd,prefer):return True
+                  except:pass
+            except Exception as e:print(name+'_ERR',type(e).__name__,e)
+            return False
+          form_publish('HTMLDROP','https://htmldrop.app/',ARTS[6][1],TITLES[6],('htmldrop.app',))
+          form_publish('HTMLPUT','https://www.htmlput.com/',ARTS[7][1],TITLES[7],('share.htmlput.com','htmlput.com'))
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
+          python /tmp/b4.py
