@@ -1,0 +1,177 @@
+name: MommySmart English Backlinks Batch 02
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run MommySmart backlink batch 02'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish and verify second MommySmart batch
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,json,html,hashlib,subprocess,os,secrets
+          from urllib.parse import urlparse
+
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 MommySmartSEO/2.0'})
+          LINKS=[
+            ('baby products online in Egypt','https://mommysmart.net/'),
+            ('baby strollers in Egypt','https://mommysmart.net/collections/baby-transport'),
+            ('baby feeding essentials','https://mommysmart.net/collections/frontpage'),
+            ('baby diapering products','https://mommysmart.net/collections/diapering'),
+            ('baby carriers','https://mommysmart.net/collections/baby-carriers'),
+          ]
+          TOPICS=[
+            'Newborn Shopping Checklist for First-Time Parents in Egypt',
+            'How to Choose a Practical Baby Stroller for City Life',
+            'Bottle Feeding Essentials Parents Actually Use Every Day',
+            'What to Pack in a Baby Diaper Bag for Everyday Outings',
+            'How to Choose a Comfortable Baby Carrier for Daily Use',
+            'Simple Baby Bath and Hygiene Essentials for New Parents',
+            'How to Prepare Your Home for a Newborn Without Overbuying',
+            'Baby Travel Essentials for Short Trips and Family Visits',
+          ]
+
+          SECTIONS=[
+            ('Build the list around real daily routines','A useful baby checklist should make feeding, diaper changes, sleep, hygiene, and travel easier rather than simply adding more products to the house. New parents often buy too much before they know what their baby prefers. A better approach is to start with a small number of reliable items, then add products after the first weeks reveal what is actually needed. This makes shopping more practical and helps families spend money on products that will be used frequently instead of collecting accessories that stay in storage.'),
+            ('Think about safety before extra features','Baby products should always be chosen with age, size, weight limits, materials, and correct use in mind. Extra features can be useful, but only after the basic safety requirements are clear. Parents should read manufacturer instructions, check whether products are appropriate for the baby’s current stage, and avoid using an item in a way it was not designed for. A simple product that is easy to use correctly can be more valuable than a complicated option with many features that rarely get used.'),
+            ('Choose products that are easy to clean','Anything used for feeding, diapering, bath time, or daily care will need frequent cleaning. Products with simple shapes, washable covers, removable parts, and materials that dry quickly are often easier to maintain. Parents should imagine the cleaning routine before buying because a product that looks convenient in a store may become frustrating if it takes too long to wash or reassemble. Easy maintenance is especially important during the first months when routines repeat many times every day.'),
+            ('Match travel gear to your lifestyle','Families who use a car often may need different travel products from parents who walk frequently or live in a building with stairs. Stroller size, folding method, storage space, carrier comfort, and diaper bag organization can all affect how easy it is to leave home. Parents should think about the trips they make most often and choose equipment that fits those situations. The best travel setup is not necessarily the largest or most expensive one; it is the one that can be used safely and comfortably every day.'),
+            ('Buy in stages as the baby grows','Babies change quickly, so buying every possible product before birth is rarely necessary. Feeding tools, stroller accessories, cups, bowls, toys, and care products often become useful at different stages. Buying gradually allows parents to respond to the child’s development and preferences instead of predicting everything in advance. This also reduces waste, helps control storage, and gives families more time to compare options when a real need appears.'),
+            ('Keep frequently used essentials organized','Daily care becomes easier when parents know exactly where the most-used supplies are stored. Feeding tools can stay together, diapering products can be kept near the changing area, and travel supplies can remain in a small bag that is restocked after each outing. Good organization reduces stress because parents do not need to search for items while holding or calming the baby. It also makes it easier to notice when supplies need to be replaced before they run out.'),
+            ('Focus on value rather than buying the most items','Good value comes from a product being safe, durable, practical, and frequently used. Price alone does not show whether an item is a good purchase. Parents should compare how often the product will be used, how long it will remain suitable for the baby, whether replacement parts are available, and how easy it is to maintain. A smaller collection of useful products can support daily routines better than a large collection of items that overlap or are difficult to use.'),
+            ('Final thoughts','New parents usually feel more confident when shopping is based on real routines instead of long generic checklists. Start with feeding, diapering, safe travel, hygiene, and comfort, then add products as the baby grows. This approach makes it easier to compare products carefully, keep the home organized, and avoid unnecessary purchases while still having the essentials ready when they are needed.'),
+          ]
+
+          def markdown_article(title):
+            out=[f'# {title}','', 'Parents preparing for a baby often face hundreds of product choices, but the most useful shopping plan is usually the simplest one. The goal is to cover everyday routines with safe, practical products that are easy to clean, store, and use consistently. This guide explains how to build a realistic baby essentials setup without overbuying, while also considering travel, feeding, diapering, hygiene, and the way families in Egypt actually move through their day.','']
+            for i,(h,p) in enumerate(SECTIONS):
+              out += [f'## {h}','',p,'']
+              if i<5:
+                a,u=LINKS[i]
+                out += [f'For related options, explore [{a}]({u}) from Mommy\'s Mart.','']
+            return '\n'.join(out)
+
+          def html_article(title):
+            md=markdown_article(title); blocks=[]
+            for b in re.split(r'\n\s*\n',md):
+              b=b.strip()
+              if not b: continue
+              if b.startswith('# '): blocks.append('<h1>'+html.escape(b[2:])+'</h1>'); continue
+              if b.startswith('## '): blocks.append('<h2>'+html.escape(b[3:])+'</h2>'); continue
+              pos=0; x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()])); x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>'); pos=m.end()
+              x.append(html.escape(b[pos:])); blocks.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title><meta name="description" content="Practical baby products and newborn essentials guide for parents in Egypt"></head><body><main style="max-width:920px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.85;color:#222">'+''.join(blocks)+'</main></body></html>'
+
+          def urls(obj):
+            out=[]
+            def walk(x):
+              if isinstance(x,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values():walk(v)
+              elif isinstance(x,list):
+                for v in x:walk(v)
+            walk(obj); return [u.rstrip('.,);}') for u in out]
+
+          def choose(obj,domains=()):
+            us=urls(obj)
+            for d in domains:
+              for u in us:
+                if d in u:return u
+            return us[0] if us else ''
+
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?mommysmart\.net',r.text,re.I))
+              exact=('baby products online in Egypt' in r.text)
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',r.text,re.I))
+              print(f'VERIFY {name} STATUS={r.status_code} URL={r.url} HREFS={hrefs} EXACT={int(exact)} NOINDEX={int(noindex)}')
+              if r.status_code<400 and hrefs>=5 and exact and not noindex:return r.url
+            except Exception as e: print('VERIFY_ERR',name,repr(e))
+            return None
+
+          results=[]
+          def add(name,u):
+            v=verify(name,u)
+            if v:results.append((name,v))
+
+          # XDR
+          try:
+            data=html_article(TOPICS[0]).encode('utf-8'); sha=hashlib.sha256(data).hexdigest()
+            r=S.post('https://api.xdr.no/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html','sha256':sha}]},timeout=55)
+            print('XDR_CREATE',r.status_code,r.text[:600]); d=r.json(); ups=d.get('uploads') or []; live=d.get('url'); fin=d.get('finalize')
+            if ups:
+              up=ups[0]; requests.put(up.get('putUrl'),data=data,headers={'Content-Type':'text/html'},timeout=60)
+              if fin:S.post(fin,timeout=50)
+            add('XDR',live)
+          except Exception as e: print('XDR_ERR',repr(e))
+
+          # Draftlet
+          try:
+            data=html_article(TOPICS[1]).encode('utf-8')
+            r=S.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','contentType':'text/html','size':len(data)}]},timeout=55)
+            print('DRAFTLET_CREATE',r.status_code,r.text[:600]); d=r.json(); slug=d['slug']; ver=d['versionId']; tok=d['editToken']; up=d['uploads'][0]['uploadUrl']; live=d['url']
+            requests.put(up,data=data,headers={'content-type':'text/html','content-length':str(len(data))},timeout=60)
+            S.post(f'https://api.draftlet.io/api/v1/publish/{slug}/finalize',json={'versionId':ver,'editToken':tok},timeout=55)
+            add('Draftlet',live)
+          except Exception as e: print('DRAFTLET_ERR',repr(e))
+
+          # HTMLShare
+          try:
+            r=S.post('https://api.htmlshare.net/v1/publish',json={'html':html_article(TOPICS[2])},timeout=50); print('HTMLSHARE_POST',r.status_code,r.text[:600]); d=r.json() if r.ok else {}; add('HTMLShare',d.get('url',''))
+          except Exception as e: print('HTMLSHARE_ERR',repr(e))
+
+          # ZeroDeploy
+          try:
+            r=S.post('https://api.zerodeploy.dev/drop',files={'file':('index.html',html_article(TOPICS[3]),'text/html')},timeout=65); print('ZERODEPLOY_POST',r.status_code,r.text[:700]); d=r.json() if r.ok else {}; data=d.get('data') or {}; add('ZeroDeploy',data.get('url','') or d.get('url',''))
+          except Exception as e: print('ZERODEPLOY_ERR',repr(e))
+
+          # Sitebin
+          try:
+            r=S.post('https://app.sitebin.io/api/sites',files={'files':('index.html',html_article(TOPICS[4]),'text/html')},timeout=65); print('SITEBIN_POST',r.status_code,r.text[:900]); d=r.json() if r.ok else {}; candidates=[]
+            for u in urls(d):
+              if 'sitebin.io' in u and '/e/' not in u:candidates.append(u)
+            for u in candidates:
+              v=verify('Sitebin',u)
+              if v: results.append(('Sitebin',v)); break
+          except Exception as e: print('SITEBIN_ERR',repr(e))
+
+          # Based.page CLI
+          try:
+            fn='/tmp/mommysmart-based.html'; open(fn,'w',encoding='utf-8').write(html_article(TOPICS[5]))
+            slug='baby-essentials-egypt-'+secrets.token_hex(3)
+            p=subprocess.run(['npx','-y','based-page@latest','deploy','--file',fn,'--slug',slug,'--title',TOPICS[5]],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=160)
+            print('BASED_RC',p.returncode); print('BASED_OUT',p.stdout[:1800].replace('\n',' ')); add('Based.page',choose(p.stdout,('based.page',)))
+          except Exception as e: print('BASED_ERR',repr(e))
+
+          # HT-ML
+          try:
+            r=S.post('https://api.ht-ml.app/v1/sites',json={'html_content':html_article(TOPICS[6])},timeout=50); print('HTMLAPP_POST',r.status_code,r.text[:700]);
+            try:d=r.json()
+            except:d=r.text
+            add('HT-ML',choose(d,('ht-ml.app',)))
+          except Exception as e: print('HTMLAPP_ERR',repr(e))
+
+          # Pitchey
+          try:
+            r=S.post('https://pitchey.app/api/pages',json={'html':html_article(TOPICS[7]),'ttl':'30d'},timeout=50); print('PITCHEY_POST',r.status_code,r.text[:700]);
+            try:d=r.json()
+            except:d=r.text
+            add('Pitchey',choose(d,('pitchey.app',)))
+          except Exception as e: print('PITCHEY_ERR',repr(e))
+
+          print('MOMMYSMART2_RESULTS_BEGIN')
+          for n,u in results: print(n+'\t'+u)
+          print('MOMMYSMART2_RESULTS_END')
+          print('MOMMYSMART2_VALID_COUNT='+str(len(results)))
+          print('MOMMYSMART2_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          PY
