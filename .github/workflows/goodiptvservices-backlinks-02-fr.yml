@@ -1,0 +1,78 @@
+name: GoodIPTVServices French Backlinks Batch 02
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run GoodIPTVServices French backlink batch 02'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify more French backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,os,subprocess,hashlib,secrets
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 GoodIPTVServicesSEO/2.0'})
+          SITE='https://goodiptvservices.com/';ANCHOR='abonnement IPTV'
+          LINKS=[('abonnement IPTV',SITE),('abonnement IPTV premium',SITE),('meilleur abonnement IPTV',SITE),('service IPTV',SITE),('fournisseur IPTV',SITE)]
+          TITLES=['Abonnement IPTV : les critères essentiels avant de choisir','IPTV premium : comment comparer qualité et compatibilité','Meilleur abonnement IPTV : guide pratique pour 2026','Service IPTV : stabilité, support et appareils compatibles','Fournisseur IPTV : comparer les offres sans se tromper','Abonnement IPTV pour Smart TV : points à vérifier','IPTV en 2026 : prix, qualité et expérience utilisateur']
+          SECS=[('Compatibilité des appareils','Vérifiez les appareils utilisés au quotidien, notamment Smart TV, box Android, ordinateur et mobile.'),('Stabilité du service','La fluidité dépend du serveur, de la connexion internet et de la qualité du réseau domestique.'),('Nombre de connexions','Les foyers utilisant plusieurs écrans doivent vérifier le nombre de connexions simultanées incluses.'),('Qualité et contenu','Il est utile de comparer la qualité vidéo et le type de contenus disponibles selon ses habitudes.'),('Support client','Un support accessible facilite la résolution des problèmes d’activation ou de configuration.'),('Prix et durée','Comparez le coût total, la durée et les conditions de renouvellement avant de payer.'),('Conditions de service','Lisez les modalités d’utilisation et les règles de remboursement afin de choisir avec des informations claires.'),('Conclusion','Une bonne comparaison IPTV prend en compte compatibilité, stabilité, contenu, support, prix et conditions.')]
+          def make(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>Avant de choisir un service IPTV, il est utile de comparer plusieurs critères plutôt que de regarder uniquement le prix. La compatibilité, la stabilité, les connexions, le support et les conditions doivent être évalués ensemble.</p>']
+            secs=SECS[i:]+SECS[:i]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n];parts.append(f'<p>Pour comparer un <a href="{u}">{html.escape(a)}</a>, Good IPTV Services présente ses offres et caractéristiques afin d’aider les utilisateurs à évaluer les options disponibles.</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          H=[make(i) for i in range(7)]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True);src=html.unescape(r.content.decode('utf-8','ignore'));hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?goodiptvservices\.com',src,re.I));exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower();robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower();noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower();print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex));return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          try:
+            r=S.post('https://api.htmlshare.net/v1/publish',json={'html':H[0]},timeout=45);d=r.json() if r.ok else {};add('HTMLShare',d.get('url',''))
+          except Exception as e:print('HTMLSHARE_ERR',repr(e))
+          try:
+            r=S.post('https://api.ht-ml.app/v1/sites',json={'html_content':H[1]},timeout=45);d=r.json() if r.ok else {};add('HT-ML',d.get('url',''))
+          except Exception as e:print('HTMLAPP_ERR',repr(e))
+          try:
+            r=S.post('https://pitchey.app/api/pages',json={'html':H[2],'ttl':'30d'},timeout=45);d=r.json() if r.ok else {};add('Pitchey',d.get('url',''))
+          except Exception as e:print('PITCHEY_ERR',repr(e))
+          try:
+            open('/tmp/goodiptv-based.html','w',encoding='utf-8').write(H[3]);slug='good-iptv-'+secrets.token_hex(3);p=subprocess.run(['npx','-y','based-page@latest','deploy','--file','/tmp/goodiptv-based.html','--slug',slug,'--title',TITLES[3]],capture_output=True,text=True,timeout=150);out=(p.stdout or '')+'\n'+(p.stderr or '');urls=re.findall(r'https?://[^\s"\']+',out);u=next((x.rstrip('.,);}') for x in urls if 'based.page' in x),'');add('Based.page',u)
+          except Exception as e:print('BASED_ERR',repr(e))
+          try:
+            r=S.post('https://ship.page/deploy',data=H[4].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=60);d=r.json() if r.ok else {};add('Shipped.page',d.get('url',''))
+          except Exception as e:print('SHIPPED_ERR',repr(e))
+          try:
+            data=H[5].encode('utf-8');sha=hashlib.sha256(data).hexdigest();r=S.post('https://here.now/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html; charset=utf-8','hash':sha}]},headers={'X-HereNow-Client':'goodiptv/batch2'},timeout=60);d=r.json() if r.ok else {};ups=((d.get('upload') or {}).get('uploads') or [])
+            for up in ups:
+              if up.get('url'):requests.put(up['url'],data=data,headers={'Content-Type':'text/html; charset=utf-8'},timeout=60)
+            fin=(d.get('upload') or {}).get('finalizeUrl');fd={}
+            if fin:
+              fr=S.post(fin,json={'versionId':(d.get('upload') or {}).get('versionId')},headers={'X-HereNow-Client':'goodiptv/batch2'},timeout=60);fd=fr.json() if fr.ok else {}
+            add('Here.now',d.get('siteUrl') or fd.get('siteUrl') or '')
+          except Exception as e:print('HERE_ERR',repr(e))
+          try:
+            data=H[6].encode('utf-8');sha=hashlib.sha256(data).hexdigest();r=S.post('https://shipsite.co/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html; charset=utf-8','hash':sha}]},timeout=60);d=r.json() if r.ok else {};ups=((d.get('upload') or {}).get('uploads') or [])
+            for up in ups:
+              if up.get('url'):requests.put(up['url'],data=data,headers={'Content-Type':'text/html; charset=utf-8'},timeout=60)
+            fin=(d.get('upload') or {}).get('finalizeUrl');fd={}
+            if fin:
+              payload={'versionId':(d.get('upload') or {}).get('versionId')};
+              if d.get('claimToken'):payload['claimToken']=d.get('claimToken')
+              fr=S.post(fin,json=payload,timeout=60);fd=fr.json() if fr.ok else {}
+            add('ShipSite',d.get('siteUrl') or fd.get('siteUrl') or '')
+          except Exception as e:print('SHIPSITE_ERR',repr(e))
+          print('GOODIPTV2_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('GOODIPTV2_RESULTS_END')
+          print('GOODIPTV2_VALID_COUNT='+str(len(res)))
+          print('GOODIPTV2_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
