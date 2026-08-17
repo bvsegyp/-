@@ -1,0 +1,162 @@
+name: AlphaIPTV Global English Backlinks Batch 01
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run AlphaIPTV global English backlink batch 01'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify AlphaIPTV English backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,os,subprocess,hashlib,secrets
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 AlphaIPTVSEO/1.0'})
+          SITE='https://alphaiptv.tn/'
+          ANCHOR='Legal IPTV Subscription'
+          LINKS=[
+            ('Legal IPTV Subscription',SITE),
+            ('IPTV Subscription',SITE),
+            ('Legal IPTV Service',SITE),
+            ('Worldwide IPTV Service',SITE),
+            ('IPTV Service Provider',SITE)]
+          TITLES=[
+            'How to Choose a Legal IPTV Subscription for Global Streaming',
+            'IPTV Subscription Guide: What Worldwide Viewers Should Compare',
+            'Legal IPTV Service Checklist for Smart TVs and Streaming Devices',
+            'Worldwide IPTV Service: Key Features to Review Before Subscribing',
+            'How to Compare IPTV Service Providers Before You Buy',
+            'IPTV for Smart TV: A Practical Subscription Buying Guide',
+            'Legal IPTV Subscription: Quality, Devices and Support Explained',
+            'Choosing an IPTV Subscription for Multiple Devices Worldwide',
+            'What Makes an IPTV Service Reliable for International Viewers',
+            'IPTV Subscription Buying Guide for Families and Frequent Travelers',
+            'How to Evaluate a Worldwide IPTV Provider Before Subscribing']
+          SECS=[
+            ('Start with licensing and content rights','A responsible IPTV choice starts with understanding whether the provider has the appropriate rights to distribute the channels and content it offers in the regions where you plan to use the service. Availability can differ by country, so users should review the provider’s public terms and independently confirm any rights or restrictions that matter to them.'),
+            ('Check device compatibility','Before subscribing, confirm that the service supports the devices you actually use. Smart TVs, Android TV boxes, streaming sticks, phones, tablets and computers may require different apps or setup methods. A good buying decision starts with compatibility rather than headline channel counts.'),
+            ('Compare streaming quality','Picture quality depends on more than a marketing label. Connection speed, server capacity, device performance and source quality all affect the viewing experience. Users should look for clear information about HD or higher resolutions and should test the service where a legitimate trial or demo is available.'),
+            ('Review connection requirements','Stable internet is essential for IPTV. A high-speed connection can still perform poorly if Wi-Fi is congested or unstable. Ethernet, strong Wi-Fi coverage and a reliable internet provider can make a major difference, especially when several household members stream at the same time.'),
+            ('Understand simultaneous connections','Households that use several screens should review how many simultaneous connections are included. Some services price plans by device or connection count, while others apply household or account rules. Reading these conditions before payment can prevent unexpected limitations.'),
+            ('Look at customer support','Support matters when activation, compatibility or playback problems occur. A provider should make its contact options and response expectations clear. Users comparing services should consider whether support is available during the hours and in the languages that are practical for them.'),
+            ('Compare pricing carefully','The cheapest IPTV plan is not automatically the best value. Compare the subscription length, connection limits, device support, refund terms and any extra charges. Paying for features you do not use can make an apparently low-cost package less attractive.'),
+            ('Read terms and refund policies','A transparent service should explain its terms of use, billing, cancellation and refund conditions. Customers should read these policies before subscribing, especially for long-duration plans. Clear terms reduce uncertainty and make it easier to compare providers fairly.'),
+            ('Consider travel and regional restrictions','Viewers who travel frequently should check whether the service is intended to work outside their home country and whether regional licensing restrictions apply. A worldwide audience does not necessarily mean every channel or feature is available in every location.'),
+            ('Protect account security','Use unique passwords and avoid sharing credentials beyond the provider’s permitted rules. Customers should also be cautious with unknown apps, modified software or payment requests that bypass the provider’s official process.'),
+            ('Conclusion','A good IPTV decision should balance licensing, compatibility, picture quality, connection stability, support, price and clear terms. Taking time to compare these factors helps viewers choose a service that better fits their devices, location and everyday streaming habits.')]
+          def make(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>IPTV can be convenient for viewers who want flexible access across different devices, but choosing a service should involve more than comparing a price or a channel list. Global users should review licensing, device compatibility, streaming quality, support, connection requirements and the provider’s terms before subscribing.</p>']
+            secs=SECS[i%len(SECS):]+SECS[:i%len(SECS)]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                extras=[
+                  f'Users researching a <a href="{u}">{html.escape(a)}</a> can include Alpha IPTV in a broader comparison while independently checking licensing and regional availability.',
+                  f'When comparing an <a href="{u}">{html.escape(a)}</a>, review device support, terms and connection limits rather than relying on price alone.',
+                  f'Anyone considering a <a href="{u}">{html.escape(a)}</a> should confirm content rights, supported devices and usage conditions before subscribing.',
+                  f'For viewers comparing a <a href="{u}">{html.escape(a)}</a>, Alpha IPTV can be reviewed alongside other providers based on compatibility, support and published terms.',
+                  f'A prospective customer evaluating an <a href="{u}">{html.escape(a)}</a> should verify licensing, service conditions and regional restrictions that apply to their location.'
+                ]
+                parts.append('<p>'+extras[n]+'</p>')
+            return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          H=[make(i) for i in range(11)]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?alphaiptv\.tn',src,re.I))
+              exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # XDR
+          try:
+            r=S.post('https://api.xdr.no/api/v1/publish',json={'files':[{'path':'index.html','size':len(H[0].encode()),'contentType':'text/html'}]},timeout=45);print('XDR_CREATE',r.status_code,r.text[:700]);d=r.json() if r.ok else {}
+            up=d.get('uploadUrl') or (d.get('upload') or {}).get('url')
+            if up:S.put(up,data=H[0].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=45)
+            fin=d.get('finalizeUrl') or (d.get('upload') or {}).get('finalizeUrl');fd={}
+            if fin:
+              fr=S.post(fin,json={'versionId':d.get('versionId') or (d.get('upload') or {}).get('versionId')},timeout=45);print('XDR_FIN',fr.status_code,fr.text[:500]);fd=fr.json() if fr.ok else {}
+            add('XDR',d.get('url') or d.get('siteUrl') or fd.get('url') or fd.get('siteUrl'))
+          except Exception as e:print('XDR_ERR',repr(e))
+          # Draftlet
+          try:
+            r=S.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','size':len(H[1].encode()),'contentType':'text/html'}]},timeout=45);print('DRAFTLET_CREATE',r.status_code,r.text[:700]);d=r.json() if r.ok else {}
+            up=d.get('uploadUrl') or (d.get('upload') or {}).get('url')
+            if up:S.put(up,data=H[1].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=45)
+            fin=d.get('finalizeUrl') or (d.get('upload') or {}).get('finalizeUrl');fd={}
+            if fin:
+              fr=S.post(fin,json={'versionId':d.get('versionId') or (d.get('upload') or {}).get('versionId')},timeout=45);print('DRAFTLET_FIN',fr.status_code,fr.text[:500]);fd=fr.json() if fr.ok else {}
+            add('Draftlet',d.get('url') or d.get('siteUrl') or fd.get('url') or fd.get('siteUrl'))
+          except Exception as e:print('DRAFTLET_ERR',repr(e))
+          # HTMLShare
+          try:
+            r=S.post('https://api.htmlshare.net/v1/publish',json={'html':H[2]},timeout=45);print('HTMLSHARE',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('HTMLShare',d.get('url',''))
+          except Exception as e:print('HTMLSHARE_ERR',repr(e))
+          # ZeroDeploy
+          try:
+            open('/tmp/alpha-zero.html','w',encoding='utf-8').write(H[3])
+            with open('/tmp/alpha-zero.html','rb') as f:r=S.post('https://api.zerodeploy.dev/drop',files={'file':('index.html',f,'text/html')},timeout=60)
+            print('ZERODEPLOY',r.status_code,r.text[:600]);d=r.json() if r.ok else {};add('ZeroDeploy',d.get('url',''))
+          except Exception as e:print('ZERODEPLOY_ERR',repr(e))
+          # Sitebin
+          try:
+            files={'files':('index.html',H[4].encode('utf-8'),'text/html')};r=S.post('https://app.sitebin.io/api/sites',files=files,timeout=60);print('SITEBIN',r.status_code,r.text[:600]);d=r.json() if r.ok else {};add('Sitebin',d.get('url') or d.get('siteUrl') or '')
+          except Exception as e:print('SITEBIN_ERR',repr(e))
+          # HT-ML
+          try:
+            r=S.post('https://api.ht-ml.app/v1/sites',json={'html_content':H[5]},timeout=45);print('HTMLAPP',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('HT-ML',d.get('url',''))
+          except Exception as e:print('HTMLAPP_ERR',repr(e))
+          # Pitchey
+          try:
+            r=S.post('https://pitchey.app/api/pages',json={'html':H[6],'ttl':'30d'},timeout=45);print('PITCHEY',r.status_code,r.text[:500]);d=r.json() if r.ok else {};add('Pitchey',d.get('url',''))
+          except Exception as e:print('PITCHEY_ERR',repr(e))
+          # Based.page
+          try:
+            open('/tmp/alpha-based.html','w',encoding='utf-8').write(H[7]);slug='alpha-iptv-'+secrets.token_hex(3)
+            p=subprocess.run(['npx','-y','based-page@latest','deploy','--file','/tmp/alpha-based.html','--slug',slug,'--title',TITLES[7]],capture_output=True,text=True,timeout=150)
+            out=(p.stdout or '')+'\n'+(p.stderr or '');print('BASED',p.returncode,out[:1000]);urls=re.findall(r'https?://[^\s"\']+',out);u=next((x.rstrip('.,);}') for x in urls if 'based.page' in x),'');add('Based.page',u)
+          except Exception as e:print('BASED_ERR',repr(e))
+          # Shipped.page
+          try:
+            r=S.post('https://ship.page/deploy',data=H[8].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=60);print('SHIPPED',r.status_code,r.text[:600]);d=r.json() if r.ok else {};add('Shipped.page',d.get('url',''))
+          except Exception as e:print('SHIPPED_ERR',repr(e))
+          # Here.now
+          try:
+            data=H[9].encode('utf-8');sha=hashlib.sha256(data).hexdigest();r=S.post('https://here.now/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html; charset=utf-8','hash':sha}]},headers={'X-HereNow-Client':'alphaiptv/batch1'},timeout=60);print('HERE_CREATE',r.status_code,r.text[:900]);d=r.json() if r.ok else {};ups=((d.get('upload') or {}).get('uploads') or [])
+            for up in ups:
+              if up.get('url'):requests.put(up['url'],data=data,headers={'Content-Type':'text/html; charset=utf-8'},timeout=60)
+            fin=(d.get('upload') or {}).get('finalizeUrl');fd={}
+            if fin:
+              fr=S.post(fin,json={'versionId':(d.get('upload') or {}).get('versionId')},headers={'X-HereNow-Client':'alphaiptv/batch1'},timeout=60);print('HERE_FIN',fr.status_code,fr.text[:500]);fd=fr.json() if fr.ok else {}
+            add('Here.now',d.get('siteUrl') or fd.get('siteUrl') or '')
+          except Exception as e:print('HERE_ERR',repr(e))
+          # ShipSite
+          try:
+            data=H[10].encode('utf-8');sha=hashlib.sha256(data).hexdigest();r=S.post('https://shipsite.co/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html; charset=utf-8','hash':sha}]},timeout=60);print('SHIPSITE_CREATE',r.status_code,r.text[:900]);d=r.json() if r.ok else {};ups=((d.get('upload') or {}).get('uploads') or [])
+            for up in ups:
+              if up.get('url'):requests.put(up['url'],data=data,headers={'Content-Type':'text/html; charset=utf-8'},timeout=60)
+            fin=(d.get('upload') or {}).get('finalizeUrl');fd={}
+            if fin:
+              payload={'versionId':(d.get('upload') or {}).get('versionId')}
+              if d.get('claimToken'):payload['claimToken']=d.get('claimToken')
+              fr=S.post(fin,json=payload,timeout=60);print('SHIPSITE_FIN',fr.status_code,fr.text[:500]);fd=fr.json() if fr.ok else {}
+            add('ShipSite',d.get('siteUrl') or fd.get('siteUrl') or '')
+          except Exception as e:print('SHIPSITE_ERR',repr(e))
+          print('ALPHA1_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('ALPHA1_RESULTS_END')
+          print('ALPHA1_VALID_COUNT='+str(len(res)))
+          print('ALPHA1_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
