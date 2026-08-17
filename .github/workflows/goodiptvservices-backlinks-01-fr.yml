@@ -1,0 +1,129 @@
+name: GoodIPTVServices French Backlinks Batch 01
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: contains(github.event.head_commit.message, 'Run GoodIPTVServices French backlink batch 01')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify French backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,secrets,subprocess,os
+          S=requests.Session(); S.headers.update({'User-Agent':'Mozilla/5.0 GoodIPTVServicesSEO/1.0'})
+          SITE='https://goodiptvservices.com/'
+          ANCHOR='abonnement IPTV'
+          LINKS=[
+            ('abonnement IPTV',SITE),
+            ('abonnement IPTV premium',SITE),
+            ('meilleur abonnement IPTV',SITE),
+            ('service IPTV',SITE),
+            ('fournisseur IPTV',SITE),
+          ]
+          TITLES=[
+            'Abonnement IPTV : comment choisir une offre adaptée en 2026',
+            'Abonnement IPTV premium : critères utiles avant de choisir',
+            'Meilleur abonnement IPTV : guide de comparaison pratique',
+            'Service IPTV : qualité, compatibilité et stabilité à vérifier',
+            'Fournisseur IPTV : comment comparer les offres disponibles',
+            'Abonnement IPTV en 2026 : appareils, qualité et budget',
+            'IPTV premium : les points à contrôler avant de souscrire',
+            'Choisir un abonnement IPTV fiable pour plusieurs appareils'
+          ]
+          SECS=[
+            ('Commencer par vérifier la compatibilité','Avant de choisir une offre, il est utile de vérifier les appareils réellement utilisés : Smart TV, box Android, ordinateur, téléphone ou autre équipement compatible. Une bonne compatibilité simplifie l’installation et réduit les problèmes après l’activation.'),
+            ('Comparer la qualité de diffusion','La qualité annoncée ne dépend pas uniquement de la résolution. La stabilité du serveur, la connexion internet et la performance de l’appareil jouent aussi un rôle important dans la fluidité du streaming.'),
+            ('Regarder le nombre de connexions','Pour les foyers qui utilisent plusieurs écrans, il faut vérifier le nombre de connexions simultanées autorisées et les règles associées au compte. Ce point évite de choisir une formule insuffisante pour l’usage quotidien.'),
+            ('Évaluer le catalogue proposé','Les utilisateurs n’ont pas tous les mêmes besoins. Certains privilégient le sport, d’autres les films, les séries ou les chaînes internationales. Comparer le contenu proposé permet de choisir une offre réellement adaptée.'),
+            ('Vérifier le support client','Un support clair et accessible devient important en cas de problème d’activation, de configuration ou de lecture. Les informations de contact et les conditions de support doivent être faciles à trouver.'),
+            ('Comparer le prix avec la durée','Une offre annuelle peut paraître avantageuse, mais il faut comparer le coût total avec la durée, les fonctionnalités incluses et les conditions de remboursement ou de renouvellement.'),
+            ('Tenir compte de la connexion internet','Une connexion stable reste indispensable pour profiter d’une qualité élevée. Avant de choisir une formule 4K, il est utile de vérifier que la connexion et le réseau domestique peuvent supporter ce niveau de diffusion.'),
+            ('Lire les conditions du service','Les conditions d’utilisation, la politique de remboursement et les modalités d’activation doivent être consultées avant le paiement. Des informations claires facilitent une décision plus responsable.'),
+            ('Conclusion','Le choix d’un service IPTV repose sur plusieurs critères : compatibilité, stabilité, contenu, connexions, support, prix et conditions. Une comparaison structurée aide à sélectionner l’offre la plus cohérente avec ses besoins.')
+          ]
+          def make_html(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>Le marché IPTV propose de nombreuses formules, avec des différences importantes en matière de qualité, de compatibilité, de prix et de support. Avant de souscrire, il est utile de comparer les critères essentiels et de vérifier que le service correspond réellement à son usage.</p>']
+            secs=SECS[i%len(SECS):]+SECS[:i%len(SECS)]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n]
+                extras=[
+                  f'Pour comparer une offre d’<a href="{u}">{html.escape(a)}</a>, Good IPTV Services présente ses différentes formules et informations de service.',
+                  f'Les utilisateurs qui recherchent un <a href="{u}">{html.escape(a)}</a> peuvent consulter les caractéristiques proposées par Good IPTV Services.',
+                  f'Pour ceux qui souhaitent évaluer le <a href="{u}">{html.escape(a)}</a>, le site Good IPTV Services constitue une option à comparer avec d’autres offres.',
+                  f'Il est également possible de consulter le <a href="{u}">{html.escape(a)}</a> présenté par Good IPTV Services afin de comparer les fonctionnalités.',
+                  f'Avant de choisir un <a href="{u}">{html.escape(a)}</a>, il reste recommandé de vérifier les conditions, la compatibilité et les modalités de l’offre.'
+                ]
+                parts.append('<p>'+extras[n]+'</p>')
+            return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          def make_md(i):
+            src=make_html(i)
+            src=re.sub(r'<h1>(.*?)</h1>',r'# \1\n',src)
+            src=re.sub(r'<h2>(.*?)</h2>',r'## \1\n',src)
+            src=re.sub(r'<a href="([^"]+)">(.*?)</a>',r'[\2](\1)',src)
+            src=re.sub(r'<[^>]+>','\n',src)
+            return html.unescape(re.sub(r'\n{3,}','\n\n',src)).strip()
+          H=[make_html(i) for i in range(8)]; M=[make_md(i) for i in range(8)]
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?goodiptvservices\.com',src,re.I))
+              exact=ANCHOR.lower() in re.sub(r'<[^>]+>',' ',src).lower()
+              robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower()
+              noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower()
+              print('VERIFY',name,'STATUS',r.status_code,'URL',r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:
+              print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          try:
+            a=S.get('https://api.telegra.ph/createAccount',params={'short_name':'GoodIPTV','author_name':'Guide IPTV'},timeout=30).json()['result']
+            content=[]
+            for block in re.findall(r'<(h1|h2|p)>(.*?)</\1>',H[0],re.S):
+              tag,inner=block;children=[];pos=0
+              for m in re.finditer(r'<a href="([^"]+)">(.*?)</a>',inner,re.S):
+                if m.start()>pos: children.append(html.unescape(re.sub(r'<[^>]+>','',inner[pos:m.start()])))
+                children.append({'tag':'a','attrs':{'href':m.group(1),'target':'_blank'},'children':[html.unescape(re.sub(r'<[^>]+>','',m.group(2)))]});pos=m.end()
+              if pos<len(inner):children.append(html.unescape(re.sub(r'<[^>]+>','',inner[pos:])))
+              content.append({'tag':tag,'children':children})
+            d=S.post('https://api.telegra.ph/createPage',data={'access_token':a['access_token'],'title':TITLES[0],'author_name':'Guide IPTV','content':json.dumps(content,ensure_ascii=False),'return_content':'false'},timeout=40).json();add('Telegra.ph',d.get('result',{}).get('url',''))
+          except Exception as e: print('TELEGRAPH_ERR',repr(e))
+          try:
+            r=S.post('https://draftmark.app/api/v1/docs',json={'content':M[1],'visibility':'public'},timeout=40);d=r.json() if r.ok else {};add('Draftmark',d.get('url') or d.get('share_url') or '')
+          except Exception as e: print('DRAFTMARK_ERR',repr(e))
+          try:
+            r=S.post('https://quicky.page/api/v1/publish',json={'title':TITLES[2],'content':M[2]},timeout=40);d=r.json() if r.ok else {};add('Quicky.page',d.get('url',''))
+          except Exception as e: print('QUICKY_ERR',repr(e))
+          try:
+            r=S.post('https://output.pub/api/publish',json={'content':M[3],'format':'markdown'},timeout=40);d=r.json() if r.ok else {};add('Output.pub',d.get('url',''))
+          except Exception as e: print('OUTPUT_ERR',repr(e))
+          try:
+            r=S.post('https://leafmill.net/api/v1/publish',json={'title':TITLES[4],'body':M[4]},timeout=40);d=r.json() if r.ok else {};add('Leafmill',d.get('url',''))
+          except Exception as e: print('LEAFMILL_ERR',repr(e))
+          try:
+            r=S.post('https://aired.sh/api/publish',json={'html':H[5],'title':TITLES[5],'permanent':True},timeout=40);d=r.json() if r.ok else {};add('Aired',d.get('url',''))
+          except Exception as e: print('AIRED_ERR',repr(e))
+          try:
+            r=S.post('https://thethings.ai/api/scratch/publish',json={'content':H[6],'content_type':'text/html','title':TITLES[6],'summary':'Guide français pour comparer un abonnement IPTV'},timeout=40);d=r.json() if r.ok else {};add('TheThings.ai',d.get('url',''))
+          except Exception as e: print('THETHINGS_ERR',repr(e))
+          try:
+            d='/tmp/goodiptv';os.makedirs(d,exist_ok=True);open(d+'/index.html','w',encoding='utf-8').write(H[7])
+            p=subprocess.run(['npx','-y','@shipstatic/ship',d,'--json'],capture_output=True,text=True,timeout=150)
+            out=(p.stdout or '')+'\n'+(p.stderr or '');urls=re.findall(r'https?://[^\s"\']+',out);u=next((x.rstrip('.,);}') for x in urls if 'shipstatic.com' in x),'');add('ShipStatic',u)
+          except Exception as e: print('SHIPSTATIC_ERR',repr(e))
+          print('GOODIPTV1_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('GOODIPTV1_RESULTS_END')
+          print('GOODIPTV1_VALID_COUNT='+str(len(res)))
+          print('GOODIPTV1_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
