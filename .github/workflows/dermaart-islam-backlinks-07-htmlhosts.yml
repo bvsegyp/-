@@ -1,0 +1,137 @@
+name: DermaArt Islam Backlinks Batch 07 HTML Hosts
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run DermaArt Islam backlink batch 07'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Publish and verify new HTML hosts
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,requests,json,secrets,os
+          from playwright.async_api import async_playwright
+          ANCHOR='أفضل دكتورة تجميل في الرياض'
+          LINKS=[
+            (ANCHOR,'https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('ديرما آرت الرياض','https://dermaart-sa.com/'),
+            ('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),
+            ('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          TITLES=['كيف تختارين خطة تجميل تناسب طبيعة بشرتك','دليل الاستشارة قبل جلسات الفيلر والبوتوكس','العناية بالبشرة والليزر ضمن خطة تجميل متوازنة','كيف تفرقين بين احتياج البشرة واحتياج الملامح','خطوات مهمة قبل حجز إجراء تجميلي في الرياض']
+          PARAS=[
+            ('ابدئي من المشكلة لا من اسم الإجراء','من الأفضل تحديد ما الذي تريدين تحسينه قبل اختيار اسم الجلسة. قد يكون السبب مرتبطًا بجودة البشرة أو حركة العضلات أو فقدان الحجم أو التصبغات، وكل سبب يحتاج إلى تقييم مختلف وترتيب مختلف للخطوات.'),
+            ('التشخيص يختصر الإجراءات غير الضرورية','تقييم البشرة والملامح والتاريخ الصحي والتوقعات يساعد على استبعاد الخيارات غير المناسبة. كلما كان التشخيص أوضح أصبحت الخطة أبسط وأكثر ارتباطًا بالاحتياج الحقيقي بدل جمع جلسات متعددة دون سبب.'),
+            ('النتيجة الطبيعية تعتمد على التوازن','التجميل الطبي الجيد لا يعني تغيير كل الملامح. الجرعات والتقنيات ينبغي أن تتناسب مع الوجه نفسه، والتدرج يسمح بمراجعة النتيجة قبل إضافة أي خطوة جديدة ويحافظ على الشكل الطبيعي.'),
+            ('جودة البشرة تؤثر في الشكل النهائي','الترطيب والملمس والتصبغات والحبوب وآثارها قد تكون أول ما يحتاج إلى العلاج. في حالات كثيرة تسبق جلسات البشرة أو الليزر إجراءات مثل الفيلر والبوتوكس حتى تكون النتيجة النهائية أكثر انسجامًا.'),
+            ('افهمي وظيفة الفيلر والبوتوكس','البوتوكس يستخدم غالبًا للتعامل مع حركة العضلات والتجاعيد التعبيرية، بينما يستخدم الفيلر لدعم أو إضافة حجم في مناطق محددة. لا يمكن اختيار أحدهما بطريقة صحيحة دون معرفة سبب المشكلة وتقييم المنطقة.'),
+            ('المتابعة بعد الجلسة جزء من العلاج','معرفة التعليمات وموعد التقييم وما يمكن توقعه خلال الأيام التالية يساعد على التعامل الصحيح مع النتيجة. المتابعة تسمح أيضًا بتعديل الخطة مستقبلًا بدل تكرار الإجراء بشكل تلقائي.'),
+            ('اختاري الخبرة وطريقة الشرح','عند البحث عن رعاية تجميلية في الرياض، ركزي على التخصص وطريقة التشخيص ووضوح شرح البدائل والنتائج المتوقعة والمتابعة. هذه العناصر أهم من الاعتماد على اسم خدمة رائجة أو سعر منفرد.'),
+            ('الخلاصة','الخطة التجميلية المتوازنة تجمع بين صحة البشرة وفهم الملامح والتوقعات الواقعية. البدء بتشخيص واضح والتدرج في الخطوات والمتابعة يجعل القرار أكثر وعيًا ويحافظ على التناسق العام.')]
+          def page(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>تعدد خيارات الجلدية والتجميل والليزر يجعل الاستشارة المتخصصة خطوة أساسية قبل البدء. الهدف هو اختيار ما تحتاجه الحالة بالفعل، مع الحفاظ على صحة البشرة وتوازن الملامح.</p>']
+            secs=PARAS[i:]+PARAS[:i]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n];txt=(f'لمن تبحث عن {a} يمكن الاطلاع على صفحة د. إسلام اللبودي وخيارات الاستشارة.' if n==0 else f'للمزيد من التفاصيل يمكن زيارة {a}.')
+                parts.append('<p>'+html.escape(txt).replace(html.escape(a),f'<a href="{u}">{html.escape(a)}</a>')+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,Tahoma,sans-serif;line-height:2;color:#222">'+''.join(parts)+'</main></body></html>'
+          HTML=[page(i) for i in range(5)]
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/7.0'})
+          def verify(name,url):
+            if not url:return None
+            try:
+              r=S.get(url,timeout=40,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src);hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?dermaart-sa\.com',src,re.I));exact=ANCHOR in re.sub(r'<[^>]+>',' ',src)
+              noindex='noindex' in r.headers.get('x-robots-tag','').lower() or bool(re.search(r'<meta[^>]+name=["\'](?:robots|googlebot)["\'][^>]+content=["\'][^"\']*noindex',src,re.I))
+              print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex));return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          TARGETS=[
+            ('Paste.page','paste.page','https://paste.page/free-html-hosting',['Publish']),
+            ('DocHost','dochost.io','https://dochost.io/',['Create a free link','Publish','Share']),
+            ('ShareMyHTML','sharemyhtml.com','https://sharemyhtml.com/',['Give It a URL','Upload','Publish']),
+            ('Sharable.link','sharable.link','https://sharable.link/',['Publish','Share','Upload']),
+            ('OneClickLive','oneclicklive.app','https://oneclicklive.app/',['Deploy','Publish'])]
+          async def attempt(browser,i,t):
+            name,domain,start,buttons=t;ctx=await browser.new_context();p=await ctx.new_page();f='/tmp/derma-'+str(i)+'.html';open(f,'w',encoding='utf-8').write(HTML[i])
+            try:
+              await p.goto(start,wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1500)
+              print('PAGE',name,p.url,'TITLE',await p.title())
+              # Prefer file input because these services are built for file drops
+              uploaded=False
+              fis=p.locator('input[type=file]')
+              if await fis.count():
+                for k in range(await fis.count()):
+                  try:await fis.nth(k).set_input_files(f);uploaded=True;print('FILE_SET',name,k);break
+                  except Exception as e:print('FILE_SET_ERR',name,k,str(e)[:100])
+              if not uploaded:
+                # paste into code/editor textarea/contenteditable
+                for sel in ['textarea:visible','[contenteditable="true"]:visible','textarea','[contenteditable="true"]']:
+                  loc=p.locator(sel)
+                  if await loc.count():
+                    try:await loc.first.fill(HTML[i]);uploaded=True;print('TEXT_SET',name,sel);break
+                    except:pass
+              # fill slug/title where useful
+              slug='derma-riyadh-'+secrets.token_hex(3)
+              for sel in ['input[placeholder*="slug" i]','input[placeholder*="url" i]','input[name*="slug" i]']:
+                loc=p.locator(sel)
+                if await loc.count():
+                  try:await loc.first.fill(slug);break
+                  except:pass
+              for sel in ['input[placeholder*="title" i]','input[name*="title" i]']:
+                loc=p.locator(sel)
+                if await loc.count():
+                  try:await loc.first.fill(TITLES[i]);break
+                  except:pass
+              await p.wait_for_timeout(1200)
+              clicked=False
+              for b in buttons:
+                for role in ['button','link']:
+                  loc=p.get_by_role(role,name=re.compile(b,re.I))
+                  if await loc.count():
+                    try:await loc.first.click(timeout=7000);clicked=True;print('CLICK',name,b);break
+                    except Exception as e:print('CLICK_ERR',name,b,str(e)[:100])
+                if clicked:break
+              await p.wait_for_timeout(5000)
+              candidates=[]
+              if domain in p.url and p.url.rstrip('/') not in (start.rstrip('/'),'https://'+domain):candidates.append(p.url)
+              try:candidates += [u for u in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if domain in u]
+              except:pass
+              try:candidates += [v for v in await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)') if isinstance(v,str) and v.startswith('http') and domain in v]
+              except:pass
+              try:
+                body=await p.locator('body').inner_text();candidates += re.findall(r'https?://[^\s]+',body)
+              except:pass
+              print('CANDIDATES',name,candidates[:10])
+              seen=set()
+              for u in candidates:
+                u=u.strip().rstrip('.,);]')
+                if u in seen or domain not in u:continue
+                seen.add(u)
+                if any(x in u for x in ['/login','/signup','/register','/pricing','/blog','/docs','/features']):continue
+                v=verify(name,u)
+                if v:await ctx.close();return (name,v)
+            except Exception as e:print('ATTEMPT_ERR',name,repr(e))
+            await ctx.close();return None
+          async def main():
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True);vals=[]
+              for i,t in enumerate(TARGETS):vals.append(await attempt(b,i,t))
+              await b.close();return vals
+          vals=asyncio.run(main());res=[x for x in vals if x]
+          print('DERMAART7_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('DERMAART7_RESULTS_END')
+          print('DERMAART7_VALID_COUNT='+str(len(res)))
+          print('DERMAART7_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
