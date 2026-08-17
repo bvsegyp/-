@@ -1,0 +1,67 @@
+name: DermaArt Islam Backlinks Batch 09 Direct
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run DermaArt Islam backlink batch 09'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Publish ShareYourHTML and verify GitHub article
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests,re,html,json,secrets
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/9.0'})
+          ANCHOR='أفضل دكتورة تجميل في الرياض'
+          LINKS=[
+            (ANCHOR,'https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('ديرما آرت الرياض','https://dermaart-sa.com/'),
+            ('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),
+            ('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          sections=[
+            ('ابدئي بتقييم البشرة والملامح','الاستشارة الجيدة تبدأ بفهم طبيعة البشرة وحركة العضلات وتوزيع الحجم والهدف المطلوب. عندما يتم تحديد المشكلة الأساسية يصبح اختيار الإجراء أكثر دقة وتقل احتمالات تنفيذ خطوات لا تحتاجها الحالة.'),
+            ('النتيجة الطبيعية تحتاج إلى التدرج','التجميل المتوازن لا يعتمد على تنفيذ أكبر عدد من الإجراءات، بل على خطوات محسوبة تسمح بمراجعة النتيجة بعد كل مرحلة. هذا الأسلوب يساعد على الحفاظ على تناسق الوجه وتعديل الخطة عند الحاجة.'),
+            ('صحة البشرة تؤثر في الشكل النهائي','التصبغات والملمس والترطيب والحبوب وآثارها قد تكون أكثر تأثيرًا من الحجم في بعض الحالات. لذلك قد تكون جلسات البشرة أو العلاج الجلدي أو الليزر مرحلة أولى قبل التفكير في الفيلر أو البوتوكس.'),
+            ('الفيلر والبوتوكس لهما وظائف مختلفة','يرتبط البوتوكس غالبًا بحركة العضلات والتجاعيد التعبيرية، بينما يستخدم الفيلر لدعم أو إضافة حجم في مناطق معينة. الاختيار بينهما يعتمد على التشخيص وليس على رواج اسم الخدمة.'),
+            ('المتابعة جزء من الخطة','معرفة تعليمات ما بعد الجلسة وموعد تقييم النتيجة تساعد على فهم الاستجابة الحقيقية وتحديد ما إذا كانت هناك حاجة إلى تعديل أو خطوة إضافية بدل التسرع في تكرار الإجراء.'),
+            ('اختيار الطبيبة يعتمد على الخبرة والوضوح','عند مقارنة خيارات التجميل في الرياض، من المفيد التركيز على التخصص وطريقة التشخيص وشرح البدائل والتوقعات والمتابعة، وليس على السعر أو اسم إجراء واحد فقط.'),
+            ('الخلاصة','الخطة التجميلية المدروسة تجمع بين تشخيص واضح وصحة البشرة والتدرج والمتابعة. كلما ارتبطت الإجراءات باحتياج الحالة الفعلي كانت النتيجة أكثر توازنًا وطبيعية.')]
+          parts=['<h1>دليل اختيار خطة تجميل مناسبة في الرياض</h1>','<p>تعدد خيارات الجلدية والتجميل والليزر يجعل الاستشارة المتخصصة خطوة أساسية قبل بدء أي إجراء. الهدف هو اختيار ما تحتاجه الحالة بالفعل مع الحفاظ على صحة البشرة وتوازن الملامح.</p>']
+          for i,(h,p) in enumerate(sections):
+            parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+            if i<5:
+              a,u=LINKS[i]
+              extra=(f'لمن تبحث عن <a href="{u}">{html.escape(a)}</a> يمكن الاطلاع على صفحة د. إسلام اللبودي وخيارات الاستشارة.' if i==0 else f'للمزيد من التفاصيل يمكن زيارة <a href="{u}">{html.escape(a)}</a>.')
+              parts.append('<p>'+extra+'</p>')
+          page='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>دليل اختيار خطة تجميل مناسبة في الرياض</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,Tahoma,sans-serif;line-height:2;color:#222">'+''.join(parts)+'</main></body></html>'
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?dermaart-sa\.com',src,re.I))
+              exact=ANCHOR in re.sub(r'<[^>]+>',' ',src)
+              noindex='noindex' in r.headers.get('x-robots-tag','').lower() or bool(re.search(r'<meta[^>]+name=["\'](?:robots|googlebot)["\'][^>]+content=["\'][^"\']*noindex',src,re.I))
+              print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          try:
+            slug='derma-riyadh-'+secrets.token_hex(4)
+            r=S.post('https://shareyourhtml.com/pages',json={'slug':slug,'html':page,'expiry':'never'},headers={'Content-Type':'application/json'},timeout=50);print('SHAREYOURHTML',r.status_code,r.text[:500]);d=r.json() if r.ok else {};u=d.get('url','');v=verify('ShareYourHTML',u)
+            if v:res.append(('ShareYourHTML',v))
+          except Exception as e:print('SHAREYOURHTML_ERR',repr(e))
+          gh='https://github.com/bvsegyp/-/blob/main/dermaart-guides/choosing-cosmetic-doctor-riyadh.md'
+          v=verify('GitHub',gh)
+          if v:res.append(('GitHub',v))
+          print('DERMAART9_RESULTS_BEGIN')
+          for n,u in res:print(n+'\t'+u)
+          print('DERMAART9_RESULTS_END')
+          print('DERMAART9_VALID_COUNT='+str(len(res)))
+          print('DERMAART9_RESULTS_JSON='+json.dumps(res,ensure_ascii=False))
+          PY
