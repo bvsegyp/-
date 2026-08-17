@@ -1,0 +1,211 @@
+name: Publish SMMFansFaster Backlink Batch 6
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run SMMFansFaster backlink batch 6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish PastePage Cloudflare and fresh hosts
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4
+          cat > /tmp/b6.py <<'PY'
+          import requests,re,json,html,time,subprocess,os,uuid
+          from urllib.parse import urlparse,urljoin
+          from bs4 import BeautifulSoup
+
+          TITLES=[
+            'Social Media Growth Audit Checklist for 2026',
+            'Instagram and TikTok Audience Quality Measurement Guide',
+            'SMM Campaign Testing and Retention Framework',
+            'Social Media Distribution Planning for Agencies'
+          ]
+          LEADS=[
+            'A useful social media audit should explain not only how large an audience is, but how that audience was acquired, retained, engaged, and converted into meaningful business activity.',
+            'Instagram and TikTok can both create rapid audience growth, yet the quality of that growth becomes clearer only when marketers track retention, repeat behavior, profile activity, and conversion.',
+            'SMM campaign testing works best when each experiment begins with a defined objective, controlled scope, realistic review window, and a consistent method for comparing delivery with downstream results.',
+            'Agencies need a distribution plan that connects content quality, audience fit, provider selection, account safety, reporting, and the client objective instead of treating each order as an isolated task.'
+          ]
+          SECTIONS=[
+            ('Define one primary objective','Start with one outcome such as awareness, qualified profile visits, website traffic, leads, purchases, bookings, or returning audience behavior. The objective determines which metrics matter and prevents the team from optimizing a visible number that does not support the real business goal.'),
+            ('Use real audience signals','Search queries, comments, direct messages, reviews, support tickets, and sales calls reveal how customers describe their needs. These signals help marketers create stronger hooks, content themes, offers, and landing pages than broad assumptions that provide little guidance for actual campaign decisions.'),
+            ('Prepare the destination','A profile or landing page should quickly explain who the brand serves, what it offers, why it is credible, and what action to take next. Additional distribution creates more value when the destination loads quickly, works well on mobile, contains relevant proof, and continues the promise that attracted the visitor.'),
+            ('Keep content quality central','Distribution can increase exposure, but content determines whether people watch, save, share, comment, follow, click, or return. Useful posts can teach, demonstrate, compare alternatives, answer objections, show proof, or entertain. Scaling weak content usually increases impressions without solving the underlying conversion problem.'),
+            ('Separate reach from audience building','Views and impressions show that content was displayed, while follows, returning viewers, profile visits, repeat engagement, and direct traffic show whether reach is becoming a durable audience. A temporary distribution spike can be useful, but it should not automatically be treated as long-term growth.'),
+            ('Measure retention over time','Record the starting audience count, immediate change, short-term retention, later retention, and changes in downstream behavior. This makes it possible to compare acquisition sources using retained value instead of the initial number alone and helps separate normal fluctuation from campaign-specific effects.'),
+            ('Run controlled pilots','A small pilot can reveal delivery speed, support quality, retention, and account behavior with limited risk. Define the service, quantity, starting condition, review window, and success criteria before launch. If the result is useful, increase volume gradually while continuing to monitor the same measurements.'),
+            ('Compare providers consistently','Useful comparison fields include service relevance, platform coverage, pricing, delivery expectations, minimum and maximum quantities, support, refill conditions, data requirements, retention, and downstream performance. A standard scorecard reduces bias and makes provider choices easier to explain to clients or internal stakeholders.'),
+            ('Protect account access','External growth services should not require unnecessary passwords, recovery codes, or sensitive credentials. Agencies should separate client permissions from vendor activity, document approvals, and keep an audit trail of target links and quantities. Strong access rules become more important as campaign volume increases.'),
+            ('Build a layered dashboard','Group measurements into discovery, engagement, intent, and conversion. Reach and views describe exposure; watch time, saves, shares, and comments show engagement; profile visits and clicks show intent; leads, bookings, and purchases show business outcomes. This structure makes weak stages easier to diagnose.'),
+            ('Improve the destination after the click','If social metrics look healthy but conversion remains weak, the offer or landing experience may be the real constraint. The destination should repeat the promise that generated the click, load quickly, show relevant proof, and make the next action obvious instead of forcing visitors to search for what to do.'),
+            ('Use a fixed optimization rhythm','A weekly review can compare content performance, distribution, retention, traffic quality, conversion, and active service tests. Each review should end with specific decisions about what to repeat, stop, change, or test next. Consistent learning is more reliable than reacting to every daily fluctuation.'),
+            ('Document meaningful experiments','A simple log can capture the hypothesis, audience, creative, provider, quantity, timing, cost, result, issue, and next action. Documentation turns scattered activity into an operating playbook that speeds future decisions and helps teams avoid repeating the same mistakes.'),
+            ('Keep trust central','Social proof works best when it reinforces a credible product or service. Clear positioning, useful content, honest communication, responsive support, and a strong customer experience remain essential. Additional attention becomes more valuable when every later touchpoint gives the visitor another reason to trust the brand.')
+          ]
+          LINKS=[
+            ('SMMFansFaster','https://smmfansfaster.com/'),
+            ('social media growth resources','https://smmfansfaster.com/blog'),
+            ('TikTok followers guide','https://smmfansfaster.com/blog/buytiktokfollowers'),
+            ('TikTok growth guide','https://smmfansfaster.com/blog/increasetiktokfollowers'),
+            ('Instagram follower retention guide','https://smmfansfaster.com/blog/iboughtinstagramfollowersandtheydecreasedthesolution'),
+            ('Instagram follower pricing guide','https://smmfansfaster.com/blog/howmuchdoes1000instagramfollowerscost')
+          ]
+          def make(i):
+            body=[f'<h1>{html.escape(TITLES[i])}</h1>',f'<p>{html.escape(LEADS[i])} A structured audit connects content, distribution, retention, account safety, and business measurement rather than treating one visible metric as the entire result.</p>']
+            li=0
+            for n in range(12):
+              h,p=SECTIONS[(i*3+n)%len(SECTIONS)]
+              body += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n in (0,2,4,6,8,10):
+                a,u=LINKS[li]
+                body.append(f'<p>For additional context, marketers can review <a href="{u}">{html.escape(a)}</a> and compare it with native analytics, platform policies, account conditions, and the campaign objective before making a decision.</p>')
+                li+=1
+            body.append('<h2>Final perspective</h2><p>Reliable social growth comes from clear goals, useful content, controlled distribution, safe account practices, realistic retention windows, and reporting that follows attention through to meaningful business action. External growth services can be one component of that system, but they should be evaluated with the same discipline as any other marketing supplier.</p>')
+            page=f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(TITLES[i])}</title><meta name="description" content="Practical social media growth audit and measurement guide"><style>body{{font-family:Arial,sans-serif;max-width:920px;margin:40px auto;padding:0 24px;line-height:1.82;color:#222}}h1,h2{{line-height:1.35}}a{{color:#2454b8;text-decoration:underline}}</style></head><body>{"".join(body)}</body></html>'
+            soup=BeautifulSoup(page,'html.parser');wc=len(re.findall(r"\b[\w'-]+\b",soup.get_text(' ')));hrefs=sum(1 for a in soup.find_all('a',href=True) if 'smmfansfaster.com' in a['href'])
+            print(f'ARTICLE_{i+1}_WORDS={wc} HREFS={hrefs}')
+            if wc<700 or hrefs<6:raise SystemExit('ARTICLE_INVALID')
+            return page
+          PAGES=[make(i) for i in range(4)]
+
+          s=requests.Session();s.headers.update({'User-Agent':'Mozilla/5.0 SMMFansFasterEditorial/6.0'})
+          used={'shipped.page','here.now','shipsite.co','xdr.no','draftlet.io','based.page','thethings.ai','output.pub','draftmark.app','telegra.ph','ht-ml.app','pitchey.app','aired.sh','sitebin.io','zerodeploy','yeetit.site','htmlshare.net','shippage.ai','leafmill.net','yourwebs','github.com','sshgrid.com'}
+          results=[]
+          def root(host):
+            h=host.lower().removeprefix('www.')
+            if h=='paste.page' or h.endswith('.paste.page'):return 'paste.page'
+            if h.endswith('.workers.dev') or h=='workers.dev':return 'workers.dev'
+            if h=='htmlsave.com' or h.endswith('.htmlsave.net'):return 'htmlsave'
+            if h=='htmldrop.app' or h.endswith('.htmldrop.app'):return 'htmldrop.app'
+            ps=h.split('.');return '.'.join(ps[-2:]) if len(ps)>1 else h
+          def verify(name,u):
+            if not u:return False
+            try:
+              r=s.get(u,timeout=45,allow_redirects=True)
+              soup=BeautifulSoup(r.text,'html.parser');hrefs=sum(1 for a in soup.find_all('a',href=True) if re.match(r'^https?://(?:www\.)?smmfansfaster\.com',a['href'],re.I));ni='noindex' in r.headers.get('x-robots-tag','').lower()
+              for m in soup.find_all('meta'):
+                if (m.get('name') or '').lower() in ('robots','googlebot','bingbot') and 'noindex' in (m.get('content') or '').lower():ni=True
+              prov=root(urlparse(r.url).netloc)
+              print(f'VERIFY_{name} URL={r.url} STATUS={r.status_code} PROVIDER={prov} HREFS={hrefs} NOINDEX={int(ni)}')
+              if r.status_code<400 and hrefs>=6 and not ni and prov not in used:
+                used.add(prov);results.append({'platform':name,'provider':prov,'url':r.url,'hrefs':hrefs});print('VALID_'+name+'='+r.url);return True
+            except Exception as e:print(name+'_VERIFY_ERR',type(e).__name__,e)
+            return False
+          def urls(obj):
+            out=[]
+            def walk(v):
+              if isinstance(v,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',v))
+              elif isinstance(v,dict):
+                for z in v.values():walk(z)
+              elif isinstance(v,list):
+                for z in v:walk(z)
+            walk(obj);return [u.rstrip('.,);}') for u in out]
+          def check_resp(name,r,prefs=()):
+            try:d=r.json()
+            except:d=r.text
+            us=urls(d);order=[]
+            for p in prefs:order += [u for u in us if p in u and u not in order]
+            order += [u for u in us if u not in order]
+            for u in order:
+              if '/api/' in u.lower() or '/claim' in u.lower():continue
+              if verify(name,u):return True
+            return False
+
+          # Paste.page: endpoint already confirmed; slug is required.
+          try:
+            slug='smm-growth-audit-'+uuid.uuid4().hex[:8]
+            for payload in [
+              {'slug':slug,'html':PAGES[0]},
+              {'slug':slug,'content':PAGES[0]},
+              {'slug':slug,'code':PAGES[0],'contentType':'text/html'}
+            ]:
+              r=s.post('https://paste.page/api/pages',json=payload,timeout=45)
+              print('PASTEPAGE_POST',r.status_code,r.text[:1200].replace('\n',' '))
+              if r.status_code<400:
+                if check_resp('PASTEPAGE',r,('paste.page/',)):break
+                # canonical slug URL fallback
+                if verify('PASTEPAGE','https://paste.page/'+slug):break
+          except Exception as e:print('PASTEPAGE_ERR',type(e).__name__,e)
+
+          # Cloudflare temporary deploy through current Wrangler, no account/token.
+          try:
+            os.makedirs('/tmp/cfsite',exist_ok=True);open('/tmp/cfsite/index.html','w').write(PAGES[1])
+            cmd=['npx','--yes','wrangler@latest','deploy','/tmp/cfsite','--name','smm-growth-'+uuid.uuid4().hex[:7],'--temporary','--compatibility-date','2026-08-17']
+            p=subprocess.run(cmd,capture_output=True,text=True,timeout=180,env={k:v for k,v in os.environ.items() if 'CLOUDFLARE' not in k.upper()})
+            out=p.stdout+'\n'+p.stderr;print('CLOUDFLARE_OUT',p.returncode,out[:5000].replace('\n',' '))
+            for u in re.findall(r'https://[A-Za-z0-9._-]+\.workers\.dev[^\s]*',out):
+              if verify('CLOUDFLARE',u.rstrip('.,)')):break
+          except Exception as e:print('CLOUDFLARE_ERR',type(e).__name__,e)
+
+          # HTMLSave browser form; may require captcha/account now, verification decides.
+          try:
+            g=s.get('https://htmlsave.com/',timeout=40);soup=BeautifulSoup(g.text,'html.parser');print('HTMLSAVE_GET',g.status_code,g.url)
+            for f in soup.find_all('form'):
+              if (f.get('method') or 'post').lower()!='post':continue
+              action=urljoin(g.url,f.get('action') or g.url);data={};has=False
+              for el in f.find_all(['input','textarea','select']):
+                n=el.get('name');typ=(el.get('type') or '').lower();nl=(n or '').lower()
+                if not n or typ in ('submit','button','image','file'):continue
+                if any(k in nl for k in ('html','content','code','text','body','markup')):data[n]=PAGES[2];has=True
+                elif any(k in nl for k in ('subdomain','domain','slug','name')):data[n]='smmgrowth'+uuid.uuid4().hex[:6]
+                elif 'password' in nl:data[n]=''
+                else:data[n]=el.get('value','') if el.name=='input' else el.text
+              if not has:continue
+              rr=s.post(action,data=data,timeout=55,allow_redirects=True);print('HTMLSAVE_FORM',rr.status_code,rr.url,rr.text[:1200].replace('\n',' '))
+              if check_resp('HTMLSAVE',rr,('htmlsave.net','htmlsave.com')) or (rr.url!=action and verify('HTMLSAVE',rr.url)):break
+          except Exception as e:print('HTMLSAVE_ERR',type(e).__name__,e)
+
+          # htmldrop: inspect scripts for anonymous drop endpoint and upload.
+          try:
+            g=s.get('https://htmldrop.app/',timeout=40);soup=BeautifulSoup(g.text,'html.parser');print('HTMLDROP_GET',g.status_code,g.url)
+            eps=set()
+            # forms first
+            for f in soup.find_all('form'):
+              action=urljoin(g.url,f.get('action') or g.url);method=(f.get('method') or 'post').lower()
+              if method!='post':continue
+              files={};data={};has=False
+              for el in f.find_all(['input','textarea']):
+                n=el.get('name');typ=(el.get('type') or '').lower();nl=(n or '').lower()
+                if not n or typ in ('submit','button','image'):continue
+                if typ=='file':files[n]=('index.html',PAGES[3],'text/html');has=True
+                elif any(k in nl for k in ('html','content','code','text','body')):data[n]=PAGES[3];has=True
+                else:data[n]=el.get('value','')
+              if has:
+                try:
+                  rr=s.post(action,data=data,files=files or None,timeout=55,allow_redirects=True);print('HTMLDROP_FORM',rr.status_code,rr.url,rr.text[:1000].replace('\n',' '))
+                  if check_resp('HTMLDROP',rr,('htmldrop.app',)) or (rr.url!=action and verify('HTMLDROP',rr.url)):break
+                except Exception as ee:print('HTMLDROP_FORM_ERR',type(ee).__name__,ee)
+            # Next/static scripts and all JS endpoint literals
+            for sc in soup.find_all('script',src=True)[:30]:
+              su=urljoin(g.url,sc['src'])
+              if urlparse(su).netloc!=urlparse(g.url).netloc:continue
+              try:
+                js=s.get(su,timeout=25).text
+                for ep in re.findall(r'["\'](/(?:api|v1)/[A-Za-z0-9_./?=&${}-]+)["\']',js):
+                  if any(k in ep.lower() for k in ('upload','publish','drop','share','create')):eps.add(urljoin(g.url,ep.split('${')[0]))
+              except:pass
+            print('HTMLDROP_ENDPOINTS',list(eps)[:30])
+            for ep in list(eps)[:30]:
+              if any(x in ep.lower() for x in ('delete','auth','login','analytics')):continue
+              for mode in ('file','json'):
+                try:
+                  if mode=='file':rr=s.post(ep,files={'file':('index.html',PAGES[3],'text/html')},timeout=45)
+                  else:rr=s.post(ep,json={'html':PAGES[3],'title':TITLES[3]},timeout=45)
+                  if rr.status_code>=500:continue
+                  print('HTMLDROP_API',ep,mode,rr.status_code,rr.text[:1000].replace('\n',' '))
+                  if check_resp('HTMLDROP',rr,('htmldrop.app',)):raise StopIteration
+                except StopIteration:raise
+                except:pass
+          except StopIteration:pass
+          except Exception as e:print('HTMLDROP_ERR',type(e).__name__,e)
+
+          print('FINAL_RESULTS_JSON='+json.dumps(results,ensure_ascii=False))
+          print('FINAL_COUNT='+str(len(results)))
+          PY
+          python /tmp/b6.py
