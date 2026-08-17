@@ -1,0 +1,16 @@
+name: Colorful Cloud Browser Verify 02
+on:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Run Colorful Cloud browser verify 02'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser
+        run: |
+          python -m pip install --quiet playwright
+          python -m playwright install chromium --with-deps >/dev/null 2>&1
+      - name: Verify browser-rendered backlinks
+        run: python scripts/colorfulcloud_browser_verify_02.py
