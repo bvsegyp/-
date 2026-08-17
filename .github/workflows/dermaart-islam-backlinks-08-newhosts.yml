@@ -1,0 +1,147 @@
+name: DermaArt Islam Backlinks Batch 08 New Hosts
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run DermaArt Islam backlink batch 08'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Publish and verify
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,html,requests,json,secrets,hashlib
+          from playwright.async_api import async_playwright
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/8.0'})
+          ANCHOR='أفضل دكتورة تجميل في الرياض'
+          LINKS=[(ANCHOR,'https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),('ديرما آرت الرياض','https://dermaart-sa.com/'),('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          TITLES=['كيف تختارين إجراء تجميلي يناسب احتياج بشرتك','التشخيص قبل الفيلر والبوتوكس: لماذا هو مهم','دليل جلسات البشرة والليزر ضمن خطة متوازنة','كيف تحافظين على نتائج تجميل طبيعية ومدروسة','اختيار دكتورة تجميل في الرياض بخطوات عملية']
+          SECS=[('ابدئي بتحديد الهدف','قبل اختيار الجلسة من المهم تحديد المشكلة الأساسية، فقد تكون مرتبطة بجودة البشرة أو حركة العضلات أو فقدان الحجم أو التصبغات. تحديد الهدف يساعد على ترتيب الخيارات بدل اختيار إجراء لمجرد انتشاره.'),('التشخيص يحدد الأولويات','تقييم البشرة والملامح والتاريخ الصحي والتوقعات يجعل الخطة أكثر دقة. أحيانًا تحتاج البشرة إلى علاج أو ليزر قبل التفكير في الفيلر أو البوتوكس، وأحيانًا تكون الخطوات الأخرى هي الأنسب.'),('التدرج يحافظ على التوازن','النتائج الطبيعية تحتاج إلى خطوات محسوبة ومراجعة الاستجابة قبل إضافة إجراءات جديدة. التدرج يقلل المبالغة ويسمح بتعديل الخطة وفق النتيجة الفعلية بدل الاعتماد على توقعات عامة.'),('العناية بالبشرة تؤثر في الشكل النهائي','الترطيب والملمس والتصبغات والحبوب وآثارها عوامل مهمة في النتيجة. تحسين جودة البشرة قد يعطي فرقًا واضحًا حتى قبل أي إجراء يغير الحجم أو حركة العضلات.'),('الفيلر والبوتوكس لهما استخدامات مختلفة','يرتبط البوتوكس غالبًا بحركة العضلات والتجاعيد التعبيرية، بينما يستخدم الفيلر لدعم أو إضافة حجم في مناطق محددة. الاختيار يعتمد على التشخيص وليس على اسم الخدمة.'),('المتابعة جزء من الخطة','معرفة التعليمات بعد الجلسة وموعد التقييم يساعدان على مراجعة النتيجة في الوقت الصحيح وتحديد ما إذا كانت هناك حاجة إلى تعديل أو خطوة إضافية.'),('اختاري الطبيبة على أساس الخبرة والوضوح','من المفيد التركيز على التخصص وطريقة التشخيص وشرح البدائل والتوقعات والمتابعة عند اختيار طبيبة تجميل، بدل الاعتماد على السعر أو الإجراء الأكثر رواجًا فقط.'),('الخلاصة','التجميل المدروس يبدأ بتشخيص واضح وخطة مخصصة وصحة بشرة جيدة وتدرج مناسب. هذه العناصر تساعد على الحفاظ على التوازن والوصول إلى نتيجة أكثر طبيعية.')]
+          def make(i):
+            parts=[f'<h1>{html.escape(TITLES[i])}</h1>','<p>تعدد خيارات الجلدية والتجميل والليزر يجعل فهم الحالة خطوة أساسية قبل بدء أي إجراء. الهدف من الخطة الجيدة هو معالجة الاحتياج الحقيقي مع الحفاظ على صحة البشرة وتوازن الملامح.</p>']
+            secs=SECS[i:]+SECS[:i]
+            for n,(h,p) in enumerate(secs):
+              parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+              if n<5:
+                a,u=LINKS[n];lead=('لمن تبحث عن ' if n==0 else 'للمزيد يمكن زيارة ');tail=(' يمكن الاطلاع على صفحة د. إسلام اللبودي وخيارات الاستشارة.' if n==0 else '.')
+                parts.append(f'<p>{lead}<a href="{u}">{html.escape(a)}</a>{tail}</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,Tahoma,sans-serif;line-height:2;color:#222">'+''.join(parts)+'</main></body></html>'
+          H=[make(i) for i in range(5)]
+          def urls(obj):
+            out=[]
+            def walk(x):
+              if isinstance(x,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values():walk(v)
+              elif isinstance(x,list):
+                for v in x:walk(v)
+            walk(obj);return [u.rstrip('.,);}') for u in out]
+          def pick(obj,domains):
+            for d in domains:
+              for u in urls(obj):
+                if d in u:return u
+            return ''
+          def verify(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True)
+              try:src=r.content.decode('utf-8')
+              except:src=r.text
+              src=html.unescape(src);hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?dermaart-sa\.com',src,re.I));exact=ANCHOR in re.sub(r'<[^>]+>',' ',src)
+              noindex='noindex' in r.headers.get('x-robots-tag','').lower() or bool(re.search(r'<meta[^>]+name=["\'](?:robots|googlebot)["\'][^>]+content=["\'][^"\']*noindex',src,re.I))
+              print('VERIFY',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex));return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_ERR',name,repr(e));return None
+          res=[]
+          def add(n,u):
+            v=verify(n,u)
+            if v:res.append((n,v))
+          # Hurl.page direct API
+          try:
+            r=S.post('https://hurl.page/deploy',data=H[0].encode('utf-8'),headers={'Content-Type':'text/html; charset=utf-8'},timeout=60);print('HURL',r.status_code,r.text[:700]);
+            try:d=r.json()
+            except:d=r.text
+            add('Hurl.page',pick(d,('hurled.page','hurl.page')))
+          except Exception as e:print('HURL_ERR',repr(e))
+          # PageDrop direct API, try canonical and www host
+          done=False
+          for endpoint in ['https://pagedrop.dev/api/v1/sites','https://www.pagedrop.dev/api/v1/sites']:
+            if done:break
+            try:
+              r=S.post(endpoint,json={'html':H[1],'title':TITLES[1]},timeout=55);print('PAGEDROP',endpoint,r.status_code,r.text[:700]);
+              try:d=r.json()
+              except:d=r.text
+              u=pick(d,('pagedrop.dev',))
+              v=verify('PageDrop',u)
+              if v:res.append(('PageDrop',v));done=True
+            except Exception as e:print('PAGEDROP_ERR',endpoint,repr(e))
+          async def browser_hosts():
+            out=[]
+            async with async_playwright() as pw:
+              b=await pw.chromium.launch(headless=True)
+              targets=[('HTMLDrop','htmldrop.app','https://htmldrop.app/',2,['Publish','Upload']),('HTMLHost','htmlhost.co','https://htmlhost.co/',3,['Publish','Deploy','Upload']),('HTMLPUT','htmlput.com','https://www.htmlput.com/?lang=en',4,['Host Now','Host','Publish'])]
+              for name,domain,start,i,buttons in targets:
+                ctx=await b.new_context();p=await ctx.new_page();fn=f'/tmp/derma8-{i}.html';open(fn,'w',encoding='utf-8').write(H[i])
+                try:
+                  await p.goto(start,wait_until='domcontentloaded',timeout=45000);await p.wait_for_timeout(1500);print('PAGE',name,p.url,await p.title())
+                  used=False;fis=p.locator('input[type=file]')
+                  if await fis.count():
+                    for k in range(await fis.count()):
+                      try:await fis.nth(k).set_input_files(fn);used=True;print('FILE',name,k);break
+                      except:pass
+                  if not used:
+                    tas=p.locator('textarea:visible')
+                    if await tas.count():
+                      try:await tas.first.fill(H[i]);used=True;print('TEXTAREA',name)
+                      except:pass
+                  if not used:
+                    ed=p.locator('[contenteditable=true]:visible')
+                    if await ed.count():
+                      try:await ed.first.fill(H[i]);used=True;print('EDITOR',name)
+                      except:pass
+                  await p.wait_for_timeout(1200)
+                  clicked=False
+                  for pat in buttons:
+                    loc=p.get_by_role('button',name=re.compile(pat,re.I))
+                    if await loc.count():
+                      try:await loc.first.click(timeout=7000);clicked=True;print('CLICK',name,pat);break
+                      except Exception as e:print('CLICKERR',name,pat,str(e)[:120])
+                  await p.wait_for_timeout(5000)
+                  cand=[]
+                  if domain in p.url and p.url.rstrip('/')!=start.rstrip('/'):cand.append(p.url)
+                  try:cand += [x for x in await p.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if domain in x or ('htmlput.com' in domain and 'share.htmlput.com' in x)]
+                  except:pass
+                  try:cand += [x for x in await p.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)') if isinstance(x,str) and x.startswith('http')]
+                  except:pass
+                  try:cand += re.findall(r'https?://[^\s]+',await p.locator('body').inner_text())
+                  except:pass
+                  print('CAND',name,cand[:12])
+                  for u in cand:
+                    u=u.strip().rstrip('.,);]')
+                    if not (domain in u or (name=='HTMLPUT' and 'share.htmlput.com' in u)):continue
+                    if any(x in u for x in ['/login','/signup','/pricing','/docs','/blog','/privacy','/terms']):continue
+                    v=verify(name,u)
+                    if v:out.append((name,v));break
+                except Exception as e:print('BROWSER_ERR',name,repr(e))
+                await ctx.close()
+              await b.close()
+            return out
+          try:res.extend(asyncio.run(browser_hosts()))
+          except Exception as e:print('BATCH_BROWSER_ERR',repr(e))
+          # Dedupe roots
+          final=[];seen=set()
+          for n,u in res:
+            host=re.sub(r'^www\.','',re.sub(r'^https?://','',u).split('/')[0]);root='.'.join(host.split('.')[-2:])
+            if root in seen:continue
+            seen.add(root);final.append((n,u))
+          print('DERMAART8_RESULTS_BEGIN')
+          for n,u in final:print(n+'\t'+u)
+          print('DERMAART8_RESULTS_END')
+          print('DERMAART8_VALID_COUNT='+str(len(final)))
+          print('DERMAART8_RESULTS_JSON='+json.dumps(final,ensure_ascii=False))
+          PY
