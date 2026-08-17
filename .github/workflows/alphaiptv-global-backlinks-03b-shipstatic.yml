@@ -1,0 +1,43 @@
+name: AlphaIPTV Global English Backlink Batch 03B ShipStatic
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run AlphaIPTV global English backlink batch 03b shipstatic'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish and verify ShipStatic backlink
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os,subprocess,re,requests,html
+          SITE='https://alphaiptv.tn/'
+          title='Legal IPTV Subscription: Devices, Connections and Terms Explained'
+          links=[('Legal IPTV Subscription',SITE),('IPTV Subscription',SITE),('Legal IPTV Service',SITE),('Worldwide IPTV Service',SITE),('IPTV Service Provider',SITE)]
+          secs=[
+            ('Confirm licensing and regional rights','Before subscribing to any IPTV service, viewers should confirm that the provider has appropriate rights for the content it offers in the locations where it will be used.'),
+            ('Check supported devices','Smart TVs, Android TV devices, streaming sticks, phones, tablets and computers can require different apps or setup methods.'),
+            ('Review simultaneous connections','Households using multiple screens should check how many concurrent streams are included and whether account or household restrictions apply.'),
+            ('Compare streaming quality','Picture quality depends on the source, provider infrastructure, internet connection and device performance.'),
+            ('Evaluate customer support','Clear support channels and response expectations matter when activation, compatibility or playback issues occur.'),
+            ('Compare price and plan length','A low price alone does not determine value. Compare connection limits, support, cancellation rules and refund terms.'),
+            ('Read the terms','Billing, cancellation, refunds and acceptable-use conditions should be understood before paying for a long plan.'),
+            ('Conclusion','A responsible IPTV decision balances licensing, compatibility, quality, connection limits, support and transparent terms.')]
+          parts=[f'<h1>{html.escape(title)}</h1>','<p>Global IPTV viewers should compare licensing, devices, connection limits, quality, support and service terms before subscribing.</p>']
+          for i,(h,p) in enumerate(secs):
+            parts += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+            if i<5:
+              a,u=links[i];parts.append(f'<p>Viewers comparing a <a href="{u}">{html.escape(a)}</a> can review Alpha IPTV as one option while independently confirming licensing and regional availability.</p>')
+          page='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main style="max-width:920px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;line-height:1.8;color:#222">'+''.join(parts)+'</main></body></html>'
+          d='/tmp/alpha-shipstatic';os.makedirs(d,exist_ok=True);open(d+'/index.html','w',encoding='utf-8').write(page)
+          p=subprocess.run(['npx','-y','@shipstatic/ship',d,'--json'],capture_output=True,text=True,timeout=150)
+          out=(p.stdout or '')+'\n'+(p.stderr or '');print('SHIPSTATIC_RC',p.returncode);print(out[:1400])
+          urls=re.findall(r'https?://[^\s"\']+',out);u=next((x.rstrip('.,);}') for x in urls if 'shipstatic.com' in x),'')
+          good=''
+          if u:
+            r=requests.get(u,timeout=45,allow_redirects=True);src=html.unescape(r.content.decode('utf-8','ignore'))
+            hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?alphaiptv\.tn',src,re.I));exact='legal iptv subscription' in re.sub(r'<[^>]+>',' ',src).lower();robots=' '.join(re.findall(r'<meta[^>]+(?:name=["\'](?:robots|googlebot)["\'])[^>]*content=["\']([^"\']*)',src,re.I)).lower();noindex='noindex' in robots or 'noindex' in r.headers.get('x-robots-tag','').lower();print('VERIFY',r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex));good=r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else ''
+          print('ALPHA3B_RESULT='+good)
+          print('ALPHA3B_VALID_COUNT='+str(1 if good else 0))
+          PY
