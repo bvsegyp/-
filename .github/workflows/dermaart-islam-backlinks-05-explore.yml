@@ -1,0 +1,214 @@
+name: DermaArt Islam Backlinks Batch 05 Explore Fresh Domains
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    if: github.event.head_commit.message == 'Run DermaArt Islam backlink batch 05'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser tools
+        run: |
+          pip install playwright beautifulsoup4
+          python -m playwright install chromium --with-deps
+      - name: Publish and verify fresh domains
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio,re,json,html,hashlib,secrets,subprocess,requests,os
+          from playwright.async_api import async_playwright
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0 DermaArtSEO/5.0'})
+          ANCHOR='أفضل دكتورة تجميل في الرياض'
+          LINKS=[
+            (ANCHOR,'https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('الدكتورة إسلام اللبودي','https://dermaart-sa.com/dr-islam-el-laboudi-landing-page/'),
+            ('ديرما آرت الرياض','https://dermaart-sa.com/'),
+            ('خدمات الجلدية والتجميل والليزر','https://dermaart-sa.com/services/'),
+            ('حجز موعد في ديرما آرت','https://dermaart-sa.com/contact-us/')]
+          TITLES=[
+            'كيف تختارين خطة تجميل مناسبة لبشرتك وملامحك',
+            'العناية بالبشرة والتجميل غير الجراحي في الرياض',
+            'دليل الفيلر والبوتوكس والليزر قبل اتخاذ القرار',
+            'كيف تبدأ الاستشارة التجميلية الصحيحة في الرياض',
+            'خطوات اختيار طبيبة تجميل بخبرة في الجلدية والليزر',
+            'لماذا يسبق تقييم البشرة أي إجراء تجميلي',
+            'متى يكون البوتوكس مناسبًا ومتى يكون الفيلر أفضل',
+            'كيف تحافظين على نتيجة تجميل طبيعية ومتوازنة',
+            'دليل جلسات البشرة والليزر للباحثات عن خطة مدروسة',
+            'أهمية المتابعة بعد جلسات التجميل غير الجراحي',
+            'كيف تختارين علاج التصبغات وآثار البشرة',
+            'الفرق بين تحسين جودة البشرة وتغيير حجم الملامح',
+            'خطوات عملية قبل حجز جلسة تجميل في الرياض',
+            'لماذا تختلف خطة التجميل من حالة إلى أخرى',
+            'نصائح لاختيار جلسات الجلدية والتجميل والليزر',
+            'كيف تحددين أولوياتك قبل البدء بالإجراءات التجميلية',
+            'النتائج الطبيعية تبدأ بتقييم صحيح للبشرة والوجه',
+            'دليل مبسط لاختيار إجراء تجميلي يناسب احتياجك',
+            'كيف يساعد التشخيص في تقليل الإجراءات غير الضرورية',
+            'متى تحتاج البشرة للعلاج قبل الفيلر أو البوتوكس']
+          SECS=[
+            ('التقييم قبل الإجراء','الاختيار الجيد يبدأ بتقييم نوع البشرة والملامح وحركة العضلات والهدف المطلوب. هذه الخطوة تساعد على تحديد المشكلة الحقيقية بدل اختيار إجراء لمجرد انتشاره.'),
+            ('خطة مخصصة لكل حالة','الوجه والبشرة يختلفان من شخص لآخر، لذلك تختلف الجرعات والتقنيات وترتيب الجلسات. الخطة المخصصة تساعد على الحفاظ على التوازن وتقليل المبالغة.'),
+            ('صحة البشرة تؤثر في النتيجة','الترطيب والملمس والتصبغات والحبوب وآثارها قد تؤثر في الشكل النهائي بقدر كبير. أحيانًا يكون علاج البشرة أو الليزر هو الخطوة الأولى قبل الإجراءات الأخرى.'),
+            ('الفيلر والبوتوكس لهما وظائف مختلفة','البوتوكس يرتبط غالبًا بحركة العضلات والتجاعيد التعبيرية، بينما يستخدم الفيلر لدعم أو إضافة حجم في مناطق محددة وفق تقييم الحالة.'),
+            ('المتابعة جزء من الخطة','تقييم النتيجة في الوقت الصحيح ومعرفة تعليمات ما بعد الجلسة يساعدان على ضبط الخطوات التالية بدل تكرار الإجراءات دون مراجعة.'),
+            ('اختيار الطبيبة المناسبة','يفضل التركيز على التخصص وطريقة التشخيص ووضوح شرح البدائل والنتائج المتوقعة والمتابعة، بدل الاعتماد فقط على السعر أو اسم الإجراء.'),
+            ('الخلاصة','التجميل المدروس يعتمد على تشخيص واضح وخطة واقعية وتدرج مناسب. عندما ترتبط الخطوات بصحة البشرة وتوازن الملامح تصبح القرارات أكثر وضوحًا.')]
+          def md(i):
+            out=[f'# {TITLES[i%len(TITLES)]}','','تعدد خيارات الجلدية والتجميل والليزر يجعل التشخيص المتخصص هو الخطوة الأهم قبل اختيار أي جلسة. فيما يلي نقاط عملية تساعد على فهم الخطة المناسبة والوصول إلى نتيجة متوازنة وطبيعية.','']
+            for n,(h,p) in enumerate(SECS):
+              out += [f'## {h}','',p,'']
+              if n<5:
+                a,u=LINKS[n];out += [(f'لمن تبحث عن [{a}]({u}) يمكن الاطلاع على صفحة د. إسلام اللبودي وخيارات الاستشارة.' if n==0 else f'للمزيد يمكن زيارة [{a}]({u}).'),'']
+            return '\n'.join(out)
+          def htm(i):
+            text=md(i);parts=[]
+            for b in re.split(r'\n\s*\n',text):
+              b=b.strip()
+              if not b:continue
+              if b.startswith('# '):parts.append('<h1>'+html.escape(b[2:])+'</h1>');continue
+              if b.startswith('## '):parts.append('<h2>'+html.escape(b[3:])+'</h2>');continue
+              pos=0;x=[]
+              for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',b):
+                x.append(html.escape(b[pos:m.start()]));x.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>');pos=m.end()
+              x.append(html.escape(b[pos:]));parts.append('<p>'+''.join(x)+'</p>')
+            return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(TITLES[i%len(TITLES)])+'</title></head><body><main style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,Tahoma,sans-serif;line-height:2;color:#222">'+''.join(parts)+'</main></body></html>'
+          def urls(obj):
+            out=[]
+            def walk(x):
+              if isinstance(x,str):out.extend(re.findall(r'https?://[^\s"\'<>]+',x))
+              elif isinstance(x,dict):
+                for v in x.values():walk(v)
+              elif isinstance(x,list):
+                for v in x:walk(v)
+            walk(obj);return [u.rstrip('.,);}') for u in out]
+          def choose(obj,domain):
+            for u in urls(obj):
+              if domain in u:return u
+            return ''
+          def verify_req(name,u):
+            if not u:return None
+            try:
+              r=S.get(u,timeout=45,allow_redirects=True);src=html.unescape(r.text)
+              hrefs=len(re.findall(r'href=["\'][^"\']*https?://(?:www\.)?dermaart-sa\.com',src,re.I));exact=ANCHOR in src
+              noindex=('noindex' in r.headers.get('x-robots-tag','').lower()) or bool(re.search(r'<meta[^>]+name=["\']robots["\'][^>]+content=["\'][^"\']*noindex',src,re.I))
+              print('VERIFY_REQ',name,r.status_code,r.url,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex))
+              return r.url if r.status_code<400 and hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_REQ_ERR',name,repr(e));return None
+          results=[]
+          def add(n,u):
+            v=verify_req(n,u)
+            if v:results.append((n,v))
+          # Based.page CLI
+          try:
+            fn='/tmp/derma-based.html';open(fn,'w',encoding='utf-8').write(htm(0));slug='derma-riyadh-'+secrets.token_hex(3)
+            p=subprocess.run(['npx','-y','based-page@latest','deploy','--file',fn,'--slug',slug,'--title',TITLES[0]],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=160);print('BASED_RC',p.returncode);print('BASED_OUT',p.stdout[:1200].replace('\n',' '));add('Based.page',choose(p.stdout,'based.page'))
+          except Exception as e:print('BASED_ERR',repr(e))
+          # XDR
+          try:
+            data=htm(1).encode();sha=hashlib.sha256(data).hexdigest();r=S.post('https://api.xdr.no/api/v1/publish',json={'files':[{'path':'index.html','size':len(data),'contentType':'text/html','sha256':sha}]},timeout=55);print('XDR_CREATE',r.status_code,r.text[:500]);d=r.json();ups=d.get('uploads') or [];live=d.get('url');fin=d.get('finalize')
+            if ups:
+              requests.put(ups[0].get('putUrl'),data=data,headers={'Content-Type':'text/html'},timeout=60)
+              if fin:S.post(fin,timeout=50)
+            add('XDR',live)
+          except Exception as e:print('XDR_ERR',repr(e))
+          # Draftlet
+          try:
+            data=htm(2).encode();r=S.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','contentType':'text/html','size':len(data)}]},timeout=55);print('DRAFTLET_CREATE',r.status_code,r.text[:500]);d=r.json();slug=d['slug'];ver=d['versionId'];tok=d['editToken'];up=d['uploads'][0]['uploadUrl'];live=d['url'];requests.put(up,data=data,headers={'content-type':'text/html','content-length':str(len(data))},timeout=60);S.post(f'https://api.draftlet.io/api/v1/publish/{slug}/finalize',json={'versionId':ver,'editToken':tok},timeout=55);add('Draftlet',live)
+          except Exception as e:print('DRAFTLET_ERR',repr(e))
+          # Pastebox HTML attempt
+          try:
+            r=S.post('https://lfdekutkxwsczpasjgsg.supabase.co/functions/v1/create-share',json={'content':htm(3),'title':TITLES[3],'language':'html','content_type':'html','expiration':'1M','exposure':'public','source':'api'},timeout=45);print('PASTEBOX_HTML',r.status_code,r.text[:500]);
+            try:d=r.json()
+            except:d=r.text
+            add('Pastebox',choose(d,'pastebox.ai'))
+          except Exception as e:print('PASTEBOX_ERR',repr(e))
+          TARGETS=[
+            ('SharableLink','sharable.link','https://sharable.link/'),('PostEasy','post-easy.org','https://post-easy.org/'),('HTMLSpot','htmlspot.com','https://htmlspot.com/'),('HTMLPut','htmlput.com','https://htmlput.com/'),('PasteMD','pastemd.io','https://pastemd.io/'),('NoteRift','noterift.com','https://noterift.com/'),('HTMLDrop','htmldrop.app','https://htmldrop.app/'),('DocHost','dochost.io','https://dochost.io/'),('Crevioo','crevioo.com','https://crevioo.com/'),('PageLive','pagelive.io','https://pagelive.io/'),('Fylo','fylo.host','https://fylo.host/'),('OneClickLive','oneclicklive.app','https://oneclicklive.app/'),('PastesIO','pastes.io','https://pastes.io/'),('MeetHTML','meethtml.com','https://meethtml.com/'),('Swolvy','swolvy.com','https://swolvy.com/'),('UploadTheFile','uploadthefile.com','https://uploadthefile.com/')]
+          sem=asyncio.Semaphore(5)
+          async def verify_browser(browser,name,url):
+            p=await browser.new_page()
+            try:
+              resp=await p.goto(url,wait_until='domcontentloaded',timeout=40000);await p.wait_for_timeout(1200)
+              hrefs=await p.locator('a[href*="dermaart-sa.com"]').count();txt=await p.locator('body').inner_text();robots=''
+              try:robots=(await p.locator('meta[name="robots"],meta[name="googlebot"]').evaluate_all("els=>els.map(e=>e.content||'').join(' ')")).lower()
+              except:pass
+              xrob=''
+              try:xrob=(await resp.all_headers()).get('x-robots-tag','').lower() if resp else ''
+              except:pass
+              exact=ANCHOR in txt;noindex='noindex' in robots or 'noindex' in xrob;final=p.url
+              print('VERIFY_BROWSER',name,final,'HREFS',hrefs,'EXACT',int(exact),'NOINDEX',int(noindex));await p.close()
+              return final if hrefs>=5 and exact and not noindex else None
+            except Exception as e:print('VERIFY_BROWSER_ERR',name,repr(e));await p.close();return None
+          async def generic(browser,idx,t):
+            async with sem:
+              name,domain,url=t;pg=await browser.new_page();h=htm(idx+4);m=md(idx+4)
+              try:
+                await pg.goto(url,wait_until='domcontentloaded',timeout=45000);await pg.wait_for_timeout(1000)
+                for sel in ['input[name*=title i]','input[placeholder*=title i]','input[type=text]']:
+                  loc=pg.locator(sel)
+                  if await loc.count():
+                    try:await loc.first.fill(TITLES[(idx+4)%len(TITLES)]);break
+                    except:pass
+                filled=False;tas=pg.locator('textarea:visible')
+                if await tas.count():
+                  try:await tas.first.fill(h if 'html' in ((await tas.first.get_attribute('placeholder')) or '').lower() else m);filled=True
+                  except:pass
+                if not filled:
+                  ces=pg.locator('[contenteditable="true"]:visible')
+                  if await ces.count():
+                    try:await ces.first.fill(m);filled=True
+                    except:pass
+                if not filled:
+                  fis=pg.locator('input[type=file]')
+                  if await fis.count():
+                    path=f'/tmp/derma-{idx}.html';open(path,'w',encoding='utf-8').write(h)
+                    try:await fis.first.set_input_files(path);filled=True
+                    except:pass
+                if not filled:print('NO_INPUT',name);await pg.close();return None
+                for pat in ['Publish','Generate','Create','Share','Host','Upload','Deploy','Post','Save','Get link','Get Link']:
+                  btn=pg.get_by_role('button',name=re.compile(pat,re.I))
+                  if await btn.count():
+                    try:await btn.first.click(timeout=6000);break
+                    except:pass
+                await pg.wait_for_timeout(3500);c=[]
+                if pg.url.rstrip('/')!=url.rstrip('/'):c.append(pg.url)
+                try:c += [x for x in await pg.locator('a[href]').evaluate_all('els=>els.map(e=>e.href)') if domain in x]
+                except:pass
+                try:
+                  vals=await pg.locator('input').evaluate_all('els=>els.map(e=>e.value).filter(Boolean)');c += [v for v in vals if isinstance(v,str) and v.startswith('http') and domain in v]
+                except:pass
+                seen=set()
+                for cand in c:
+                  cand=cand.rstrip('.,);]')
+                  if cand in seen or domain not in cand or any(x in cand for x in ['/login','/signup','/register','favicon','manifest']):continue
+                  seen.add(cand);v=await verify_browser(browser,name,cand)
+                  if v:await pg.close();return (name,v)
+                print('NO_VALID',name,c[:8])
+              except Exception as e:print('GENERIC_ERR',name,repr(e))
+              try:await pg.close()
+              except:pass
+              return None
+          async def go():
+            async with async_playwright() as p:
+              browser=await p.chromium.launch(headless=True);vals=await asyncio.gather(*[generic(browser,i,t) for i,t in enumerate(TARGETS)],return_exceptions=True);await browser.close();return vals
+          try:
+            vals=asyncio.run(go())
+            for v in vals:
+              if isinstance(v,tuple):results.append(v)
+          except Exception as e:print('BROWSER_BATCH_ERR',repr(e))
+          # dedupe by domain/name
+          out=[];seen=set()
+          for n,u in results:
+            d=re.sub(r'^www\.','',re.sub(r'^https?://','',u).split('/')[0])
+            root='.'.join(d.split('.')[-2:])
+            if root in seen:continue
+            seen.add(root);out.append((n,u))
+          print('DERMAART5_RESULTS_BEGIN')
+          for n,u in out:print(n+'\t'+u)
+          print('DERMAART5_RESULTS_END')
+          print('DERMAART5_VALID_COUNT='+str(len(out)))
+          print('DERMAART5_RESULTS_JSON='+json.dumps(out,ensure_ascii=False))
+          PY
