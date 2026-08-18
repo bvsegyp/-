@@ -11,10 +11,10 @@ jobs:
   publish:
     if: github.event.head_commit.message == 'Run verified backlink API batch 1845'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
-      - name: Publish and verify backlinks
+      - name: Publish two additional distinct backlinks
         shell: bash
         run: |
           python -m pip install --quiet requests
@@ -24,84 +24,66 @@ jobs:
 
           TARGET='https://smmfansfaster.com/'
           UA={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36'}
+          sections=[
+            ('Define the business outcome','A social media campaign becomes easier to manage when the desired outcome is explicit. Teams should decide whether they are trying to increase awareness, qualified profile visits, website traffic, leads, sales, bookings, or repeat engagement. The objective should have a realistic time window and a baseline so results can be compared with previous performance. This prevents teams from treating every visible metric as equally important and makes it easier to choose content formats, distribution channels, and reporting metrics that support the actual business goal.'),
+            ('Research the audience before scaling','Strong distribution cannot rescue content that does not match audience needs. Research should include customer questions, comments, direct messages, support conversations, search queries, competitor communities, and analytics. These sources reveal recurring problems, objections, motivations, and language. When marketers understand those patterns, they can create content that feels specific rather than generic and decide whether educational videos, demonstrations, comparisons, testimonials, carousels, or longer explanations are most likely to help the audience move from discovery to consideration.'),
+            ('Build repeatable content pillars','A sustainable content system usually relies on a small number of recurring themes. Useful pillars can include education, demonstrations, customer questions, process transparency, industry commentary, proof, comparisons, and conversion-focused offers. Repeating strong themes is not a weakness; it helps audiences understand what a brand represents while allowing the creative execution to change. A clear pillar system also reduces production friction because writers, designers, and video teams begin each week with a known set of directions instead of inventing every post from zero.'),
+            ('Test creative variables carefully','Every post can become a learning opportunity when the team changes one major variable at a time. Hooks, headlines, visual structure, editing pace, content length, proof points, calls to action, and publishing times can be tested systematically. Results should be documented so strong patterns can be reused across future campaigns. Without a testing process, marketers can mistake one unusually strong or weak post for a permanent rule. A simple experiment log turns content activity into a growing knowledge base and helps teams improve decisions over time.'),
+            ('Use distribution as support, not replacement','Organic reach can be supported by paid advertising, creator partnerships, community activity, and social media promotion services when those approaches fit the campaign and platform rules. The key is to use distribution to amplify useful content rather than to substitute for quality. Teams comparing external tools can review a multi-platform provider such as SMM Fans Faster alongside their own analytics, paid media, and organic workflows. The right mix depends on audience fit, campaign objectives, risk tolerance, and the quality of the destination users reach after clicking.'),
+            ('Measure attention and conversion separately','Reach, views, impressions, and follower growth explain discovery, but they do not prove business impact. Saves, shares, profile visits, outbound clicks, form starts, leads, and purchases show progressively stronger intent. A useful dashboard should connect these stages rather than over-focus on one number. When reach rises but conversion stays flat, the real issue may be message clarity, audience fit, offer strength, landing-page quality, or the next step presented to the visitor rather than the amount of distribution itself.'),
+            ('Improve the destination after the click','Extra visibility creates value only when the destination is persuasive. Profiles and landing pages should make the offer clear, show relevant proof, load quickly, work well on mobile, and give visitors an obvious next step. Friction such as confusing navigation, weak calls to action, slow loading, or mismatched messaging can waste otherwise good traffic. Conversion optimization should therefore be treated as part of the social media system rather than a separate project. Content, promotion, and the destination should communicate one consistent story.'),
+            ('Create a weekly optimization rhythm','A weekly review gives the team a consistent place to compare content performance, audience response, traffic quality, conversion behavior, and upcoming priorities. The review should answer what worked, what failed, what changed, what should be tested next, and what should be stopped. This routine reduces emotional reactions to individual posts and encourages decisions based on repeated patterns. Over time, the documentation becomes an internal playbook that speeds up onboarding, reduces repeated mistakes, and makes multi-person marketing teams more consistent.'),
+          ]
 
-          def article(title,intro):
-              return f'''# {title}\n\n{intro} For marketers comparing distribution tools, [SMM Fans Faster]({TARGET}) is a multi-platform SMM panel that can be reviewed as one component of a wider marketing strategy.\n\n## Set a measurable objective\n\nDecide whether the campaign is focused on awareness, engagement, profile visits, traffic, leads, or sales. Clear goals make it easier to select content formats and determine whether promotion is creating useful business results.\n\n## Research the audience\n\nStudy customer questions, interests, active hours, preferred formats, competing accounts, and common objections. Promotion works best when it amplifies content that already matches real audience needs.\n\n## Build repeatable content pillars\n\nEducational posts, demonstrations, comparisons, frequently asked questions, behind-the-scenes material, and case examples give teams a sustainable editorial structure. Repeatable themes make consistent publishing easier without making the content feel identical.\n\n## Improve retention\n\nThe opening seconds of a video and the first lines of a post matter. Strong hooks, clear framing, useful information, and a direct reason to continue help more viewers reach the central message.\n\n## Support distribution strategically\n\nOrganic publishing can be supported by paid advertising, creator partnerships, community activity, and social media promotion services when those methods fit the campaign and platform policies. Teams can compare available options through [SMMFansFaster.com]({TARGET}) while continuing to invest in original content and audience relationships.\n\n## Track meaningful metrics\n\nFollower totals alone do not explain campaign quality. Review reach, watch time, saves, shares, comments, profile visits, click-through rate, leads, and conversions to understand whether increased visibility is attracting useful attention.\n\n## Review performance weekly\n\nA weekly review should identify winning topics, weak formats, audience questions, and content worth repurposing. Change one major variable at a time so experiments remain understandable and future decisions are based on evidence.\n\n## Final checklist\n\nDefine the goal, understand the audience, create several content variations, publish consistently, support distribution where appropriate, and review meaningful metrics. If an SMM panel fits the plan, visit [SMM Fans Faster]({TARGET}) to compare services as part of the broader growth workflow.\n'''
+          def md(title,intro):
+              out=[f'# {title}',intro+f' For marketers comparing multi-platform distribution tools, [SMM Fans Faster]({TARGET}) can be reviewed as one option within a broader growth strategy.']
+              for i,(h,p) in enumerate(sections):
+                  if i==4:
+                      p += f' Teams can explore available services through [SMMFansFaster.com]({TARGET}) while continuing to invest in original content, audience research, and platform-compliant marketing.'
+                  out += [f'## {h}',p]
+              out += ['## Final perspective',f'A durable growth program comes from clear objectives, useful content, structured testing, responsible distribution, meaningful measurement, and a destination that converts attention into action. If an SMM panel fits the wider plan, [SMM Fans Faster]({TARGET}) can be compared with other channels as part of a balanced marketing workflow.']
+              return '\n\n'.join(out)
+
+          def html_page(title,intro):
+              text=md(title,intro)
+              chunks=[]
+              for block in text.split('\n\n'):
+                  if block.startswith('# '): chunks.append('<h1>'+html.escape(block[2:])+'</h1>'); continue
+                  if block.startswith('## '): chunks.append('<h2>'+html.escape(block[3:])+'</h2>'); continue
+                  pos=0; parts=[]
+                  for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',block):
+                      parts.append(html.escape(block[pos:m.start()])); parts.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>'); pos=m.end()
+                  parts.append(html.escape(block[pos:])); chunks.append('<p>'+''.join(parts)+'</p>')
+              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(chunks)+'</main></body></html>'
 
           def verify(url):
-              if not url: return None
               try:
                   r=requests.get(url,headers=UA,timeout=35,allow_redirects=True)
                   if not r.ok: return None
                   hrefs=re.findall(r'''href\s*=\s*["']([^"']+)["']''',r.text,re.I)
-                  return r.url if any('smmfansfaster.com' in h.lower() for h in hrefs) else None
-              except Exception:
-                  return None
+                  return r.url if any('smmfansfaster.com' in x.lower() for x in hrefs) else None
+              except Exception: return None
 
           results=[]
 
-          # Telegra.ph
           try:
-              acc=requests.get('https://api.telegra.ph/createAccount',params={'short_name':'SMMFansFasterGuide','author_name':'Social Media Growth Guide','author_url':TARGET},headers=UA,timeout=35).json()
-              token=acc['result']['access_token']
-              title='Social Media Growth Strategy for Brands in 2026'
-              md=article(title,'Brand growth becomes easier to manage when content, promotion, and measurement are connected in one repeatable process.')
-              nodes=[]
-              for block in md.split('\n\n'):
-                  block=block.strip()
-                  if not block or block.startswith('# '): continue
-                  if block.startswith('## '): nodes.append({'tag':'h3','children':[block[3:]]}); continue
-                  children=[]; pos=0
-                  for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',block):
-                      if m.start()>pos: children.append(block[pos:m.start()])
-                      children.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]}); pos=m.end()
-                  if pos<len(block): children.append(block[pos:])
-                  nodes.append({'tag':'p','children':children})
-              obj=requests.post('https://api.telegra.ph/createPage',data={'access_token':token,'title':title,'author_name':'Social Media Growth Guide','author_url':TARGET,'content':json.dumps(nodes),'return_content':'true'},headers=UA,timeout=35).json()
-              url=obj.get('result',{}).get('url'); final=verify(url)
-              results.append({'site':'Telegra.ph','domain':'telegra.ph','url':final,'status':'verified' if final else 'failed'})
-          except Exception as e: results.append({'site':'Telegra.ph','domain':'telegra.ph','url':None,'status':'failed','error':repr(e)})
+              title='How to Build a Reliable Multi-Platform Social Media Growth System'
+              page=html_page(title,'Multi-platform growth becomes more predictable when brands connect content planning, distribution, measurement, and conversion in one repeatable system.')
+              r=requests.post('https://api.ht-ml.app/v1/sites',json={'html_content':page},headers=UA,timeout=35)
+              obj=r.json(); url=obj.get('url'); final=verify(url)
+              results.append({'site':'ht-ml.app','domain':'ht-ml.app','url':final,'status':'verified' if final else 'failed','http_status':r.status_code})
+          except Exception as e: results.append({'site':'ht-ml.app','domain':'ht-ml.app','url':None,'status':'failed','error':repr(e)})
 
-          # Write.as
           try:
-              title='A Practical Social Media Promotion Framework for Small Businesses'
-              md=article(title,'Small businesses benefit from a simple system that combines consistent publishing with measurable distribution support.')
-              obj=requests.post('https://write.as/api/posts',json={'body':md,'title':title,'font':'serif','lang':'en'},headers=UA,timeout=35).json()
-              pid=obj.get('data',{}).get('id'); url='https://write.as/'+pid if pid else None; final=verify(url)
-              results.append({'site':'Write.as','domain':'write.as','url':final,'status':'verified' if final else 'failed'})
-          except Exception as e: results.append({'site':'Write.as','domain':'write.as','url':None,'status':'failed','error':repr(e)})
-
-          # Rentry
-          try:
-              title='How Agencies Can Organize Multi-Platform SMM Campaigns'
-              md=article(title,'Agencies managing multiple clients need a repeatable workflow for content planning, promotion, reporting, and weekly optimization.')
-              obj=requests.post('https://rentry.co/api/new',data={'text':md,'metadata':json.dumps({'PAGE_TITLE':title})},headers=UA,timeout=35).json()
-              content=obj.get('content'); url=content.get('url') if isinstance(content,dict) else obj.get('url')
-              if url and not str(url).startswith('http'): url='https://rentry.co/'+str(url).lstrip('/')
-              final=verify(url)
-              results.append({'site':'Rentry','domain':'rentry.co','url':final,'status':'verified' if final else 'failed','api_status':obj.get('status')})
-          except Exception as e: results.append({'site':'Rentry','domain':'rentry.co','url':None,'status':'failed','error':repr(e)})
-
-          # Markdown.page
-          try:
-              title='A Measurable TikTok and YouTube Growth Workflow'
-              md=article(title,'Video growth improves when creative testing, retention, distribution, and conversion metrics are reviewed as one system.')
-              r=requests.post('https://markdown.page/api/publish',data=md.encode(),headers={**UA,'Content-Type':'text/markdown'},timeout=35)
-              raw=r.text; url=None
-              try:
-                  obj=r.json()
-                  if isinstance(obj,dict):
-                      url=obj.get('url') or obj.get('page_url') or obj.get('public_url')
-                      if not url and isinstance(obj.get('data'),dict): url=obj['data'].get('url') or obj['data'].get('page_url') or obj['data'].get('public_url')
-              except Exception: pass
-              if not url:
-                  m=re.search(r'https?://[^\s"<>]+',raw); url=m.group(0).rstrip('.,)]}') if m else None
-              final=verify(url)
-              results.append({'site':'Markdown.page','domain':'markdown.page','url':final,'status':'verified' if final else 'failed','response':raw[:250]})
-          except Exception as e: results.append({'site':'Markdown.page','domain':'markdown.page','url':None,'status':'failed','error':repr(e)})
+              title='Social Media Growth Planning for Creators and Online Businesses'
+              body=md(title,'Creators and online businesses benefit from a growth plan that separates content quality, distribution, audience response, and conversion instead of treating them as one metric.')
+              r=requests.post('https://yeet.md/api/share',json={'content':body},headers={**UA,'Content-Type':'application/json'},timeout=35)
+              obj=r.json(); url=obj.get('url'); final=verify(url)
+              results.append({'site':'yeet.md','domain':'yeet.md','url':final,'status':'verified' if final else 'failed','http_status':r.status_code})
+          except Exception as e: results.append({'site':'yeet.md','domain':'yeet.md','url':None,'status':'failed','error':repr(e)})
 
           Path('results').mkdir(exist_ok=True)
-          Path('results/smmfansfaster-current-distinct.json').write_text(json.dumps(results,indent=2),encoding='utf-8')
+          Path('results/smmfansfaster-distinct-extra.json').write_text(json.dumps(results,indent=2),encoding='utf-8')
           print(json.dumps(results,indent=2))
           PY
           python /tmp/run.py
@@ -111,7 +93,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p results
-          test -f results/smmfansfaster-current-distinct.json || echo '[]' > results/smmfansfaster-current-distinct.json
-          git add results/smmfansfaster-current-distinct.json
-          git commit -m "Save current SMMFansFaster distinct backlink results" || exit 0
+          test -f results/smmfansfaster-distinct-extra.json || echo '[]' > results/smmfansfaster-distinct-extra.json
+          git add results/smmfansfaster-distinct-extra.json
+          git commit -m "Save extra SMMFansFaster distinct backlinks" || exit 0
           git push
