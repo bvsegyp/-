@@ -1,282 +1,110 @@
-name: SMMFansFaster 10 Domain Article Publisher
+name: SMMFansFaster Final Two Domain Publisher
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - 'runs/smmfansfaster-final-two-*'
 
 jobs:
   publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [mdpage, writeas]
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 6
     steps:
-      - name: Publish and verify 10 distinct-domain backlink articles
+      - name: Publish ${{ matrix.platform }} backlink article
         shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
-          python -m pip install --quiet requests beautifulsoup4 playwright
-          cat > /tmp/publish.py <<'PY'
-          import requests,json,re,html,time,random,string,os
-          from urllib.parse import urljoin,urlparse
+          python -m pip install --quiet requests beautifulsoup4
+          cat > /tmp/final_two.py <<'PY'
+          import os,requests,json,time
           from bs4 import BeautifulSoup
 
-          TARGET='https://smmfansfaster.com/'
-          H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/2.0'}
+          P=os.environ['PLATFORM']
+          UA='Mozilla/5.0 SMMBacklinkPublisher/9.0'
+          title='A Practical Social Media Growth Framework for Online Businesses in 2026'
+          body='''# A Practical Social Media Growth Framework for Online Businesses in 2026
 
-          titles=[
-          'Social Media Growth Strategy for Online Businesses in 2026',
-          'How Brands Can Build a Reliable Multi-Platform Growth System',
-          'A Practical Guide to Social Media Distribution and Conversion',
-          'Building a Sustainable Social Media Promotion Framework',
-          'How to Turn Social Media Reach Into Measurable Business Growth',
-          'A Smarter Approach to Social Media Marketing and Distribution',
-          'How Digital Brands Can Scale Social Media Without Losing Quality',
-          'Social Media Growth Planning for Agencies and Small Businesses',
-          'From Content to Conversion A Complete Social Media Growth System',
-          'How to Evaluate Social Media Promotion Channels in 2026',
-          'A Practical Social Media Acquisition Framework for Modern Brands',
-          'How to Build Repeatable Social Media Growth Experiments',
-          'Social Media Promotion Strategy for E-commerce and Service Brands',
-          'How to Improve Social Media Reach Engagement and Conversion',
-          'A Balanced Framework for Organic and Paid Social Media Growth',
-          'How Marketing Teams Can Build a Stronger Social Media Engine']
+Online businesses get more useful results from social media when audience research, content production, distribution, measurement, and conversion are managed as one connected system. A strong plan is designed around qualified traffic, leads, purchases, bookings, profile actions, repeat engagement, or another measurable business outcome rather than visibility alone.
 
-          angles=[
-          'online businesses that need predictable acquisition rather than isolated spikes',
-          'brands managing several social platforms with limited creative resources',
-          'teams trying to connect distribution activity with real conversion data',
-          'companies that want sustainable promotion without sacrificing audience trust',
-          'marketers focused on moving people from discovery to meaningful business actions',
-          'small teams balancing organic publishing paid media and external promotion',
-          'digital brands that want to increase reach while preserving creative quality',
-          'agencies and small businesses that need a repeatable operating process',
-          'teams that want content discovery consideration and conversion to work together',
-          'marketers comparing different acquisition and promotion channels objectively',
-          'modern brands building a measurable acquisition system across social platforms',
-          'marketing teams that want every campaign to generate reusable learning',
-          'e-commerce stores and service companies seeking qualified social traffic',
-          'businesses improving the full path from reach to engagement to conversion',
-          'teams combining organic content paid distribution and supporting services',
-          'marketing departments creating a durable system instead of chasing short-term trends']
+## Begin with a measurable objective
 
-          section_heads=[
-          'Start with a measurable business objective',
-          'Use audience intent to guide content decisions',
-          'Build repeatable content pillars',
-          'Treat distribution as a controlled experiment',
-          'Measure quality beyond impressions',
-          'Connect social activity to the post-click journey',
-          'Protect trust while increasing reach',
-          'Review performance and document learning',
-          'Create a practical operating rhythm']
+A social media program should start by defining the business result it is expected to influence. Reach can support awareness, but it becomes more useful when a team knows whether the campaign should produce website visits, enquiries, purchases, profile activity, or repeat engagement. Clear objectives give content and distribution decisions a common reference point.
 
-          def article(i):
-              title=titles[i%len(titles)]; angle=angles[i%len(angles)]
-              paragraphs=[
-              f'A useful social media plan for {angle} starts with a business outcome, not a vanity metric. The team should decide whether the campaign is expected to produce qualified website visits, leads, purchases, bookings, profile actions, repeat engagement, or a combination of these. Once the outcome is explicit, channel selection, content formats, distribution choices, reporting, and budget decisions become easier to compare. A measurable objective also creates a baseline that prevents teams from confusing temporary reach with durable commercial progress.',
-              f'Audience research is especially important for {angle}. Search queries, comments, customer support conversations, sales objections, direct messages, competitor communities, and analytics reveal what people are actually trying to accomplish. Those signals help marketers choose language and topics that match real intent instead of publishing generic advice. A strong research loop also separates awareness questions from comparison questions and purchase-stage questions, allowing content to support several points in the customer journey without sounding repetitive.',
-              'Sustainable publishing normally depends on a small number of recurring content pillars. Education, demonstrations, comparisons, proof, case examples, frequently asked questions, process transparency, customer outcomes, and offer-focused content give a team enough structure to publish consistently. The structure should repeat while the execution changes through new hooks, examples, formats, creative angles, and platform-specific adaptations. This approach reduces production friction and makes it easier to identify which themes consistently attract qualified attention.',
-              'Distribution works best when it amplifies useful content rather than compensating for weak content. Organic publishing can be supported by paid advertising, creator partnerships, communities, partnerships, and specialist social media promotion services when those methods fit platform rules and campaign goals. Teams should test one major variable at a time, record the conditions of each test, and compare results against a baseline. That creates evidence about what actually improves reach instead of relying on assumptions based on one unusually strong post.',
-              'Reach and impressions explain discovery, but they are only the first layer of measurement. Saves, shares, meaningful comments, profile visits, outbound clicks, landing-page engagement, leads, purchases, repeat visits, and assisted conversions provide progressively stronger evidence of intent. Reporting becomes more useful when these signals are connected rather than viewed as separate dashboards. A channel that produces fewer impressions but more qualified actions can be more valuable than a channel that generates large visibility numbers with little downstream behavior.',
-              'The destination after the click deserves the same attention as the social post. Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and provide an obvious next step. Message consistency matters too: the page should deliver what the post or promotion promised. When teams improve this handoff, distribution becomes easier to evaluate because poor conversion is less likely to be caused by a confusing destination rather than the traffic source itself.',
-              'Short-term growth should not damage long-term credibility. Marketers should avoid deceptive endorsements, fake reviews, spam comments, misleading claims, compromised websites, or tactics that violate platform safeguards. The goal is to expand visibility while keeping the audience experience useful and transparent. Responsible growth combines original content, appropriate promotion, responsive support, and measurement that rewards genuine business outcomes rather than activity for its own sake.',
-              'Weekly review turns campaigns into cumulative learning. Teams should document the audience, hypothesis, creative concept, distribution method, timing, spend when relevant, traffic quality, conversion behavior, and the next test. This prevents the same mistakes from being repeated and helps successful patterns survive staff changes or campaign turnover. Over time, the review process becomes an internal playbook that makes planning faster and gives new experiments a stronger starting point.',
-              'A practical operating rhythm connects research, production, distribution, measurement, and iteration. Instead of treating every post as an isolated event, teams can work in short cycles: gather audience signals, create content around a defined objective, distribute it through selected channels, inspect downstream behavior, and record what should change next. This process keeps growth activity focused on learning and customer value while making it easier to compare tools and providers on measurable contribution.'
-              ]
-              out=[f'<h1>{html.escape(title)}</h1>',f'<p>{html.escape("This guide is designed for "+angle+". It explains how to connect audience research, useful content, responsible distribution, measurement, and conversion into one repeatable social media growth system.")}</p>']
-              for n,(h,p) in enumerate(zip(section_heads,paragraphs)):
-                  out += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
-                  if n==2:
-                      out.append('<p>Teams comparing multi-platform promotion options can review <a href="https://smmfansfaster.com/">SMM Fans Faster</a> alongside organic content, paid media, creator partnerships, and internal distribution workflows as one reference point in a broader channel evaluation.</p>')
-                  if n==5:
-                      out.append('<p>Marketers researching available services can also visit <a href="https://smmfansfaster.com/">SMMFansFaster.com</a> while keeping original content, audience value, platform compliance, and conversion quality at the center of the strategy.</p>')
-                  if n==7:
-                      out.append('<p>An SMM panel should be evaluated as a supporting distribution option rather than a replacement for creative quality. Teams can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other acquisition channels based on fit, transparency, cost, traffic quality, and measurable outcomes.</p>')
-              out.append('<h2>Final perspective</h2><p>Long-term social media growth is usually the result of useful content, structured testing, responsible amplification, meaningful measurement, and a clear post-click experience. The strongest system is not the one that creates the biggest isolated number; it is the one that repeatedly turns relevant attention into learning and business value.</p>')
-              body=''.join(out)
-              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow"><title>'+html.escape(title)+'</title></head><body><main>'+body+'</main></body></html>'
+## Research real audience intent
 
-          def markdown_article(i):
-              s=BeautifulSoup(article(i),'html.parser'); lines=[]
-              for el in s.select('h1,h2,p'):
-                  if el.name=='h1': lines.append('# '+el.get_text(' ',strip=True))
-                  elif el.name=='h2': lines.append('## '+el.get_text(' ',strip=True))
-                  else:
-                      text=''
-                      for c in el.contents:
-                          if getattr(c,'name',None)=='a': text += '['+c.get_text(' ',strip=True)+']('+c.get('href','')+')'
-                          else: text += str(c)
-                      lines.append(BeautifulSoup(text,'html.parser').get_text(' ',strip=True) if '](' not in text else text)
-              return '\n\n'.join(lines)
+Search behavior, direct messages, customer questions, comments, support conversations, sales objections, competitor communities, and analytics reveal what an audience actually wants to understand or accomplish. These signals help marketers choose topics and language that match real demand rather than relying on generic publishing calendars.
 
-          def verify(u,retries=4):
-              if not u:return None
-              for n in range(retries):
+Teams comparing promotion providers can review [SMM Fans Faster](https://smmfansfaster.com/) alongside organic publishing, paid advertising, creator partnerships, communities, and other distribution options.
+
+## Create repeatable content pillars
+
+Education, demonstrations, comparisons, proof, frequently asked questions, process transparency, customer outcomes, and offer-focused posts create a sustainable publishing structure. The strategic themes can repeat while hooks, examples, formats, visual execution, and platform adaptations remain fresh.
+
+## Use distribution deliberately
+
+Distribution should amplify useful content rather than compensate for weak content. Organic publishing can be supported by advertising, creators, partnerships, communities, and specialist social media promotion services when those methods fit campaign goals and platform policies. Testing one important variable at a time makes results easier to interpret.
+
+## Measure stronger intent signals
+
+Views and impressions describe discovery, while saves, shares, profile visits, outbound clicks, landing-page engagement, leads, purchases, and repeat visits reveal progressively stronger intent. Reporting becomes more useful when these stages are connected instead of treated as isolated numbers.
+
+Available multi-platform services can also be explored at [SMMFansFaster.com](https://smmfansfaster.com/) while content quality, audience value, platform compliance, and conversion measurement remain central to the strategy.
+
+## Improve the post-click journey
+
+Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and make the next action obvious. The destination should match the promise that generated the click so traffic quality can be evaluated accurately.
+
+## Protect audience trust
+
+Sustainable growth avoids deceptive endorsements, fake reviews, spam comments, misleading claims, compromised websites, and tactics that violate platform safeguards. Responsible promotion combines original content, transparent amplification, responsive support, and measurement that rewards genuine audience value.
+
+Marketers considering an SMM panel can compare [SMM Fans Faster](https://smmfansfaster.com/) with other acquisition channels based on fit, transparency, traffic quality, cost, and measurable outcomes.
+
+## Turn every campaign into future learning
+
+A weekly review should document the audience, hypothesis, creative concept, distribution method, timing, traffic quality, conversion behavior, and next experiment. Over time this becomes a practical internal playbook that reduces repeated mistakes and gives future campaigns a stronger starting point.
+
+## Conclusion
+
+Long-term social media growth is usually the result of useful content, measured distribution, audience trust, a strong post-click experience, and a review process that turns each campaign into learning for the next one.'''
+
+          def verify(url):
+              if not url:return None
+              for n in range(4):
                   try:
-                      r=requests.get(u,headers=H,timeout=30,allow_redirects=True)
-                      print('VERIFY',u,r.status_code,r.url)
+                      r=requests.get(url,headers={'User-Agent':UA},timeout=25,allow_redirects=True)
+                      print('VERIFY',r.status_code,r.url)
                       if r.ok:
                           s=BeautifulSoup(r.text,'html.parser')
                           links=[a.get('href','') for a in s.find_all('a',href=True)]
-                          if any('smmfansfaster.com' in x.lower() for x in links): return r.url
-                  except Exception as e: print('VERIFY_ERR',u,repr(e))
-                  time.sleep(1+n)
+                          if any('smmfansfaster.com' in x.lower() for x in links):return r.url
+                  except Exception as e:print('VERIFY_ERR',repr(e))
+                  time.sleep(2+n)
               return None
 
-          results=[]
-          def add(site,domain,url,status,raw=''):
-              d={'site':site,'domain':domain,'url':url,'status':status}
-              if raw:d['raw']=re.sub(r'(?i)(token|key|secret|password)[^,}\n]{0,120}',r'\1:[redacted]',str(raw))[:800]
-              results.append(d); print('RESULT_ITEM',json.dumps(d))
-
-          def get_json_url(o):
-              if not isinstance(o,dict):return None
-              for k in ['url','liveUrl','live_url','shareUrl','share_url','publicUrl','public_url','siteUrl','site_url']:
-                  v=o.get(k)
-                  if isinstance(v,str) and v.startswith('http'): return v
-              for k in ['data','site','result']:
-                  if isinstance(o.get(k),dict):
-                      v=get_json_url(o[k])
-                      if v:return v
-              return None
-
-          # 1 PageDrop
           try:
-              p=article(0); r=requests.post('https://pagedrop.dev/api/v1/sites',json={'html':p,'title':titles[0]},headers={**H,'Content-Type':'application/json'},timeout=45)
-              print('PAGEDROP',r.status_code,r.text[:500]); o=r.json(); u=get_json_url(o); v=verify(u); add('PageDrop','pagedrop.dev',v,'verified' if v else 'failed',r.text if not v else '')
-          except Exception as e:add('PageDrop','pagedrop.dev',None,'failed',repr(e))
-
-          # 2 FreeKit
-          try:
-              p=article(1); r=requests.post('https://freekit.dev/api/v1/sites',json={'html':p,'title':titles[1]},headers={**H,'Content-Type':'application/json'},timeout=45)
-              print('FREEKIT',r.status_code,r.text[:500]); o=r.json(); u=get_json_url(o); v=verify(u); add('FreeKit','freekit.dev',v,'verified' if v else 'failed',r.text if not v else '')
-          except Exception as e:add('FreeKit','freekit.dev',None,'failed',repr(e))
-
-          # 3 Hurl.page -> hurled.page
-          try:
-              p=article(2); r=requests.post('https://hurl.page/deploy',data=p.encode(),headers={**H,'Content-Type':'text/html'},timeout=45)
-              print('HURL',r.status_code,r.text[:500]); m=re.search(r'https://[^\s"\']+\.hurled\.page/?',r.text); u=m.group(0) if m else None; v=verify(u); add('Hurl','hurled.page',v,'verified' if v else 'failed',r.text if not v else '')
-          except Exception as e:add('Hurl','hurled.page',None,'failed',repr(e))
-
-          # 4 Flexweg
-          try:
-              p=article(3); r=requests.post('https://www.flexweg.com/ai/publish',json={'html':p},headers={**H,'Content-Type':'application/json'},timeout=45)
-              print('FLEXWEG',r.status_code,r.text[:500]); o=r.json(); u=get_json_url(o); v=verify(u); add('Flexweg','flexweg.com',v,'verified' if v else 'failed',r.text if not v else '')
-          except Exception as e:add('Flexweg','flexweg.com',None,'failed',repr(e))
-
-          # 5 resolved.sh Markdown publisher
-          try:
-              slug='smm-growth-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(7)); md=markdown_article(4)
-              payload={'subdomain':slug,'display_name':titles[4],'description':'Practical social media growth and conversion guide','md_content':md}
-              r=requests.post('https://resolved.sh/publish',json=payload,headers={**H,'Content-Type':'application/json'},timeout=45)
-              print('RESOLVED',r.status_code,r.text[:500]); o=r.json(); u=get_json_url(o) or 'https://'+slug+'.resolved.sh/'; v=verify(u); add('Resolved','resolved.sh',v,'verified' if v else 'failed',r.text if not v else '')
-          except Exception as e:add('Resolved','resolved.sh',None,'failed',repr(e))
-
-          # 6 ArtifactDrop — try common public API contracts advertised by the site
-          try:
-              p=article(5); u=None; raw=[]
-              attempts=[
-                ('https://drops.0xhome.dev/api/artifacts',{'html':p,'ttl':'6h'}),
-                ('https://drops.0xhome.dev/api/drops',{'html':p,'ttl':'6h'}),
-                ('https://drops.0xhome.dev/api/publish',{'html':p,'ttl':'6h'}),
-                ('https://drops.0xhome.dev/api/v1/artifacts',{'html':p,'ttl':'6h'})]
-              for ep,payload in attempts:
-                  try:
-                      r=requests.post(ep,json=payload,headers={**H,'Content-Type':'application/json'},timeout=20); raw.append(ep+' '+str(r.status_code)+' '+r.text[:250])
-                      if r.ok:
-                          try:u=get_json_url(r.json())
-                          except:pass
-                          if u:break
-                  except Exception as ee:raw.append(repr(ee))
-              v=verify(u); add('ArtifactDrop','0xhome.dev',v,'verified' if v else 'failed',' | '.join(raw) if not v else '')
-          except Exception as e:add('ArtifactDrop','0xhome.dev',None,'failed',repr(e))
-
-          # Save files for browser-based publishers.
-          for i in range(6,16):
-              with open(f'/tmp/article_{i}.html','w',encoding='utf-8') as f:f.write(article(i))
-
-          # Browser-based no-signup publishers.
-          try:
-              from playwright.sync_api import sync_playwright
-              def browser_publish(site,domain,start_url,idx,button_re,file_first=True,patterns=None,extra=None):
-                  try:
-                      page=context.new_page(); page.set_default_timeout(12000); page.goto(start_url,wait_until='domcontentloaded',timeout=30000); time.sleep(1)
-                      fp=f'/tmp/article_{idx}.html'; filled=False
-                      if file_first:
-                          fis=page.locator('input[type=file]')
-                          if fis.count()>0:
-                              fis.first.set_input_files(fp); filled=True; time.sleep(1)
-                      if not filled:
-                          tas=page.locator('textarea')
-                          if tas.count()>0:
-                              try:tas.first.fill(article(idx)); filled=True
-                              except:pass
-                      if not filled:
-                          # contenteditable/code editors
-                          ce=page.locator('[contenteditable=true]')
-                          if ce.count()>0:
-                              try:ce.first.fill(article(idx)); filled=True
-                              except:pass
-                      if extra: extra(page)
-                      btn=page.get_by_role('button',name=re.compile(button_re,re.I))
-                      if btn.count()>0:
-                          try:btn.first.click(timeout=8000)
-                          except:btn.first.click(force=True,timeout=8000)
-                      else:
-                          # submit fallback
-                          sb=page.locator('button[type=submit],input[type=submit]')
-                          if sb.count()>0: sb.first.click(force=True)
-                      time.sleep(6)
-                      body=''
-                      try:body=page.locator('body').inner_text(timeout=5000)
-                      except:pass
-                      hrefs=[]
-                      try:hrefs=page.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
-                      except:pass
-                      candidates=[page.url]+hrefs+re.findall(r'https?://[^\s<>"\']+',body)
-                      if patterns:
-                          candidates=[x.rstrip('.,);]') for x in candidates if isinstance(x,str) and any(re.search(pt,x,re.I) for pt in patterns)]
-                      else:
-                          candidates=[x.rstrip('.,);]') for x in candidates if isinstance(x,str)]
-                      seen=[]
-                      for cu in candidates:
-                          if cu not in seen:seen.append(cu)
-                      v=None
-                      for cu in seen[:30]:
-                          v=verify(cu,2)
-                          if v:break
-                      add(site,domain,v,'verified' if v else 'failed',('candidates='+json.dumps(seen[:8])) if not v else '')
-                      page.close()
-                  except Exception as e:
-                      add(site,domain,None,'failed',repr(e))
-                      try:page.close()
-                      except:pass
-
-              with sync_playwright() as pw:
-                  browser=pw.chromium.launch(channel='chrome',headless=True,args=['--no-sandbox','--disable-dev-shm-usage'])
-                  context=browser.new_context(user_agent=H['User-Agent'],viewport={'width':1440,'height':1000})
-                  browser_publish('ShareMyHTML','sharemyhtml.com','https://sharemyhtml.com/',6,r'Give It a URL|Upload|Publish|Host',True,[r'sharemyhtml\.com'])
-                  browser_publish('HTMLPUT','htmlput.com','https://www.htmlput.com/',7,r'Host Now|Host|Publish',False,[r'htmlput\.com'])
-                  browser_publish('HTMLSave','htmlsave.com','https://htmlsave.com/',8,r'SUBMIT TO SAVE|Submit|Save',False,[r'htmlsave\.com'])
-                  browser_publish('OneClickLive','oneclicklive.app','https://oneclicklive.app/',9,r'Deploy|Publish|Go Live',False,[r'oneclicklive\.app',r'netlify\.app',r'vercel\.app'])
-                  browser_publish('Yapp','yapp.page','https://yapp.page/',10,r'Publish my page|Publish',True,[r'\.yapp\.page'])
-                  browser_publish('Hdply','hdply.com','https://hdply.com/',11,r'Deploy now|Deploy|Publish',True,[r'\.hdply\.com'])
-                  browser_publish('Sharable','sharable.link','https://sharable.link/free-html-hosting',12,r'Upload|Publish|Share|Host',True,[r'sharable\.link'])
-                  browser_publish('StaticRun','staticrun.app','https://static.run/',13,r'Upload|Publish|Deploy|Host',True,[r'staticrun\.app',r'static\.run'])
-                  browser_publish('Linkyhost','linkyhost.com','https://www.linkyhost.com/use-cases/free-website-hosting',14,r'Upload|Publish|Deploy|Host',True,[r'linkyhost\.com'])
-                  browser_publish('TiinyHost','tiiny.site','https://tiiny.host/',15,r'Upload|Launch|Publish|Deploy|Host',True,[r'tiiny\.site',r'tiiny\.host'])
-                  browser.close()
+              if P=='mdpage':
+                  r=requests.post('https://md.page/api/publish',json={'markdown':body},headers={'User-Agent':UA,'Content-Type':'application/json'},timeout=45)
+                  print('PUBLISH',r.status_code,r.text[:2000])
+                  o=r.json(); u=o.get('url') or (o.get('data') or {}).get('url')
+                  if u and u.startswith('/'):u='https://md.page'+u
+                  v=verify(u)
+                  print('RESULT_JSON='+json.dumps({'site':'md.page','domain':'md.page','url':v,'status':'verified' if v else 'failed'}))
+              else:
+                  r=requests.post('https://write.as/api/posts',json={'body':body,'title':title,'font':'serif','lang':'en'},headers={'User-Agent':UA,'Content-Type':'application/json'},timeout=45)
+                  print('PUBLISH',r.status_code,r.text[:2000])
+                  o=r.json(); d=o.get('data') or {}; u=d.get('url')
+                  if not u and d.get('id'):u='https://write.as/'+d['id']
+                  if u and u.startswith('/'):u='https://write.as'+u
+                  v=verify(u)
+                  print('RESULT_JSON='+json.dumps({'site':'Write.as','domain':'write.as','url':v,'status':'verified' if v else 'failed'}))
           except Exception as e:
-              print('BROWSER_BATCH_ERR',repr(e))
-
-          verified=[]; used=set()
-          for x in results:
-              if x.get('status')=='verified' and x.get('url'):
-                  host=urlparse(x['url']).hostname or ''
-                  # use declared domain as uniqueness key so subdomains do not inflate count
-                  key=x['domain'].lower()
-                  if key not in used:
-                      used.add(key); verified.append(x)
-          print('VERIFIED_COUNT='+str(len(verified)))
-          print('RESULT_JSON='+json.dumps(results))
-          print('VERIFIED_JSON='+json.dumps(verified[:10]))
+              print('RESULT_JSON='+json.dumps({'site':P,'domain':'md.page' if P=='mdpage' else 'write.as','url':None,'status':'failed','error':repr(e)}))
           PY
-          python /tmp/publish.py
+          python /tmp/final_two.py
