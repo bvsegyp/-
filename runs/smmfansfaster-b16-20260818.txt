@@ -1,0 +1,1 @@
+Trigger 10 distinct-domain SMMFansFaster article publishing batch 16.
