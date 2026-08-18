@@ -1,0 +1,29 @@
+[
+  {
+    "site": "Telegra.ph",
+    "domain": "telegra.ph",
+    "url": "https://telegra.ph/Social-Media-Growth-Strategy-for-Brands-in-2026-08-18",
+    "status": "verified"
+  },
+  {
+    "site": "Write.as",
+    "domain": "write.as",
+    "url": null,
+    "status": "failed",
+    "error": "JSONDecodeError('Expecting value: line 1 column 1 (char 0)')"
+  },
+  {
+    "site": "Rentry",
+    "domain": "rentry.co",
+    "url": "https://rentry.co/rix3iznf",
+    "status": "verified",
+    "api_status": "200"
+  },
+  {
+    "site": "Markdown.page",
+    "domain": "markdown.page",
+    "url": "https://markdown.page/Zkr7aJGi",
+    "status": "verified",
+    "response": "{\"slug\":\"Zkr7aJGi\",\"url\":\"https://markdown.page/Zkr7aJGi\",\"raw_url\":\"https://markdown.page/Zkr7aJGi.md\"}"
+  }
+]
