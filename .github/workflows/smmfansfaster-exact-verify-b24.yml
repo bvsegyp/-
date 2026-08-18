@@ -1,0 +1,70 @@
+name: SMMFansFaster Exact Verify Batch 24
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'runs/smmfansfaster-b24-*'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify already published candidate pages
+        shell: bash
+        run: |
+          python -m pip install --quiet playwright requests beautifulsoup4
+          cat > /tmp/verify.py <<'PY'
+          import json,time,requests
+          from bs4 import BeautifulSoup
+          from playwright.sync_api import sync_playwright
+          targets=[
+            ('ShareDuo','shareduo.com','https://app.shareduo.com/g4qy463'),
+            ('ShareDuo','shareduo.com','https://app.shareduo.com/v3nzqqv'),
+            ('Netlify','netlify.app','https://snazzy-bubblegum-13b3dd.netlify.app'),
+            ('Netlify','netlify.app','https://6a84b1099a406c20a8fe4f61--snazzy-bubblegum-13b3dd.netlify.app'),
+            ('ShareHTML','share-html.com','https://pages.share-html.com/smm-1mj2ms2xck')]
+          res=[]
+          def verify(ctx,name,domain,url):
+              p=None
+              try:
+                  # raw check first
+                  try:
+                      r=requests.get(url,timeout=20,allow_redirects=True,headers={'User-Agent':'Mozilla/5.0'})
+                      if r.ok:
+                          s=BeautifulSoup(r.text,'html.parser')
+                          if any('smmfansfaster.com' in (a.get('href') or '').lower() for a in s.find_all('a',href=True)):
+                              d={'site':name,'domain':domain,'url':r.url,'status':'verified','mode':'raw'};res.append(d);print('ITEM='+json.dumps(d));return True
+                  except:pass
+                  p=ctx.new_page();p.set_default_timeout(12000);p.goto(url,wait_until='domcontentloaded',timeout=30000);time.sleep(5)
+                  found=False; hrefs=[]
+                  for fr in p.frames:
+                      try:
+                          hs=fr.locator('a').evaluate_all('(els)=>els.map(e=>e.href)');hrefs.extend(hs)
+                          if any('smmfansfaster.com' in (x or '').lower() for x in hs):found=True
+                      except:pass
+                  if not found:
+                      try:
+                          found=p.evaluate("()=>Array.from(document.querySelectorAll('a')).some(a=>(a.href||'').toLowerCase().includes('smmfansfaster.com'))")
+                      except:pass
+                  d={'site':name,'domain':domain,'url':p.url if found else None,'status':'verified' if found else 'failed','mode':'render','frames':len(p.frames),'target_links':[x for x in hrefs if 'smmfansfaster.com' in (x or '').lower()]}
+                  res.append(d);print('ITEM='+json.dumps(d));return found
+              except Exception as e:
+                  d={'site':name,'domain':domain,'url':None,'status':'failed','error':repr(e)};res.append(d);print('ITEM='+json.dumps(d));return False
+              finally:
+                  try:p.close()
+                  except:pass
+          with sync_playwright() as pw:
+              br=pw.chromium.launch(channel='chrome',headless=True,args=['--no-sandbox','--disable-dev-shm-usage']);ctx=br.new_context(user_agent='Mozilla/5.0',viewport={'width':1440,'height':1000})
+              done=set()
+              for name,domain,url in targets:
+                  if domain in done:continue
+                  if verify(ctx,name,domain,url):done.add(domain)
+              br.close()
+          good=[];seen=set()
+          for x in res:
+              if x['status']=='verified' and x['domain'] not in seen:seen.add(x['domain']);good.append(x)
+          print('GOOD_JSON='+json.dumps(good));print('GOOD_COUNT='+str(len(good)))
+          PY
+          python /tmp/verify.py
