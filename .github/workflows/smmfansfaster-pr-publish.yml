@@ -7,132 +7,53 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
-      - name: Publish and verify distinct-domain backlinks batch 8
+      - name: Discover current publish schemas for batch 9
         shell: bash
         run: |
           python -m pip install --quiet requests beautifulsoup4
-          cat > /tmp/publish.py <<'PY'
-          import requests, json, re, html, hashlib, time
-          from urllib.parse import urljoin, urlparse
+          cat > /tmp/probe.py <<'PY'
+          import requests,re
+          from urllib.parse import urljoin,urlparse
           from bs4 import BeautifulSoup
-
-          TARGET='https://smmfansfaster.com/'
           H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/1.0'}
 
-          sections=[
-            ('Set a measurable business objective','A reliable social media growth program starts with a business outcome rather than a vanity metric. Teams should define whether the priority is qualified website traffic, leads, sales, bookings, profile visits, or repeat engagement. A clear objective gives every channel and creative decision a purpose and makes performance easier to evaluate against a useful baseline.'),
-            ('Research audience intent from real signals','Customer questions, support conversations, comments, search queries, direct messages, competitor communities, and analytics reveal the language and problems that matter to the audience. These signals help marketers choose topics and formats that feel specific instead of generic and create content that supports discovery, consideration, and conversion.'),
-            ('Build repeatable content pillars','Sustainable content systems use recurring themes such as education, demonstrations, comparisons, frequently asked questions, process transparency, proof, industry commentary, and conversion-focused offers. Repeating useful themes improves recognition while fresh hooks, examples, visual structures, and formats keep the execution varied.'),
-            ('Test creative variables systematically','Hooks, headlines, editing pace, content length, visual structure, proof points, calls to action, and publishing times can be tested one major variable at a time. Recording results turns content production into a cumulative learning system and prevents teams from making permanent decisions based on a single unusually strong or weak post.'),
-            ('Use distribution to amplify useful content','Organic publishing can be supported by paid media, creator partnerships, community participation, and social media promotion services when those methods match campaign goals and platform rules. Distribution should increase exposure for useful content rather than replace quality, audience value, or a clear offer.'),
-            ('Connect discovery metrics to business actions','Views, impressions, reach, and follower growth explain discovery, while saves, shares, profile visits, outbound clicks, form starts, leads, and purchases indicate progressively stronger intent. A useful reporting view connects these stages so marketers can see where attention becomes a meaningful business result.'),
-            ('Improve the post-click experience','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and give visitors an obvious next action. Strong distribution can still underperform when the destination is slow, confusing, or inconsistent with the content that generated the click.'),
-            ('Review results on a fixed rhythm','A weekly review helps teams identify what worked, what failed, what changed, and what should be tested next. Documenting creative performance, audience response, traffic quality, and conversion behavior creates an internal playbook that reduces repeated mistakes and improves future campaigns.'),
-            ('Protect trust while scaling','Short-term reach is not worth damaging audience trust. Brands should avoid deceptive endorsements, fake reviews, spam comments, compromised websites, or tactics that violate platform safeguards. Sustainable growth combines useful content, transparent promotion, responsive support, and clear measurement.'),
-            ('Document the lessons that compound','The value of a growth system increases when knowledge survives beyond individual campaigns. Teams should record hypotheses, audiences, creative concepts, outcomes, lessons, and next actions. Over time this becomes a practical internal reference that speeds up onboarding and improves consistency across marketing work.')]
+          def context(label,text,needle,n=1800):
+              pos=0; count=0
+              while True:
+                  i=text.find(needle,pos)
+                  if i<0: break
+                  print('\n###',label,'OCC',count,'###\n',text[max(0,i-n):i+n])
+                  pos=i+len(needle); count+=1
+                  if count>=6: break
 
-          def article(title,intro):
-              out=['<h1>'+html.escape(title)+'</h1>','<p>'+html.escape(intro)+'</p>']
-              for i,(h,p) in enumerate(sections):
-                  out += ['<h2>'+html.escape(h)+'</h2>','<p>'+html.escape(p)+'</p>']
-                  if i==2:
-                      out.append('<p>Teams comparing multi-platform promotion options can review <a href="'+TARGET+'">SMM Fans Faster</a> alongside organic content, paid media, creator partnerships, and internal analytics as one part of a broader channel evaluation.</p>')
-                  if i==6:
-                      out.append('<p>Available social media promotion services can also be explored directly at <a href="'+TARGET+'">SMMFansFaster.com</a> while keeping original content, audience value, and platform compliance at the center of the strategy.</p>')
-              out.append('<h2>Final perspective</h2><p>Long-term growth comes from useful content, structured testing, responsible distribution, meaningful measurement, and a destination that converts attention into action. Teams considering an SMM panel can compare <a href="'+TARGET+'">SMM Fans Faster</a> with other channels as part of a balanced marketing workflow.</p>')
-              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
-
-          def verify(u, retries=4):
-              if not u: return None
-              for n in range(retries):
-                  try:
-                      r=requests.get(u,headers=H,timeout=40,allow_redirects=True)
-                      print('VERIFY',u,r.status_code,r.url)
-                      if r.ok:
-                          s=BeautifulSoup(r.text,'html.parser')
-                          if any('smmfansfaster.com' in a.get('href','').lower() for a in s.find_all('a',href=True)):
-                              return r.url
-                  except Exception as e:
-                      print('VERIFY_ERR',repr(e))
-                  time.sleep(2+n)
-              return None
-
-          res=[]
-          def add(site,domain,url,status,raw=None):
-              d={'site':site,'domain':domain,'url':url,'status':status}
-              if raw: d['raw']=raw[:900]
-              res.append(d)
-
-          # here.now — documented anonymous 3-step publish
+          # YourWebs skill is the authoritative agent API guide.
           try:
-              title='A Practical Social Media Growth Framework for Digital Brands'
-              p=article(title,'Digital brands can improve social media performance by connecting audience research, content production, responsible distribution, measurement, and conversion in one repeatable system.')
-              ctype='text/html; charset=utf-8'
-              r=requests.post('https://here.now/api/v1/publish',json={'files':[{'path':'index.html','size':len(p.encode()),'contentType':ctype}],'displayName':title},headers={**H,'X-HereNow-Client':'github-actions/backlink-publisher'},timeout=40)
-              print('HERENOW_CREATE',r.status_code,r.text[:1200]); o=r.json(); up=o.get('upload') or {}; uploads=up.get('uploads') or []
-              for item in uploads:
-                  requests.put(item['url'],data=p.encode(),headers=item.get('headers') or {'Content-Type':ctype},timeout=60).raise_for_status()
-              fr=requests.post(up.get('finalizeUrl'),json={'versionId':up.get('versionId')},headers=H,timeout=40)
-              print('HERENOW_FINAL',fr.status_code,fr.text[:800]); u=o.get('siteUrl') or fr.json().get('siteUrl'); v=verify(u)
-              add('here.now','here.now',v,'verified' if v else 'failed',None if v else r.text)
-          except Exception as e: add('here.now','here.now',None,'failed',repr(e))
+              r=requests.get('https://yourwebs.cc/skill.md',headers=H,timeout=30)
+              print('YOURWEBS_SKILL_STATUS',r.status_code,r.headers.get('content-type'))
+              context('YOURWEBS',r.text,'/api/v1/pages',2200)
+          except Exception as e: print('YOURWEBS_ERR',repr(e))
 
-          # ShipSite — documented anonymous 3-step publish
-          try:
-              title='Social Media Distribution and Conversion Guide for Online Businesses'
-              p=article(title,'Online businesses get stronger results when content quality, distribution, audience response, and conversion tracking are managed as parts of the same measurable customer journey.')
-              ctype='text/html'
-              r=requests.post('https://shipsite.co/api/v1/publish',json={'files':[{'path':'index.html','size':len(p.encode()),'contentType':ctype}],'viewer':{'title':title,'description':'Practical social media growth guide'}},headers=H,timeout=40)
-              print('SHIPSITE_CREATE',r.status_code,r.text[:1200]); o=r.json(); up=o.get('upload') or {}; uploads=up.get('uploads') or []
-              for item in uploads:
-                  requests.put(item['url'],data=p.encode(),headers=item.get('headers') or {'Content-Type':ctype},timeout=60).raise_for_status()
-              payload={'versionId':up.get('versionId')}
-              if o.get('claimToken'): payload['claimToken']=o['claimToken']
-              fr=requests.post(up.get('finalizeUrl'),json=payload,headers=H,timeout=40)
-              print('SHIPSITE_FINAL',fr.status_code,fr.text[:800]); u=o.get('siteUrl') or fr.json().get('siteUrl'); v=verify(u)
-              add('ShipSite','shipsite.co',v,'verified' if v else 'failed',None if v else r.text)
-          except Exception as e: add('ShipSite','shipsite.co',None,'failed',repr(e))
+          def scan_site(base,needle):
+              try:
+                  r=requests.get(base,headers=H,timeout=30); print('HOME',base,r.status_code)
+                  blobs=[(r.url,r.text)]
+                  s=BeautifulSoup(r.text,'html.parser')
+                  for tag in s.find_all('script',src=True):
+                      u=urljoin(r.url,tag['src'])
+                      if urlparse(u).netloc==urlparse(base).netloc:
+                          try:
+                              js=requests.get(u,headers=H,timeout=25).text
+                              blobs.append((u,js))
+                          except: pass
+                  for src,text in blobs:
+                      if needle in text:
+                          print('\nSOURCE',src)
+                          context(base,text,needle,2400)
+              except Exception as e: print('SCAN_ERR',base,repr(e))
 
-          # Discover anonymous publish endpoints from current frontend/skill docs for other new domains.
-          def discover(label, base, extra_paths=[]):
-              found=[]; blobs=[]
-              for path in ['/']+extra_paths:
-                  try:
-                      rr=requests.get(urljoin(base,path),headers=H,timeout=30)
-                      blobs.append((rr.url,rr.text))
-                      if 'text/html' in rr.headers.get('content-type',''):
-                          s=BeautifulSoup(rr.text,'html.parser')
-                          for tag in s.find_all('script',src=True):
-                              su=urljoin(rr.url,tag['src'])
-                              if urlparse(su).netloc==urlparse(base).netloc:
-                                  try:
-                                      js=requests.get(su,headers=H,timeout=25).text
-                                      blobs.append((su,js))
-                                  except: pass
-                  except Exception as e: print(label,'DISCOVER_GET_ERR',path,repr(e))
-              for src,text in blobs:
-                  eps=sorted(set(re.findall(r'(?:(?:https?://[^\"\'\s]+)|(?:/api/[A-Za-z0-9_./?=&:-]+))',text)))
-                  interesting=[x for x in eps if any(k in x.lower() for k in ['publish','deploy','upload','site','page','artifact'])]
-                  if interesting:
-                      print(label,'ENDPOINTS',src,interesting[:40])
-                      found.extend(interesting)
-              return list(dict.fromkeys(found))
-
-          try:
-              eps=discover('YOURWEBS','https://yourwebs.cc',['/skill.md'])
-              print('YOURWEBS_DISCOVERED',eps[:80])
-          except Exception as e: print('YOURWEBS_DISCOVER_ERR',repr(e))
-          try:
-              eps=discover('PAGEY','https://pagey.site',[])
-              print('PAGEY_DISCOVERED',eps[:80])
-          except Exception as e: print('PAGEY_DISCOVER_ERR',repr(e))
-          try:
-              eps=discover('PASTEPAGE','https://paste.page',[])
-              print('PASTEPAGE_DISCOVERED',eps[:80])
-          except Exception as e: print('PASTEPAGE_DISCOVER_ERR',repr(e))
-
-          print('RESULT_JSON='+json.dumps(res))
+          scan_site('https://pagey.site','/api/public/sites/')
+          scan_site('https://paste.page','/api/pages')
           PY
-          python /tmp/publish.py
+          python /tmp/probe.py
