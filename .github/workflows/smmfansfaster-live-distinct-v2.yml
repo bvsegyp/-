@@ -1,0 +1,177 @@
+name: SMMFansFaster Live Distinct Backlinks V2
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: "github.event.head_commit.message == 'Run SMMFansFaster live distinct v2'"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rentry client
+        run: pip install rentry
+      - name: Publish four distinct articles and verify backlinks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, re, urllib.request, urllib.parse
+          from pathlib import Path
+          from rentry_client import RentryClient
+
+          TARGET='https://smmfansfaster.com/'
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36'
+
+          def md_article(title, angle):
+              return f'''# {title}
+
+{angle} Social media growth is more sustainable when promotion supports useful content rather than replacing it. For marketers comparing tools, [SMM Fans Faster]({TARGET}) provides a multi-platform SMM panel that can be evaluated as part of a wider marketing workflow.
+
+## Start with a measurable objective
+
+Define whether the campaign is focused on reach, engagement, profile visits, website traffic, leads, or sales. A clear objective makes it easier to select content formats and judge whether distribution is improving meaningful results.
+
+## Understand the audience before scaling
+
+Audience research should cover interests, questions, active hours, preferred formats, competing accounts, and the language customers use. This keeps promotional activity connected to real audience demand rather than vanity numbers.
+
+## Build repeatable content pillars
+
+Educational posts, demonstrations, comparisons, customer questions, behind-the-scenes material, case examples, and short tutorials can be rotated across the calendar. Consistency is easier when teams have several reliable themes instead of inventing every post from scratch.
+
+## Improve the opening and retention
+
+The first seconds of a video and the first lines of a post matter. Strong hooks, clear framing, readable copy, and an immediate reason to continue help more viewers reach the central message.
+
+## Add distribution support carefully
+
+Organic publishing can be supported by paid advertising, creator partnerships, community activity, and social media promotion services when they fit platform rules and campaign goals. A service hub such as [SMMFansFaster.com]({TARGET}) can be compared alongside those channels when a team needs multi-platform promotion options.
+
+## Track quality metrics
+
+Follower totals alone do not explain campaign quality. Review reach, watch time, saves, shares, comments, profile visits, click-through rate, leads, and conversions. These signals show whether increased visibility is attracting useful attention.
+
+## Review and improve every week
+
+A weekly review should identify winning topics, weak formats, audience questions, and content worth repurposing. Change one major variable at a time so the team can understand what actually caused an improvement.
+
+## Final checklist
+
+Set the goal, research the audience, create several content variations, publish consistently, support distribution where appropriate, and review meaningful metrics. If an SMM panel is part of the plan, visit [SMM Fans Faster]({TARGET}) to compare available services while keeping original content and long-term audience value at the center of the strategy.
+'''
+
+          def get(url):
+              req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept':'text/html,*/*'})
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  return r.geturl(), r.read().decode('utf-8','ignore')
+
+          def verify(url):
+              try:
+                  final,text=get(url)
+                  hrefs=re.findall(r'''href\s*=\s*["']([^"']+)["']''',text,re.I)
+                  return final if any('smmfansfaster.com' in h.lower() for h in hrefs) else None
+              except Exception:
+                  return None
+
+          results=[]
+
+          # 1 Telegra.ph
+          try:
+              acc_url='https://api.telegra.ph/createAccount?'+urllib.parse.urlencode({'short_name':'SMMGrowthGuide','author_name':'Digital Marketing Guide','author_url':TARGET})
+              _,acc_body=get(acc_url)
+              acc=json.loads(acc_body)
+              token=acc['result']['access_token']
+              title='How to Build a Balanced Social Media Growth Strategy in 2026'
+              article=md_article(title,'A balanced growth strategy connects content, audience research, distribution, and measurement.')
+              paras=[]
+              for block in article.split('\n\n'):
+                  block=block.strip()
+                  if not block: continue
+                  if block.startswith('# '): continue
+                  if block.startswith('## '):
+                      paras.append({'tag':'h3','children':[block[3:]]}); continue
+                  # Convert markdown links into Telegraph nodes
+                  children=[]; pos=0
+                  for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',block):
+                      if m.start()>pos: children.append(block[pos:m.start()])
+                      children.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]})
+                      pos=m.end()
+                  if pos<len(block): children.append(block[pos:])
+                  paras.append({'tag':'p','children':children})
+              payload=urllib.parse.urlencode({'access_token':token,'title':title,'author_name':'Digital Marketing Guide','author_url':TARGET,'content':json.dumps(paras),'return_content':'true'}).encode()
+              req=urllib.request.Request('https://api.telegra.ph/createPage',data=payload,headers={'User-Agent':UA,'Content-Type':'application/x-www-form-urlencoded'},method='POST')
+              with urllib.request.urlopen(req,timeout=30) as r: obj=json.loads(r.read().decode())
+              url=obj['result']['url']
+              final=verify(url)
+              results.append({'site':'Telegra.ph','domain':'telegra.ph','url':final,'status':'verified' if final else 'failed'})
+          except Exception as e:
+              results.append({'site':'Telegra.ph','domain':'telegra.ph','url':None,'status':'failed','error':repr(e)})
+
+          # 2 Write.as
+          try:
+              title='A Practical Social Media Promotion Framework for Small Businesses'
+              body=md_article(title,'Small businesses benefit from a simple framework that connects publishing consistency with measurable distribution.')
+              data=json.dumps({'body':body,'title':title,'font':'serif','lang':'en'}).encode()
+              req=urllib.request.Request('https://write.as/api/posts',data=data,headers={'User-Agent':UA,'Content-Type':'application/json','Accept':'application/json'},method='POST')
+              with urllib.request.urlopen(req,timeout=30) as r: obj=json.loads(r.read().decode())
+              pid=obj['data']['id']; url='https://write.as/'+pid
+              final=verify(url)
+              results.append({'site':'Write.as','domain':'write.as','url':final,'status':'verified' if final else 'failed'})
+          except Exception as e:
+              results.append({'site':'Write.as','domain':'write.as','url':None,'status':'failed','error':repr(e)})
+
+          # 3 Rentry
+          try:
+              title='How Agencies Can Organize Multi-Platform SMM Campaigns'
+              body=md_article(title,'Agencies managing several clients need a repeatable process for content, promotion, measurement, and weekly reporting.')
+              client=RentryClient('https://rentry.co')
+              obj=client.new(text=body,metadata={'PAGE_TITLE':title})
+              url=obj.get('content',{}).get('url') if isinstance(obj.get('content'),dict) else None
+              if not url:
+                  url=obj.get('url')
+              if url and not str(url).startswith('http'): url='https://rentry.co/'+str(url).lstrip('/')
+              final=verify(url) if url else None
+              results.append({'site':'Rentry','domain':'rentry.co','url':final,'status':'verified' if final else 'failed','response_status':obj.get('status')})
+          except Exception as e:
+              results.append({'site':'Rentry','domain':'rentry.co','url':None,'status':'failed','error':repr(e)})
+
+          # 4 Markdown.page
+          try:
+              title='A Measurable TikTok and YouTube Growth Workflow'
+              body=md_article(title,'Video growth improves when creative testing, retention, distribution, and conversion metrics are reviewed as one system.')
+              req=urllib.request.Request('https://markdown.page/api/publish',data=body.encode(),headers={'User-Agent':UA,'Content-Type':'text/markdown','Accept':'application/json,text/plain,*/*'},method='POST')
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  raw=r.read().decode('utf-8','ignore')
+                  try: obj=json.loads(raw)
+                  except Exception: obj={}
+              url=None
+              if isinstance(obj,dict):
+                  for key in ('url','page_url','public_url'):
+                      if isinstance(obj.get(key),str): url=obj[key]; break
+                  if not url and isinstance(obj.get('data'),dict):
+                      for key in ('url','page_url','public_url'):
+                          if isinstance(obj['data'].get(key),str): url=obj['data'][key]; break
+              if not url:
+                  m=re.search(r'https?://[^\s"<>]+',raw); url=m.group(0).rstrip('.,)]}') if m else None
+              final=verify(url) if url else None
+              results.append({'site':'Markdown.page','domain':'markdown.page','url':final,'status':'verified' if final else 'failed','raw_response':raw[:500]})
+          except Exception as e:
+              results.append({'site':'Markdown.page','domain':'markdown.page','url':None,'status':'failed','error':repr(e)})
+
+          Path('results').mkdir(exist_ok=True)
+          Path('results/smmfansfaster-live-distinct-v2.json').write_text(json.dumps(results,indent=2),encoding='utf-8')
+          print(json.dumps(results,indent=2))
+          PY
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/smmfansfaster-live-distinct-v2.json
+          git commit -m "Save SMMFansFaster live distinct v2 results" || exit 0
+          git push
