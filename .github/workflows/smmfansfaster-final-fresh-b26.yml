@@ -1,0 +1,172 @@
+name: SMMFansFaster Final Fresh Domains Batch 26
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'runs/smmfansfaster-b26-*'
+
+jobs:
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [noteshverify, jotbird, anytourl, mdviewer, trymarkdownviewer, mdtolink]
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Publish or verify ${{ matrix.platform }}
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 playwright
+          cat > /tmp/final.py <<'PY'
+          import os,re,json,time,html,requests,random,string
+          from bs4 import BeautifulSoup
+          from playwright.sync_api import sync_playwright
+          P=os.environ['PLATFORM'];H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/7.0'}
+          cfg={
+            'noteshverify':('Notesh','notesh.ink','https://notesh.ink/sh/0LNQ4t',r'notesh\.ink/sh/[A-Za-z0-9_-]+','verify'),
+            'jotbird':('JotBird','share.jotbird.com','https://www.jotbird.com/app',r'share\.jotbird\.com/(?!$)[A-Za-z0-9_/@?=&-]+','md'),
+            'anytourl':('AnyToURL','anytourl.com','https://anytourl.com/',r'anytourl\.com/(?:t|f)/[A-Za-z0-9_-]+','md'),
+            'mdviewer':('MDViewer','mdviewer.net','https://mdviewer.net/',r'mdviewer\.net/(?!$)[A-Za-z0-9_/?#=&%+.-]+','md'),
+            'trymarkdownviewer':('TryMarkdownViewer','trymarkdownviewer.com','https://trymarkdownviewer.com/',r'trymarkdownviewer\.com/(?:[^\s]+)','md'),
+            'mdtolink':('MDtoLink','mdtolink.com','https://mdtolink.com/tools/editor/',r'mdtolink\.com/(?!tools/?$)[A-Za-z0-9_/?#=&%+.-]+','md')}
+          name,domain,start,pat,typ=cfg[P]
+          title='How Digital Brands Can Build a Stronger Social Media Growth System in 2026'
+          sections=[('Set a measurable objective','A useful social media program begins with a business result such as qualified traffic, leads, purchases, bookings, profile actions, or repeat engagement. Clear objectives give content, distribution, and reporting decisions a common reference point.'),('Research real audience intent','Search behavior, customer questions, comments, support conversations, sales objections, competitor communities, and analytics reveal what people actually want to understand or accomplish. Those signals help content match real demand.'),('Build repeatable content pillars','Education, demonstrations, comparisons, proof, frequently asked questions, process transparency, customer outcomes, and offer-focused posts create a sustainable publishing structure while new hooks and examples keep execution fresh.'),('Use distribution deliberately','Organic publishing can be supported by paid media, creators, communities, partnerships, and specialist social media promotion services when those methods fit platform policies and campaign goals. Distribution should amplify useful content.'),('Measure stronger intent','Views and impressions explain discovery, while saves, shares, profile visits, outbound clicks, landing-page engagement, leads, purchases, and repeat visits reveal progressively stronger intent. Connecting these stages improves channel evaluation.'),('Improve the post-click journey','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and provide an obvious next step. The destination should match the promise that generated the click.'),('Protect audience trust','Sustainable growth avoids deceptive endorsements, fake reviews, spam, misleading claims, compromised websites, and tactics that violate platform safeguards. Responsible promotion combines original content and transparent amplification.'),('Document what works','Weekly reviews should record the audience, hypothesis, creative concept, distribution method, timing, traffic quality, conversion behavior, and next experiment. This turns individual campaigns into cumulative learning.')]
+          MD='# '+title+'\n\nThis practical guide explains how businesses can connect audience research, useful content, responsible distribution, measurement, and conversion into one repeatable social media growth system.\n\n'
+          for i,(h,p) in enumerate(sections):
+              MD+='## '+h+'\n\n'+p+'\n\n'
+              if i==1:MD+='Teams comparing promotion providers can review [SMM Fans Faster](https://smmfansfaster.com/) alongside organic publishing, paid media, creator partnerships, and other distribution options.\n\n'
+              if i==4:MD+='Available multi-platform services can also be explored at [SMMFansFaster.com](https://smmfansfaster.com/) while content quality and conversion measurement remain central to the strategy.\n\n'
+              if i==6:MD+='Marketers considering an SMM panel can compare [SMM Fans Faster](https://smmfansfaster.com/) with other acquisition channels based on fit, transparency, traffic quality, and measurable outcomes.\n\n'
+          MD+='## Conclusion\n\nLong-term social media growth combines useful content, measured distribution, audience trust, and a process that turns each campaign into future learning.'
+          def browser_verify(ctx,url):
+              if not url:return None
+              q=None
+              try:
+                  try:
+                      r=requests.get(url,headers=H,timeout=15,allow_redirects=True)
+                      if r.ok:
+                          s=BeautifulSoup(r.text,'html.parser')
+                          if any('smmfansfaster.com' in (a.get('href') or '').lower() for a in s.find_all('a',href=True)):return r.url
+                  except:pass
+                  q=ctx.new_page();q.set_default_timeout(9000);q.goto(url,wait_until='domcontentloaded',timeout=25000);time.sleep(4)
+                  for fr in q.frames:
+                      try:
+                          hs=fr.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+                          if any('smmfansfaster.com' in (x or '').lower() for x in hs):return q.url
+                      except:pass
+              except:pass
+              finally:
+                  try:q.close()
+                  except:pass
+              return None
+          with sync_playwright() as pw:
+              br=pw.chromium.launch(channel='chrome',headless=True,args=['--no-sandbox','--disable-dev-shm-usage']);ctx=br.new_context(user_agent=H['User-Agent'],viewport={'width':1440,'height':1000})
+              if typ=='verify':
+                  v=browser_verify(ctx,start);print('RESULT_JSON='+json.dumps({'site':name,'domain':domain,'url':v,'status':'verified' if v else 'failed'}));br.close();raise SystemExit
+              pg=ctx.new_page();pg.set_default_timeout(10000);network=[]
+              def onresp(r):
+                  try:
+                      network.append(r.url)
+                      if 'json' in (r.headers.get('content-type') or '').lower():
+                          try:network.extend(re.findall(r'https?://[^\s"\']+',r.text()))
+                          except:pass
+                  except:pass
+              pg.on('response',onresp)
+              try:pg.goto(start,wait_until='domcontentloaded',timeout=30000);time.sleep(3)
+              except Exception as e:print('NAVERR',repr(e))
+              # AnyToURL: switch to Text mode first.
+              if P=='anytourl':
+                  try:
+                      b=pg.get_by_role('button',name=re.compile(r'^Text$',re.I))
+                      if b.count():b.first.click(force=True);time.sleep(1)
+                  except:pass
+              # JotBird / MDtoLink may require clicking into editor.
+              if P=='jotbird' and not pg.locator('textarea,[contenteditable=true],.monaco-editor,.CodeMirror').count():
+                  for rex in [r'New document',r'Start writing',r'Publish Markdown']:
+                      try:
+                          q=pg.get_by_role('button',name=re.compile(rex,re.I));
+                          if not q.count():q=pg.get_by_role('link',name=re.compile(rex,re.I))
+                          if q.count():q.first.click(force=True);time.sleep(2);break
+                      except:pass
+              # fill title fields where present
+              for sel in ['input[name*=title i]','input[placeholder*=title i]','input[aria-label*=title i]']:
+                  try:
+                      q=pg.locator(sel)
+                      if q.count() and q.first.is_visible():q.first.fill(title);break
+                  except:pass
+              filled=False
+              # choose largest visible textarea
+              try:
+                  ts=pg.locator('textarea');best=None;area=-1
+                  for i in range(ts.count()):
+                      try:
+                          if ts.nth(i).is_visible():
+                              b=ts.nth(i).bounding_box();a=(b['width']*b['height']) if b else 0
+                              if a>area:area=a;best=i
+                      except:pass
+                  if best is not None:ts.nth(best).fill(MD);filled=True
+              except:pass
+              if not filled:
+                  try:
+                      ce=pg.locator('[contenteditable=true]')
+                      for i in range(ce.count()):
+                          try:
+                              if ce.nth(i).is_visible():ce.nth(i).fill(MD);filled=True;break
+                          except:pass
+                  except:pass
+              if not filled:
+                  for sel in ['.monaco-editor textarea','.ace_text-input','.CodeMirror textarea','[role=textbox]']:
+                      try:
+                          q=pg.locator(sel)
+                          if q.count():q.first.click(force=True);pg.keyboard.press('Control+A');pg.keyboard.type(MD,delay=0);filled=True;break
+                      except:pass
+              print('FILLED',P,filled)
+              # Publish/share action.
+              clicked=False
+              patterns={
+                'jotbird':[r'^Publish$',r'Publish'],
+                'anytourl':[r'Generate Link',r'Create Link',r'Upload'],
+                'mdviewer':[r'Share',r'Generate.*link',r'Publish'],
+                'trymarkdownviewer':[r'Share',r'Copy.*link',r'Publish'],
+                'mdtolink':[r'Publish',r'Share',r'Get.*link']}.get(P,[r'Publish',r'Share'])
+              for rex in patterns:
+                  for role in ['button','link']:
+                      try:
+                          q=pg.get_by_role(role,name=re.compile(rex,re.I))
+                          for i in range(min(q.count(),8)):
+                              try:
+                                  if q.nth(i).is_visible():q.nth(i).click(force=True,timeout=6000);clicked=True;break
+                              except:pass
+                          if clicked:break
+                      except:pass
+                  if clicked:break
+              if not clicked:
+                  try:
+                      q=pg.locator('button[type=submit],input[type=submit]')
+                      if q.count():q.first.click(force=True);clicked=True
+                  except:pass
+              time.sleep(8)
+              body='';hrefs=[]
+              try:body=pg.locator('body').inner_text(timeout=4000)
+              except:pass
+              try:hrefs=pg.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+              except:pass
+              cand=[pg.url]+hrefs+network+re.findall(r'https?://[^\s<>"\']+',body)
+              # capture clipboard if share action copied the URL
+              try:
+                  clip=pg.evaluate('navigator.clipboard && navigator.clipboard.readText ? navigator.clipboard.readText() : Promise.resolve("")')
+                  if isinstance(clip,str) and clip.startswith('http'):cand.insert(0,clip)
+              except:pass
+              cand=[u.rstrip('.,);]') for u in cand if isinstance(u,str) and re.search(pat,u,re.I)]
+              final=None
+              for u in dict.fromkeys(cand):
+                  final=browser_verify(ctx,u)
+                  if final:break
+              d={'site':name,'domain':domain,'url':final,'status':'verified' if final else 'failed','candidates':list(dict.fromkeys(cand))[:12],'page_url':pg.url};print('RESULT_JSON='+json.dumps(d));br.close()
+          PY
+          python /tmp/final.py
