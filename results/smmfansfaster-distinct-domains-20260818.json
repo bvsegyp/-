@@ -1,0 +1,23 @@
+[
+  {
+    "site": "PageDrop",
+    "domain": "pagedrop.dev",
+    "url": null,
+    "status": "failed",
+    "error": "URLError(gaierror(-5, 'No address associated with hostname'))"
+  },
+  {
+    "site": "FreeKit",
+    "domain": "freekit.dev",
+    "url": null,
+    "status": "failed",
+    "error": "URLError(gaierror(-5, 'No address associated with hostname'))"
+  },
+  {
+    "site": "ShareYourHTML",
+    "domain": "shareyourhtml.com",
+    "url": null,
+    "status": "failed",
+    "error": "<HTTPError 404: 'Not Found'>"
+  }
+]
