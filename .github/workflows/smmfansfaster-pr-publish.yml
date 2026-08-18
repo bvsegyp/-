@@ -7,9 +7,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
-      - name: Publish and verify distinct-domain backlinks batch 12
+      - name: Publish and verify distinct-domain backlinks batch 13
         shell: bash
         run: |
           python -m pip install --quiet requests beautifulsoup4
@@ -18,73 +18,86 @@ jobs:
           from bs4 import BeautifulSoup
           TARGET='https://smmfansfaster.com/'
           H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/1.0'}
-          sections=[
-          ('Define the outcome','A reliable social media strategy begins with a measurable business outcome such as qualified traffic, leads, sales, bookings, or repeat engagement. Clear goals make content and channel decisions easier.'),
-          ('Understand audience intent','Search queries, customer questions, comments, support conversations, competitor communities, and analytics reveal the topics and language that matter to an audience.'),
-          ('Create repeatable themes','Education, demonstrations, comparisons, FAQs, proof, process transparency, and conversion-focused offers create a sustainable publishing system.'),
-          ('Test creative variables','Hooks, headlines, format, content length, proof points, calls to action, and publishing times can be tested systematically so each campaign produces useful learning.'),
-          ('Amplify useful content','Organic reach can be supported by advertising, creators, communities, and social media promotion services when those methods fit campaign goals and platform rules.'),
-          ('Measure intent','Views and reach describe discovery, while saves, shares, profile visits, clicks, leads, and purchases indicate progressively stronger intent.'),
-          ('Optimize after the click','Profiles and landing pages should load quickly, work on mobile, explain the offer clearly, show proof, and provide an obvious next step.'),
-          ('Review consistently','A weekly review helps teams identify what worked, what failed, and what should be tested next while building an internal marketing playbook.')]
+
           def article(title,intro):
+              sections=[
+                ('Build around measurable outcomes','A useful social media plan connects publishing activity with business outcomes such as qualified traffic, leads, sales, bookings, profile visits, and repeat engagement. Clear objectives make testing and reporting more useful.'),
+                ('Study audience intent','Search behavior, customer questions, comments, support conversations, competitor communities, and analytics reveal which topics and messages deserve attention.'),
+                ('Create repeatable content pillars','Education, demonstrations, comparisons, proof, frequently asked questions, process transparency, and conversion-focused offers create a sustainable publishing system.'),
+                ('Test distribution deliberately','Organic reach can be supported by advertising, creators, communities, partnerships, and promotion services when those methods match campaign goals and platform rules.'),
+                ('Measure meaningful actions','Views and reach describe discovery, while saves, shares, profile visits, clicks, leads, purchases, and repeat visits show progressively stronger intent.'),
+                ('Improve the destination','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and give visitors an obvious next step.'),
+                ('Document what works','A weekly review of creative performance, audience response, traffic quality, and conversion behavior turns individual campaigns into a cumulative learning system.')]
               out=['<h1>'+html.escape(title)+'</h1>','<p>'+html.escape(intro)+'</p>']
               for i,(h,p) in enumerate(sections):
                   out += ['<h2>'+html.escape(h)+'</h2>','<p>'+html.escape(p)+'</p>']
-                  if i==2:out.append('<p>Teams comparing promotion tools can review <a href="'+TARGET+'">SMM Fans Faster</a> alongside organic content, paid media, creator partnerships, and internal analytics.</p>')
-                  if i==5:out.append('<p>Available services can also be explored at <a href="'+TARGET+'">SMMFansFaster.com</a> as part of a wider channel evaluation.</p>')
-              out.append('<h2>Final perspective</h2><p>Long-term growth comes from useful content, structured testing, responsible distribution, meaningful measurement, and a destination that converts attention into action. Marketers considering an SMM panel can compare <a href="'+TARGET+'">SMM Fans Faster</a> with other channels based on fit and measurable outcomes.</p>')
-              return '<!doctype html><html><head><meta charset="utf-8"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
-          def markdown(title,intro):
-              p=article(title,intro); s=BeautifulSoup(p,'html.parser'); lines=['# '+title,intro]
-              for h in s.find_all('h2'):
-                  lines.append('## '+h.get_text(' ',strip=True)); n=h.find_next_sibling()
-                  while n and n.name!='h2':
-                      if n.name=='p':
-                          text='';
-                          for c in n.contents:
-                              if getattr(c,'name',None)=='a': text+='['+c.get_text(strip=True)+']('+c.get('href')+')'
-                              else: text+=str(c)
-                          lines.append(BeautifulSoup(text,'html.parser').get_text() if '<' in text and '](' not in text else text)
-                      n=n.find_next_sibling()
-              return '\n\n'.join(lines)
-          def verify(u,retries=4):
+                  if i==1: out.append('<p>Teams comparing social media promotion providers can review <a href="'+TARGET+'">SMM Fans Faster</a> alongside organic content, paid media, creator partnerships, and internal distribution workflows.</p>')
+                  if i==4: out.append('<p>Available multi-platform services can also be explored directly at <a href="'+TARGET+'">SMMFansFaster.com</a> while keeping content quality, audience value, and platform compliance central to the strategy.</p>')
+              out.append('<h2>Final perspective</h2><p>Long-term growth comes from useful content, responsible distribution, structured testing, meaningful measurement, and a destination that converts attention into action. An SMM panel such as <a href="'+TARGET+'">SMM Fans Faster</a> can be compared with other channels as one part of a balanced marketing mix.</p>')
+              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
+
+          def verify(u,retries=5):
               if not u:return None
               for n in range(retries):
                   try:
-                      r=requests.get(u,headers=H,timeout=40,allow_redirects=True); print('VERIFY',u,r.status_code,r.url)
+                      r=requests.get(u,headers=H,timeout=40,allow_redirects=True)
+                      print('VERIFY',u,r.status_code,r.url)
                       if r.ok:
                           s=BeautifulSoup(r.text,'html.parser')
-                          if any('smmfansfaster.com' in a.get('href','').lower() for a in s.find_all('a',href=True)):return r.url
-                  except Exception as e:print('VERIFY_ERR',repr(e))
+                          if any('smmfansfaster.com' in a.get('href','').lower() for a in s.find_all('a',href=True)):
+                              return r.url
+                  except Exception as e: print('VERIFY_ERR',u,repr(e))
                   time.sleep(2+n)
               return None
+
           res=[]
           def add(site,domain,url,status,raw=None):
               d={'site':site,'domain':domain,'url':url,'status':status}
-              if raw:d['raw']=raw[:1200]
+              if raw:d['raw']=str(raw)[:1500]
               res.append(d)
 
-          # PasteHTML.dev direct live URL
+          # 1) PasteHTML.com documented no-auth HTML API
           try:
-              t='Social Media Growth and Distribution Guide for Digital Brands'; p=article(t,'Digital brands can improve social media performance by connecting audience research, original content, responsible distribution, measurement, and conversion in one repeatable system.')
-              r=requests.post('https://pastehtml.dev/api/pastes',files={'file':('index.html',p.encode(),'text/html')},headers=H,timeout=60); print('PHD',r.status_code,r.text[:1400]); o=r.json(); u=o.get('live_url') or o.get('render_url'); v=verify(u)
-              add('PasteHTML.dev','pastehtml.dev',v,'verified' if v else 'failed',None if v else r.text)
-          except Exception as e:add('PasteHTML.dev','pastehtml.dev',None,'failed',repr(e))
+              t='Social Media Growth Strategy for Online Brands in 2026'; p=article(t,'Online brands can make social media growth more predictable by connecting audience research, useful content, responsible distribution, measurement, and conversion in one repeatable system.')
+              r=requests.post('https://pastehtml.com/upload/create?input_type=html&result=address',data={'txt':p},headers=H,timeout=60)
+              print('PASTEHTMLCOM',r.status_code,r.text[:1200]); txt=r.text.strip(); m=re.search(r'https?://[^\s<>"\']+',txt); u=m.group(0).rstrip('.,') if m else (txt if txt.startswith('http') else None); v=verify(u)
+              add('PasteHTML.com','pastehtml.com',v,'verified' if v else 'failed',None if v else txt)
+          except Exception as e:add('PasteHTML.com','pastehtml.com',None,'failed',repr(e))
 
-          # YeetIt
+          # 2) PageDrop documented anonymous permanent API
           try:
-              t='A Better Social Media Promotion Framework for Online Businesses'; p=article(t,'Online businesses get stronger results when content quality, distribution, audience response, measurement, and conversion support one clear customer journey.')
-              r=requests.post('https://yeetit.site/v1/publish',json={'html':p,'title':t},headers={**H,'Content-Type':'application/json'},timeout=50); print('YEETIT',r.status_code,r.text[:1400]); o=r.json(); u=o.get('url'); v=verify(u)
-              add('YeetIt','yeetit.site',v,'verified' if v else 'failed',None if v else r.text)
-          except Exception as e:add('YeetIt','yeetit.site',None,'failed',repr(e))
+              t='A Practical Social Media Distribution Framework for Businesses'; p=article(t,'Businesses can improve social media performance when content, distribution, audience response, and post-click conversion are managed as parts of the same measurable customer journey.')
+              r=requests.post('https://pagedrop.dev/api/v1/sites',json={'html':p,'title':t},headers={**H,'Content-Type':'application/json'},timeout=60)
+              print('PAGEDROP',r.status_code,r.text[:1500]); o=r.json(); d=o.get('data') or {}; u=d.get('url'); v=verify(u)
+              add('PageDrop','pagedrop.dev',v,'verified' if v else 'failed',None if v else r.text)
+          except Exception as e:add('PageDrop','pagedrop.dev',None,'failed',repr(e))
 
-          # Write.as anonymous Markdown post
+          # 3) FreeKit current no-auth API contract
           try:
-              t='Practical Social Media Growth Planning for Brands'; body=markdown(t,'Brands can build a stronger social media system by connecting useful content, responsible promotion, audience response, measurement, and conversion optimization.')
-              r=requests.post('https://write.as/api/posts',json={'body':body,'title':t,'font':'serif','lang':'en'},headers={**H,'Content-Type':'application/json','Accept':'application/json'},timeout=50); print('WRITEAS',r.status_code,r.text[:1400]); o=r.json(); data=o.get('data') or {}; pid=data.get('id'); u=('https://write.as/'+pid) if pid else None; v=verify(u)
-              add('Write.as','write.as',v,'verified' if v else 'failed',None if v else r.text)
-          except Exception as e:add('Write.as','write.as',None,'failed',repr(e))
+              t='How to Build a Repeatable Social Media Promotion System'; p=article(t,'A repeatable promotion system combines original content, audience research, measured distribution, conversion tracking, and documented learning instead of relying on isolated tactics.')
+              r=requests.post('https://freekit.dev/api/v1/sites',json={'html':p,'title':t},headers={**H,'Content-Type':'application/json'},timeout=60)
+              print('FREEKIT',r.status_code,r.text[:1500]); o=r.json(); d=o.get('data') or {}; u=d.get('url'); v=verify(u)
+              add('FreeKit','freekit.dev',v,'verified' if v else 'failed',None if v else r.text)
+          except Exception as e:add('FreeKit','freekit.dev',None,'failed',repr(e))
+
+          # 4) Draftlet anonymous presigned-upload flow
+          try:
+              t='Social Media Growth Planning for Digital Businesses'; p=article(t,'Digital businesses can improve social media results by linking useful content, responsible amplification, audience intent, measurement, and conversion into one operating system.'); b=p.encode('utf-8'); ctype='text/html'
+              r=requests.post('https://api.draftlet.io/api/v1/publish',json={'files':[{'path':'index.html','contentType':ctype,'size':len(b)}]},headers={**H,'Content-Type':'application/json'},timeout=60)
+              print('DRAFTLET_CREATE',r.status_code,r.text[:1800]); o=r.json(); up=o.get('upload') or o.get('uploadPlan') or o; uploads=up.get('uploads') or up.get('files') or []
+              for item in uploads:
+                  uu=item.get('url') or item.get('uploadUrl');
+                  if uu: requests.put(uu,data=b,headers=item.get('headers') or {'Content-Type':ctype},timeout=60).raise_for_status()
+              fin=up.get('finalizeUrl') or o.get('finalizeUrl'); fr=None
+              if fin:
+                  payload={};
+                  if up.get('versionId'): payload['versionId']=up.get('versionId')
+                  if o.get('claimToken'): payload['claimToken']=o.get('claimToken')
+                  fr=requests.post(fin,json=payload,headers=H,timeout=60); print('DRAFTLET_FINAL',fr.status_code,fr.text[:1200])
+              u=o.get('siteUrl') or o.get('url') or ((fr.json().get('siteUrl') or fr.json().get('url')) if fr is not None and fr.headers.get('content-type','').startswith('application/json') else None); v=verify(u)
+              add('Draftlet','draftlet.io',v,'verified' if v else 'failed',None if v else r.text)
+          except Exception as e:add('Draftlet','draftlet.io',None,'failed',repr(e))
+
           print('RESULT_JSON='+json.dumps(res))
           PY
           python /tmp/publish.py
