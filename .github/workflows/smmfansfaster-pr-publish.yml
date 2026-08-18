@@ -9,32 +9,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Publish and verify distinct-domain backlinks batch 14
+      - name: Publish and verify distinct-domain backlinks batch 15
         shell: bash
         run: |
           python -m pip install --quiet requests beautifulsoup4
           cat > /tmp/publish.py <<'PY'
-          import requests,json,re,html,time
-          from urllib.parse import urljoin,urlparse
+          import requests,json,html,time,re
           from bs4 import BeautifulSoup
           TARGET='https://smmfansfaster.com/'
           H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/1.0'}
 
           def article(title,intro):
               sections=[
-                ('Set a measurable objective','A strong social media plan begins with a business outcome such as qualified traffic, leads, sales, bookings, profile visits, or repeat engagement. This gives publishing and distribution decisions a useful direction.'),
-                ('Research real audience intent','Questions, comments, search queries, support conversations, competitor communities, and analytics reveal the topics and language that matter most to an audience.'),
-                ('Build repeatable content pillars','Educational posts, demonstrations, comparisons, proof, FAQs, process transparency, and conversion-focused offers create a sustainable content system.'),
-                ('Distribute useful content responsibly','Organic publishing can be supported by advertising, creators, communities, partnerships, and promotion services when those methods fit campaign goals and platform rules.'),
-                ('Track stronger intent signals','Views and reach explain discovery, while saves, shares, profile visits, outbound clicks, leads, purchases, and repeat visits show progressively stronger intent.'),
-                ('Improve the post-click journey','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show proof, and make the next action obvious.'),
-                ('Review and document learning','Weekly reviews of creative performance, audience response, traffic quality, and conversion behavior create a practical playbook for future campaigns.')]
+                ('Connect strategy to business outcomes','Social media activity becomes more useful when teams define outcomes such as qualified traffic, leads, sales, bookings, profile visits, or repeat engagement before choosing formats and distribution channels.'),
+                ('Use audience signals to choose topics','Search queries, customer questions, comments, support conversations, competitor communities, and analytics reveal the language and problems that deserve content attention.'),
+                ('Create a repeatable publishing system','Educational posts, demonstrations, comparisons, proof, FAQs, process transparency, and conversion-focused offers create sustainable content pillars that can be refreshed with new examples and hooks.'),
+                ('Amplify content responsibly','Organic publishing can be supported by advertising, creators, communities, partnerships, and social media promotion services when those methods fit campaign goals and platform rules.'),
+                ('Measure intent beyond reach','Views and impressions explain discovery, while saves, shares, profile visits, outbound clicks, leads, purchases, and repeat visits reveal progressively stronger intent.'),
+                ('Improve the conversion destination','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show useful proof, and make the next action obvious.'),
+                ('Turn results into future learning','Weekly reviews of creative performance, audience response, traffic quality, and conversion behavior help teams document what worked and design better tests for future campaigns.')]
               out=['<h1>'+html.escape(title)+'</h1>','<p>'+html.escape(intro)+'</p>']
               for i,(h,p) in enumerate(sections):
-                  out += ['<h2>'+html.escape(h)+'</h2>','<p>'+html.escape(p)+'</p>']
-                  if i==1: out.append('<p>Teams evaluating social media promotion options can compare <a href="'+TARGET+'">SMM Fans Faster</a> with organic content, paid media, creator partnerships, and other distribution channels.</p>')
-                  if i==4: out.append('<p>Multi-platform promotion services can also be explored at <a href="'+TARGET+'">SMMFansFaster.com</a> while keeping content quality, audience value, and platform compliance central to the strategy.</p>')
-              out.append('<h2>Final perspective</h2><p>Sustainable growth combines useful content, structured testing, responsible distribution, measurement, and a destination that converts attention into action. Marketers considering an SMM panel can review <a href="'+TARGET+'">SMM Fans Faster</a> as one part of a balanced channel mix.</p>')
+                  out+=['<h2>'+html.escape(h)+'</h2>','<p>'+html.escape(p)+'</p>']
+                  if i==1: out.append('<p>Teams comparing multi-platform promotion providers can review <a href="'+TARGET+'">SMM Fans Faster</a> alongside organic content, paid media, creator partnerships, and internal distribution workflows.</p>')
+                  if i==4: out.append('<p>Available social media promotion services can also be explored directly at <a href="'+TARGET+'">SMMFansFaster.com</a> while keeping content quality and audience value central to the marketing plan.</p>')
+              out.append('<h2>Final perspective</h2><p>Long-term growth combines useful content, responsible distribution, structured testing, meaningful measurement, and a destination that converts attention into action. Marketers considering an SMM panel can compare <a href="'+TARGET+'">SMM Fans Faster</a> with other channels based on fit and measurable outcomes.</p>')
               return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
 
           def verify(u,retries=5):
@@ -52,52 +51,26 @@ jobs:
           res=[]
           def add(site,domain,url,status,raw=None):
               d={'site':site,'domain':domain,'url':url,'status':status}
-              if raw:d['raw']=str(raw)[:1500]
+              if raw:d['raw']=str(raw)[:1600]
               res.append(d)
 
-          # Draftlet corrected anonymous flow
+          # Stacktree anonymous multipart publish
           try:
-              t='Social Media Growth and Conversion Framework for Digital Brands'; p=article(t,'Digital brands can improve social media performance by connecting audience research, original content, responsible distribution, measurement, and conversion in one repeatable system.'); b=p.encode('utf-8'); ctype='text/html'
-              base='https://api.draftlet.io'
-              r=requests.post(base+'/api/v1/publish',json={'files':[{'path':'index.html','contentType':ctype,'size':len(b)}]},headers={**H,'Content-Type':'application/json'},timeout=60)
-              print('DRAFTLET_CREATE',r.status_code,r.text[:1800]); o=r.json(); uploads=o.get('uploads') or []
-              for item in uploads:
-                  uu=item.get('uploadUrl') or item.get('url');
-                  if uu: requests.put(uu,data=b,headers=item.get('headers') or {'Content-Type':ctype},timeout=60).raise_for_status()
-              fin=o.get('finalizeUrl') or ('/api/v1/publish/'+o.get('slug','')+'/finalize' if o.get('slug') else None)
-              fr=None
-              if fin:
-                  fin=urljoin(base,fin); payload={}
-                  if o.get('versionId'):payload['versionId']=o.get('versionId')
-                  if o.get('editToken'):payload['editToken']=o.get('editToken')
-                  fr=requests.post(fin,json=payload,headers={**H,'Content-Type':'application/json'},timeout=60); print('DRAFTLET_FINAL',fr.status_code,fr.text[:1200])
-              u=o.get('url') or o.get('siteUrl'); v=verify(u)
-              add('Draftlet','draftlet.io',v,'verified' if v else 'failed',None if v else (fr.text if fr is not None else r.text))
-          except Exception as e:add('Draftlet','draftlet.io',None,'failed',repr(e))
+              t='Social Media Growth and Distribution Planning for Online Brands'; p=article(t,'Online brands can make social media growth more predictable by connecting audience research, original content, responsible distribution, measurement, and conversion in one repeatable system.')
+              files={'file':('index.html',p.encode('utf-8'),'text/html')}
+              r=requests.post('https://api.stacktr.ee/sites',files=files,headers=H,timeout=60)
+              print('STACKTREE',r.status_code,r.text[:1600]); o=r.json(); u=o.get('url') or ((o.get('data') or {}).get('url') if isinstance(o.get('data'),dict) else None); v=verify(u)
+              add('Stacktree','stacktr.ee',v,'verified' if v else 'failed',None if v else r.text)
+          except Exception as e:add('Stacktree','stacktr.ee',None,'failed',repr(e))
 
-          # Botsite anonymous direct publish
+          # htmldrop anonymous multipart publish
           try:
-              t='A Practical Social Media Promotion System for Online Businesses'; p=article(t,'Online businesses get stronger results when content quality, distribution, audience response, measurement, and conversion support one measurable customer journey.')
-              r=requests.post('https://botsite.dev/api/v1/sites',data=p.encode('utf-8'),headers={**H,'Content-Type':'text/html'},timeout=60)
-              print('BOTSITE',r.status_code,r.text[:1500]); o=r.json(); u=o.get('url'); v=verify(u)
-              add('Botsite','botsite.dev',v,'verified' if v else 'failed',None if v else r.text)
-          except Exception as e:add('Botsite','botsite.dev',None,'failed',repr(e))
-
-          # Discover dochost's current public publish endpoint from its own frontend.
-          try:
-              base='https://dochost.io/'; rr=requests.get(base,headers=H,timeout=40); blobs=[(rr.url,rr.text)]; s=BeautifulSoup(rr.text,'html.parser')
-              for tag in s.find_all('script',src=True):
-                  su=urljoin(rr.url,tag['src'])
-                  if urlparse(su).netloc==urlparse(base).netloc:
-                      try: blobs.append((su,requests.get(su,headers=H,timeout=30).text))
-                      except: pass
-              candidates=[]
-              for src,text in blobs:
-                  eps=sorted(set(re.findall(r'(?:https?://[^\"\'\s]+|/api/[A-Za-z0-9_./?=&:-]+)',text)))
-                  for x in eps:
-                      if any(k in x.lower() for k in ['publish','page','document','upload','paste']): candidates.append(x)
-              print('DOCHOST_ENDPOINTS',list(dict.fromkeys(candidates))[:80])
-          except Exception as e: print('DOCHOST_DISCOVER_ERR',repr(e))
+              t='A Practical Social Media Promotion Framework for Digital Businesses'; p=article(t,'Digital businesses can improve social media results when content quality, distribution, audience response, measurement, and post-click conversion support one measurable customer journey.')
+              files={'file':('index.html',p.encode('utf-8'),'text/html')}
+              r=requests.post('https://htmldrop.app/api/v1/drops',files=files,headers=H,timeout=60)
+              print('HTMLDROP',r.status_code,r.text[:1800]); o=r.json(); u=o.get('url') or o.get('shareUrl') or o.get('share_url') or ((o.get('data') or {}).get('url') if isinstance(o.get('data'),dict) else None); v=verify(u)
+              add('htmldrop','htmldrop.app',v,'verified' if v else 'failed',None if v else r.text)
+          except Exception as e:add('htmldrop','htmldrop.app',None,'failed',repr(e))
 
           print('RESULT_JSON='+json.dumps(res))
           PY
