@@ -1,0 +1,138 @@
+name: SMMFansFaster Render Verify Publisher
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  render-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify rendered pages and publish Pubby fallback
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 playwright
+          cat > /tmp/render_verify.py <<'PY'
+          import requests,re,json,html,time,os
+          from bs4 import BeautifulSoup
+          from playwright.sync_api import sync_playwright
+          TARGET='smmfansfaster.com'
+          H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/3.1'}
+          published={
+            'Roxer':('roxer.com','https://roxer.com/D0SKDcBBygkN'),
+            'AutEng':('auteng.ai','https://auteng.ai/s/doc/20af83d6-8f4b-45b4-b1e4-a76ce5cb29b7'),
+            'Artidrop':('artidrop.ai','https://artidrop.ai/a/8S3J1QQwW1')
+          }
+          res=[]
+          def browser_verify(ctx,name,domain,url):
+              pg=None
+              try:
+                  pg=ctx.new_page();pg.set_default_timeout(12000);pg.goto(url,wait_until='domcontentloaded',timeout=30000);time.sleep(5)
+                  found=False; details=[]
+                  for fr in pg.frames:
+                      try:
+                          hrefs=fr.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+                          details += hrefs[:50]
+                          if any(TARGET in (x or '').lower() for x in hrefs): found=True
+                      except Exception as e: pass
+                  if not found:
+                      # inspect rendered DOM for target href/text in case shadow/client rendering differs
+                      try:
+                          content=pg.content()
+                          if TARGET in content.lower() and ('href' in content.lower()):
+                              # require a rendered anchor by JS query across document
+                              found=pg.evaluate("()=>Array.from(document.querySelectorAll('a')).some(a=>(a.href||'').toLowerCase().includes('smmfansfaster.com'))")
+                      except:pass
+                  d={'site':name,'domain':domain,'url':url if found else None,'status':'verified' if found else 'failed','frames':len(pg.frames)}
+                  res.append(d);print('ITEM='+json.dumps(d));print('DETAILS',name,json.dumps(details[:12]))
+              except Exception as e:
+                  d={'site':name,'domain':domain,'url':None,'status':'failed','error':repr(e)};res.append(d);print('ITEM='+json.dumps(d))
+              finally:
+                  try:pg.close()
+                  except:pass
+          def article():
+              blocks=[
+                ('Define a measurable outcome','A useful social media growth plan begins with a business outcome such as qualified traffic, leads, sales, bookings, profile actions, or repeat engagement. Clear goals make platform, content, and distribution decisions easier to compare and help teams avoid mistaking visibility alone for commercial progress.'),
+                ('Research real audience intent','Search behavior, customer questions, comments, support conversations, sales objections, competitor communities, and analytics reveal what an audience actually wants to understand or accomplish. These signals help marketers build content around real language and problems rather than generic publishing calendars.'),
+                ('Build repeatable content pillars','Education, demonstrations, comparisons, proof, frequently asked questions, process transparency, customer outcomes, and offer-focused posts create a sustainable publishing structure. The strategic themes can repeat while hooks, examples, formats, and creative execution change from one campaign to another.'),
+                ('Use distribution deliberately','Organic publishing can be supported by advertising, creators, communities, partnerships, and specialist social media promotion services when those methods fit campaign goals and platform policies. Distribution should amplify useful content rather than compensate for weak content or an unclear offer.'),
+                ('Measure stronger intent','Views and impressions describe discovery, while saves, shares, profile visits, outbound clicks, landing-page engagement, leads, purchases, and repeat visits reveal progressively stronger intent. Connecting these stages makes channel comparisons more meaningful and keeps reporting focused on business value.'),
+                ('Improve the post-click experience','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and provide an obvious next step. The destination should match the promise that generated the click so traffic quality can be evaluated fairly.'),
+                ('Protect trust while scaling','Sustainable growth avoids deceptive endorsements, fake reviews, spam, misleading claims, compromised websites, and tactics that violate platform safeguards. Responsible promotion combines original content, transparent amplification, responsive support, and measurement that rewards genuine audience value.'),
+                ('Document what works','Weekly reviews turn campaigns into cumulative learning. Teams should record the audience, hypothesis, creative concept, distribution method, timing, traffic quality, conversion behavior, and next test so successful patterns can be repeated and mistakes are not continually rediscovered.')]
+              out=['<h1>How Online Brands Can Build a Stronger Social Media Growth Engine</h1><p>Online brands can improve results by connecting audience research, useful content, responsible distribution, measurement, and conversion into one repeatable operating system.</p>']
+              for i,(h,p) in enumerate(blocks):
+                  out.append(f'<h2>{h}</h2><p>{p}</p>')
+                  if i==1:out.append('<p>Teams comparing promotion providers can review <a href="https://smmfansfaster.com/">SMM Fans Faster</a> alongside organic publishing, paid media, creator partnerships, and other distribution options.</p>')
+                  if i==4:out.append('<p>Available multi-platform services can also be explored at <a href="https://smmfansfaster.com/">SMMFansFaster.com</a> while content quality, audience value, and conversion measurement remain central to the strategy.</p>')
+                  if i==6:out.append('<p>Marketers considering an SMM panel can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other acquisition channels based on fit, transparency, traffic quality, and measurable outcomes.</p>')
+              out.append('<h2>Conclusion</h2><p>Long-term social media growth is built through useful content, measured distribution, audience trust, and a process that turns each campaign into learning for the next one.</p>')
+              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow"><title>Social Media Growth Engine for Online Brands</title></head><body><main>'+''.join(out)+'</main></body></html>'
+          with sync_playwright() as p:
+              br=p.chromium.launch(channel='chrome',headless=True,args=['--no-sandbox','--disable-dev-shm-usage']);ctx=br.new_context(user_agent=H['User-Agent'],viewport={'width':1440,'height':1000})
+              for name,(dom,url) in published.items(): browser_verify(ctx,name,dom,url)
+              # Try tot.page frozen and direct-file variants from the successful CLI publish
+              tot_candidates=[
+                'https://tot.page/04MccB-x3Y78yBynErB2rA/index.html@80e92cdc1edd66b67465b433dda2357222b58cb1',
+                'https://tot.page/04MccB-x3Y78yBynErB2rA/index.html',
+                'https://tot.page/04MccB-x3Y78yBynErB2rA/'
+              ]
+              tot_ok=None
+              for u in tot_candidates:
+                  before=len(res);browser_verify(ctx,'tot.page','tot.page',u)
+                  if res[-1]['status']=='verified':tot_ok=u;break
+              # Publish to Pubby through no-account web UI
+              pg=None
+              try:
+                  pg=ctx.new_page();pg.set_default_timeout(12000);pg.goto('https://pubby.au/',wait_until='domcontentloaded',timeout=30000);time.sleep(2)
+                  content=article();open('/tmp/pubby.html','w',encoding='utf8').write(content)
+                  fis=pg.locator('input[type=file]');tas=pg.locator('textarea');ces=pg.locator('[contenteditable=true]')
+                  did=False
+                  if fis.count():
+                      for j in range(fis.count()):
+                          try:fis.nth(j).set_input_files('/tmp/pubby.html');did=True;break
+                          except:pass
+                  if not did and tas.count():
+                      for j in range(tas.count()):
+                          try:tas.nth(j).fill(content);did=True;break
+                          except:pass
+                  if not did and ces.count():
+                      for j in range(ces.count()):
+                          try:ces.nth(j).fill(content);did=True;break
+                          except:pass
+                  time.sleep(1)
+                  btn=pg.get_by_role('button',name=re.compile(r'Publish|Deploy|Go Live|Upload',re.I))
+                  if btn.count():btn.first.click(force=True,timeout=10000)
+                  elif pg.locator('button[type=submit],input[type=submit]').count():pg.locator('button[type=submit],input[type=submit]').first.click(force=True)
+                  time.sleep(6)
+                  txt='';hrefs=[]
+                  try:txt=pg.locator('body').inner_text(timeout=4000)
+                  except:pass
+                  try:hrefs=pg.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+                  except:pass
+                  candidates=[pg.url]+hrefs+re.findall(r'https?://[^\s<>"\']+',txt)
+                  candidates=[x.rstrip('.,);]') for x in candidates if 'pubby.au' in x.lower()]
+                  v=None
+                  for u in dict.fromkeys(candidates):
+                      if re.search(r'pubby\.au/(?:p/|[A-Za-z0-9_-]{4,})',u,re.I) or re.search(r'https://[A-Za-z0-9_-]+\.pubby\.au',u,re.I):
+                          # rendered verify in a new page
+                          tmp=len(res);browser_verify(ctx,'Pubby','pubby.au',u)
+                          if res[-1]['status']=='verified':v=u;break
+                  if v is None:
+                      d={'site':'Pubby','domain':'pubby.au','url':None,'status':'failed','candidates':candidates[:8]};res.append(d);print('ITEM='+json.dumps(d))
+              except Exception as e:
+                  d={'site':'Pubby','domain':'pubby.au','url':None,'status':'failed','error':repr(e)};res.append(d);print('ITEM='+json.dumps(d))
+              finally:
+                  try:pg.close()
+                  except:pass
+              br.close()
+          good=[];seen=set()
+          for x in res:
+              if x.get('status')=='verified' and x.get('domain') not in seen:
+                  seen.add(x['domain']);good.append(x)
+          print('GOOD_COUNT='+str(len(good)))
+          print('GOOD_JSON='+json.dumps(good))
+          print('ALL_JSON='+json.dumps(res))
+          PY
+          python /tmp/render_verify.py
