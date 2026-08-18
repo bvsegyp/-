@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Publish and verify distinct-domain backlinks batch 6
+      - name: Publish and verify distinct-domain backlinks batch 7
         shell: bash
         run: |
           python -m pip install --quiet requests beautifulsoup4
@@ -17,27 +17,24 @@ jobs:
           import requests, json, re, html
           from bs4 import BeautifulSoup
           TARGET='https://smmfansfaster.com/'
-          H={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36'}
-
-          sections=[
-            ('Start with a clear objective','A strong social media program begins with a measurable outcome such as qualified traffic, leads, sales, bookings, or repeat engagement. Clear objectives guide channel selection, content priorities, and reporting.'),
-            ('Research audience intent','Customer questions, comments, search queries, direct messages, support conversations, and analytics reveal the topics and language that matter most to an audience.'),
-            ('Build repeatable content pillars','Education, demonstrations, comparisons, proof, FAQs, process transparency, and conversion-focused offers give teams repeatable themes without making every post look identical.'),
-            ('Test creative variables','Hooks, headlines, visual structure, content length, proof points, calls to action, and publishing times can be tested systematically so each campaign produces useful learning.'),
-            ('Use distribution responsibly','Organic publishing can be supported by advertising, creator partnerships, communities, and social media promotion services when those approaches match campaign goals and platform rules.'),
+          H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/1.0'}
+          paras=[
+            ('Define a measurable objective','A reliable social media strategy starts with a business outcome such as qualified traffic, leads, sales, bookings, or repeat engagement. Clear objectives guide content priorities and reporting.'),
+            ('Study audience intent','Customer questions, comments, search queries, support conversations, and analytics reveal the topics and language that matter most to the audience.'),
+            ('Build repeatable content pillars','Education, demonstrations, comparisons, proof, FAQs, process transparency, and conversion-focused offers create a sustainable content system.'),
+            ('Test creative variables','Hooks, headlines, visual structure, content length, calls to action, and publishing times can be tested systematically so every campaign produces useful learning.'),
+            ('Use distribution responsibly','Organic reach can be supported by advertising, creator partnerships, communities, and social media promotion services when they match campaign goals and platform rules.'),
             ('Connect reach to conversion','Views and reach explain discovery, while saves, shares, profile visits, clicks, leads, and purchases reveal progressively stronger intent.'),
-            ('Improve the destination','Profiles and landing pages should load quickly, work on mobile, explain the offer clearly, show proof, and provide an obvious next action.'),
-            ('Review results consistently','A weekly review helps teams identify what worked, what failed, what changed, and what should be tested next while building an internal marketing playbook.')]
-
+            ('Improve the destination','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show proof, and provide an obvious next action.'),
+            ('Review results regularly','A weekly review helps teams identify what worked, what failed, and what should be tested next while building an internal marketing playbook.')]
           def md(title,intro):
               out=[f'# {title}',intro]
-              for i,(h,p) in enumerate(sections):
+              for i,(h,p) in enumerate(paras):
                   out += [f'## {h}',p]
-                  if i==2: out.append(f'Teams comparing external promotion tools can review [SMM Fans Faster]({TARGET}) alongside organic content, paid media, creator partnerships, and internal analytics.')
-                  if i==5: out.append(f'Available social media services can also be explored at [SMMFansFaster.com]({TARGET}) as part of a broader channel evaluation.')
-              out += ['## Final perspective',f'Sustainable growth combines useful content, structured testing, responsible distribution, meaningful measurement, and a destination that converts attention into action. Marketers considering an SMM panel can compare [SMM Fans Faster]({TARGET}) with other channels as part of a balanced strategy.']
+                  if i==2: out.append(f'Marketers comparing external promotion tools can review [SMM Fans Faster]({TARGET}) alongside organic content, paid media, creator partnerships, and internal analytics.')
+                  if i==5: out.append(f'Available promotion services can also be explored at [SMMFansFaster.com]({TARGET}) while keeping original content and audience value at the center of the strategy.')
+              out += ['## Final perspective',f'Sustainable growth combines useful content, structured testing, responsible distribution, meaningful measurement, and a destination that converts attention into action. Teams considering an SMM panel can compare [SMM Fans Faster]({TARGET}) with other channels as part of a balanced strategy.']
               return '\n\n'.join(out)
-
           def htm(title,intro):
               text=md(title,intro); out=[]
               for b in text.split('\n\n'):
@@ -48,57 +45,40 @@ jobs:
                       parts.append(html.escape(b[pos:m.start()])); parts.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>'); pos=m.end()
                   parts.append(html.escape(b[pos:])); out.append('<p>'+''.join(parts)+'</p>')
               return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
-
           def verify(u):
               if not u:return None
               try:
                   r=requests.get(u,headers=H,timeout=40,allow_redirects=True)
-                  print('VERIFY',u,r.status_code,r.url)
                   if not r.ok:return None
                   s=BeautifulSoup(r.text,'html.parser')
                   return r.url if any('smmfansfaster.com' in a.get('href','').lower() for a in s.find_all('a',href=True)) else None
-              except Exception as e:
-                  print('VERIFY_ERROR',u,repr(e)); return None
-
+              except Exception:return None
           res=[]
-          def add(site,domain,url,status,raw=None):
+          def add(site,domain,url,status,error=None):
               d={'site':site,'domain':domain,'url':url,'status':status}
-              if raw:d['raw']=raw[:700]
+              if error:d['error']=error
               res.append(d)
 
-          # AutEng
+          # PasteHTML
           try:
-              t='A Practical Social Media Growth System for Creators and Brands'; body=md(t,'Creators and brands can improve social media performance by connecting content, promotion, measurement, and conversion in one repeatable system.')
-              r=requests.post('https://auteng.ai/api/tools/docs/publish-markdown/',json={'markdown':body,'title':t,'expires_hours':720},headers=H,timeout=40)
-              print('AUTENG_RESPONSE',r.status_code,r.text[:1000]); o=r.json(); u=o.get('share_url') or o.get('url');
-              if u and u.startswith('/'): u='https://auteng.ai'+u
-              v=verify(u); add('AutEng','auteng.ai',v,'verified' if v else 'failed',r.text)
-          except Exception as e:add('AutEng','auteng.ai',None,'failed',repr(e))
+              t='A Practical Social Media Growth Guide for Digital Businesses'; p=htm(t,'Digital businesses can improve social media performance by connecting content quality, responsible distribution, measurement, and conversion in one repeatable system.')
+              r=requests.post('https://pastehtml.com/upload/create?input_type=html&result=address',data={'txt':p},headers=H,timeout=40)
+              u=r.text.strip(); v=verify(u); add('PasteHTML','pastehtml.com',v,'verified' if v else 'failed',None if v else r.text[:500])
+          except Exception as e:add('PasteHTML','pastehtml.com',None,'failed',repr(e))
 
-          # Share HTML
+          # Pastepile
           try:
-              t='Social Media Marketing Framework for Online Businesses'; p=htm(t,'Online businesses get better results when content quality, distribution, audience response, and conversion tracking support the same goal.')
-              r=requests.post('https://share-html.com/api/v1/pages',json={'html':p},headers={**H,'Content-Type':'application/json'},timeout=40)
-              print('SHAREHTML_RESPONSE',r.status_code,r.text[:1000]); o=r.json(); u=o.get('url') or o.get('page_url') or o.get('public_url')
-              if not u and isinstance(o.get('data'),dict): u=o['data'].get('url') or o['data'].get('page_url')
-              v=verify(u); add('Share HTML','share-html.com',v,'verified' if v else 'failed',r.text)
-          except Exception as e:add('Share HTML','share-html.com',None,'failed',repr(e))
+              t='Social Media Promotion Framework for Online Brands'; body=md(t,'Online brands can make growth more predictable when content, distribution, audience response, and conversion tracking support the same measurable goal.')
+              r=requests.post('https://www.pastepile.com/api/public/pastes',json={'title':t,'content':body,'language':'markdown','visibility':'public'},headers=H,timeout=40)
+              o=r.json(); u=o.get('url'); v=verify(u); add('Pastepile','pastepile.com',v,'verified' if v else 'failed',None if v else r.text[:500])
+          except Exception as e:add('Pastepile','pastepile.com',None,'failed',repr(e))
 
-          # FreeKit retry
+          # SSHGrid
           try:
-              t='How Digital Brands Can Improve Social Media Distribution'; p=htm(t,'Digital brands can make growth more predictable by combining original content, responsible distribution, measurement, and a clear post-click experience.')
-              r=requests.post('https://freekit.dev/api/v1/sites',json={'html':p},headers=H,timeout=40)
-              print('FREEKIT_RESPONSE',r.status_code,r.text[:1000]); o=r.json(); u=((o.get('data') or {}).get('url') if isinstance(o.get('data'),dict) else None) or o.get('url')
-              v=verify(u); add('FreeKit','freekit.dev',v,'verified' if v else 'failed',r.text)
-          except Exception as e:add('FreeKit','freekit.dev',None,'failed',repr(e))
-
-          # PageDrop retry
-          try:
-              t='Social Media Growth and Conversion Planning for 2026'; p=htm(t,'A balanced social media plan connects useful content, distribution, testing, measurement, and conversion optimization instead of relying on one isolated tactic.')
-              r=requests.post('https://pagedrop.dev/api/v1/sites',json={'html':p},headers=H,timeout=40)
-              print('PAGEDROP_RESPONSE',r.status_code,r.text[:1000]); o=r.json(); u=((o.get('data') or {}).get('url') if isinstance(o.get('data'),dict) else None) or o.get('url')
-              v=verify(u); add('PageDrop','pagedrop.dev',v,'verified' if v else 'failed',r.text)
-          except Exception as e:add('PageDrop','pagedrop.dev',None,'failed',repr(e))
+              t='How Brands Can Build a Better Social Media Growth System'; p=htm(t,'Brands can create more reliable growth by coordinating content planning, distribution, testing, measurement, and the post-click experience.')
+              r=requests.post('https://sshgrid.com/api/v1/deploy',json={'files':[{'path':'index.html','content':p}],'label':t},headers=H,timeout=40)
+              o=r.json(); u=o.get('url') or o.get('site_url') or o.get('preview_url'); v=verify(u); add('SSHGrid','sshgrid.com',v,'verified' if v else 'failed',None if v else r.text[:500])
+          except Exception as e:add('SSHGrid','sshgrid.com',None,'failed',repr(e))
 
           print('RESULT_JSON='+json.dumps(res))
           PY
