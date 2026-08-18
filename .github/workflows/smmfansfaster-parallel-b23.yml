@@ -1,0 +1,190 @@
+name: SMMFansFaster Parallel Fresh Domains Batch 23
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'runs/smmfansfaster-b23-*'
+
+jobs:
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [sharehtml, slugpost, showyourcode, htmlspot, dropadraft, htmlpeek, oneclick, hosthtml, miinideck, supadrop, netlify, jotbird, fylo, mdbin, htmlpub, shareduo]
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Publish ${{ matrix.platform }}
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 playwright
+          cat > /tmp/one.py <<'PY'
+          import os,requests,json,re,html,time,random,string,zipfile
+          from bs4 import BeautifulSoup
+          from playwright.sync_api import sync_playwright
+          P=os.environ['PLATFORM']; H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/5.0'}; TARGET='https://smmfansfaster.com/'
+          cfg={
+           'sharehtml':('Share HTML','share-html.com','https://share-html.com/',r'(?:pages\.)?share-html\.com/(?!$)[A-Za-z0-9_/?=-]+','html'),
+           'slugpost':('SlugPost','slugpost.com','https://slugpost.com/',r'slugpost\.com/(?!$|publish|login|signup|how|api)[A-Za-z0-9_-]+','html'),
+           'showyourcode':('ShowYourCode','showyourcode.app','https://www.showyourcode.app/playground',r'showyourcode\.app/(?!$|playground|gallery|topics)[A-Za-z0-9_/?=-]+','html'),
+           'htmlspot':('HTMLSpot','htmlspot.com','https://www.htmlspot.com/',r'htmlspot\.com/(?!$|features|pricing|upload|free-html-hosting)[A-Za-z0-9_/?=-]+','html'),
+           'dropadraft':('Dropadraft','dropadraft.com','https://dropadraft.com/',r'dropadraft\.com/(?!$)[A-Za-z0-9_/?=-]+','html'),
+           'htmlpeek':('HTMLPeek','htmlpeek.com','https://htmlpeek.com/',r'htmlpeek\.com/(?!$)[A-Za-z0-9_/?=-]+','html'),
+           'oneclick':('OneClickLive','oneclicklive.app','https://oneclicklive.app/en',r'(?:[A-Za-z0-9_-]+\.)?oneclicklive\.app/(?!en(?:/|$)|login|privacy|blog)[A-Za-z0-9_/?=-]*','html'),
+           'hosthtml':('HostHTML','host-html.com','https://host-html.com/',r'host-html\.com/(?!$)[A-Za-z0-9_/?=-]+','html'),
+           'miinideck':('Miinideck','miinideck.com','https://www.miinideck.com/use-cases/free-html-hosting',r'miinideck\.com/(?!use-cases|pricing|login|$)[A-Za-z0-9_/?=-]+','html'),
+           'supadrop':('Supadrop','supadrop.host','https://supadrop.host/',r'(?:[A-Za-z0-9_-]+\.)?supadrop\.host/(?!$|blog)[A-Za-z0-9_/?=-]*','html'),
+           'netlify':('NetlifyDrop','netlify.app','https://app.netlify.com/drop',r'[A-Za-z0-9_-]+\.netlify\.app/?','zip'),
+           'jotbird':('JotBird','jotbird.com','https://www.jotbird.com/',r'(?:share\.)?jotbird\.com/(?!$)[A-Za-z0-9_/@?=-]+','md'),
+           'fylo':('Fylo','fylo.live','https://fylo.host/html-viewer-online',r'[A-Za-z0-9_-]+\.fylo\.live/?','html'),
+           'mdbin':('MarkdownBin','mdbin.sivaramp.com','https://mdbin.sivaramp.com/',r'mdbin\.sivaramp\.com/(?!$)[A-Za-z0-9_/?=-]+','md'),
+           'htmlpub':('HTMLPub','htmlpub.com','https://htmlpub.com/',r'htmlpub\.com/p/[A-Za-z0-9_-]+','html'),
+           'shareduo':('ShareDuo','shareduo.com','https://www.shareduo.com/',r'(?:preview\.)?shareduo\.com/(?!$)[A-Za-z0-9_/?=-]+','html')}
+          name,dom,start,pat,typ=cfg[P]
+          title='A Practical Social Media Growth and Distribution Framework for 2026'
+          blocks=[('Define a measurable business outcome','A social media program is easier to evaluate when it begins with a business result such as qualified traffic, leads, purchases, bookings, profile actions, or repeat engagement. Clear objectives guide platform, format, distribution, and reporting decisions.'),('Research audience intent','Search behavior, customer questions, comments, support conversations, sales objections, competitor communities, and analytics reveal what an audience actually wants to understand or accomplish. These signals help content match real demand.'),('Create repeatable content pillars','Education, demonstrations, comparisons, proof, frequently asked questions, process transparency, customer outcomes, and offer-focused posts create a sustainable content system. Fresh hooks and examples keep execution varied.'),('Distribute useful content responsibly','Organic publishing can be supported by paid media, creators, communities, partnerships, and specialist social media promotion services when those methods fit platform policies and campaign goals. Distribution should amplify useful content.'),('Measure stronger intent signals','Views and impressions describe discovery, while saves, shares, profile visits, outbound clicks, landing-page engagement, leads, purchases, and repeat visits reveal progressively stronger intent. Connecting the stages improves channel evaluation.'),('Improve the post-click journey','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and provide an obvious next step. The destination should match the promise that generated the click.'),('Protect audience trust','Sustainable growth avoids deceptive endorsements, fake reviews, spam, misleading claims, compromised websites, and tactics that violate platform safeguards. Responsible promotion combines original content and transparent amplification.'),('Document what works','Weekly reviews should record the audience, hypothesis, creative concept, distribution method, timing, traffic quality, conversion behavior, and next experiment. This turns individual campaigns into cumulative learning.')]
+          out=[f'<h1>{title}</h1><p>This guide explains how businesses can connect audience research, useful content, responsible distribution, measurement, and conversion into one repeatable social media growth system.</p>']
+          for i,(h,p) in enumerate(blocks):
+              out.append(f'<h2>{h}</h2><p>{p}</p>')
+              if i==1:out.append('<p>Teams comparing promotion providers can review <a href="https://smmfansfaster.com/">SMM Fans Faster</a> alongside organic publishing, paid media, creator partnerships, and other distribution options.</p>')
+              if i==4:out.append('<p>Available multi-platform services can also be explored at <a href="https://smmfansfaster.com/">SMMFansFaster.com</a> while content quality and conversion measurement remain central to the plan.</p>')
+              if i==6:out.append('<p>Marketers considering an SMM panel can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other acquisition channels based on fit, transparency, traffic quality, and measurable outcomes.</p>')
+          out.append('<h2>Conclusion</h2><p>Long-term social media growth combines useful content, measured distribution, audience trust, and a process that turns each campaign into future learning.</p>')
+          HTML='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow"><title>'+title+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
+          s=BeautifulSoup(HTML,'html.parser'); parts=[]
+          for e in s.select('h1,h2,p'):
+              if e.name=='h1':parts.append('# '+e.get_text(' ',strip=True))
+              elif e.name=='h2':parts.append('## '+e.get_text(' ',strip=True))
+              else:
+                  z=''
+                  for c in e.contents:
+                      if getattr(c,'name',None)=='a':z+='['+c.get_text(' ',strip=True)+']('+c.get('href','')+')'
+                      else:z+=str(c)
+                  parts.append(z)
+          MD='\n\n'.join(parts)
+          open('/tmp/index.html','w',encoding='utf8').write(HTML);open('/tmp/index.md','w',encoding='utf8').write(MD)
+          with zipfile.ZipFile('/tmp/site.zip','w',zipfile.ZIP_DEFLATED) as z:z.write('/tmp/index.html','index.html')
+          def quick_get(u):
+              if not u:return None
+              try:
+                  r=requests.get(u,headers=H,timeout=15,allow_redirects=True)
+                  if r.ok and any('smmfansfaster.com' in (a.get('href') or '').lower() for a in BeautifulSoup(r.text,'html.parser').find_all('a',href=True)):return r.url
+              except:pass
+              return None
+          # Direct REST first for Share HTML.
+          if P=='sharehtml':
+              try:
+                  r=requests.post('https://share-html.com/api/v1/pages',json={'html':HTML},headers={**H,'Content-Type':'application/json'},timeout=30);print('API',r.status_code,r.text[:1800]);
+                  urls=re.findall(r'https?://[^\s"\\]+',r.text)
+                  for u in urls:
+                      if 'share-html.com' in u:
+                          v=quick_get(u)
+                          if v:print('RESULT_JSON='+json.dumps({'site':name,'domain':dom,'url':v,'status':'verified'}));raise SystemExit
+              except SystemExit:raise
+              except Exception as e:print('APIERR',repr(e))
+          with sync_playwright() as pw:
+              br=pw.chromium.launch(channel='chrome',headless=True,args=['--no-sandbox','--disable-dev-shm-usage']);ctx=br.new_context(user_agent=H['User-Agent'],viewport={'width':1440,'height':1000});pg=ctx.new_page();pg.set_default_timeout(9000);network=[]
+              def resp(x):
+                  try:
+                      network.append(x.url)
+                      if 'json' in (x.headers.get('content-type') or '').lower():
+                          try:network.extend(re.findall(r'https?://[^\s"\']+',x.text()))
+                          except:pass
+                  except:pass
+              pg.on('response',resp)
+              try:pg.goto(start,wait_until='domcontentloaded',timeout=25000);time.sleep(2)
+              except Exception as e:print('NAVERR',repr(e))
+              content=MD if typ=='md' else HTML; filled=False
+              # special slug/subdomain values
+              slug='smm-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(10))
+              for sel in ['input[name*=slug i]','input[placeholder*=slug i]','input[name*=subdomain i]','input[placeholder*=page i]']:
+                  try:
+                      q=pg.locator(sel)
+                      if q.count() and q.first.is_visible():q.first.fill(slug);break
+                  except:pass
+              # title fields
+              for sel in ['input[name*=title i]','input[placeholder*=title i]']:
+                  try:
+                      q=pg.locator(sel)
+                      if q.count() and q.first.is_visible():q.first.fill(title);break
+                  except:pass
+              if typ in ('html','zip'):
+                  try:
+                      fs=pg.locator('input[type=file]')
+                      path='/tmp/site.zip' if typ=='zip' else '/tmp/index.html'
+                      for i in range(fs.count()):
+                          try:fs.nth(i).set_input_files(path);filled=True;break
+                          except:pass
+                  except:pass
+              if not filled:
+                  try:
+                      ts=pg.locator('textarea')
+                      for i in range(ts.count()):
+                          try:
+                              if ts.nth(i).is_visible():ts.nth(i).fill(content);filled=True;break
+                          except:pass
+                  except:pass
+              if not filled:
+                  try:
+                      ce=pg.locator('[contenteditable=true]')
+                      for i in range(ce.count()):
+                          try:
+                              if ce.nth(i).is_visible():ce.nth(i).fill(content);filled=True;break
+                          except:pass
+                  except:pass
+              if not filled:
+                  for sel in ['.monaco-editor textarea','.ace_text-input','.CodeMirror textarea','[role=textbox]']:
+                      try:
+                          q=pg.locator(sel)
+                          if q.count():q.first.click(force=True);pg.keyboard.press('Control+A');pg.keyboard.type(content,delay=0);filled=True;break
+                      except:pass
+              print('FILLED',filled)
+              clicked=False
+              for rex in [r'Get my shareable link',r'Publish.*Share',r'Publish',r'Deploy Page',r'Deploy',r'Get my link',r'Share',r'Generate Link',r'Upload',r'Go Live',r'Host']:
+                  try:
+                      b=pg.get_by_role('button',name=re.compile(rex,re.I))
+                      for i in range(min(b.count(),5)):
+                          try:
+                              if b.nth(i).is_visible():b.nth(i).click(force=True,timeout=6000);clicked=True;break
+                          except:pass
+                      if clicked:break
+                  except:pass
+              if not clicked:
+                  try:
+                      b=pg.locator('button[type=submit],input[type=submit]')
+                      if b.count():b.first.click(force=True);clicked=True
+                  except:pass
+              time.sleep(6)
+              body='';hrefs=[]
+              try:body=pg.locator('body').inner_text(timeout=3000)
+              except:pass
+              try:hrefs=pg.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+              except:pass
+              cand=[pg.url]+hrefs+network+re.findall(r'https?://[^\s<>"\']+',body)
+              if P=='slugpost':cand.insert(0,'https://slugpost.com/'+slug)
+              cand=[u.rstrip('.,);]') for u in cand if isinstance(u,str) and re.search(pat,u,re.I)]
+              final=None
+              for u in dict.fromkeys(cand):
+                  v=quick_get(u)
+                  if v:final=v;break
+                  q=None
+                  try:
+                      q=ctx.new_page();q.set_default_timeout(7000);q.goto(u,wait_until='domcontentloaded',timeout=18000);time.sleep(2)
+                      found=False
+                      for fr in q.frames:
+                          try:
+                              hs=fr.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+                              if any('smmfansfaster.com' in (x or '').lower() for x in hs):found=True;break
+                          except:pass
+                      if found:final=q.url
+                  except:pass
+                  finally:
+                      try:q.close()
+                      except:pass
+                  if final:break
+              d={'site':name,'domain':dom,'url':final,'status':'verified' if final else 'failed','candidates':cand[:10]};print('RESULT_JSON='+json.dumps(d));br.close()
+          PY
+          python /tmp/one.py
