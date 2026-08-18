@@ -1,0 +1,193 @@
+name: SMMFansFaster Parallel Fresh Domains Batch 25
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'runs/smmfansfaster-b25-*'
+
+jobs:
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [markbin, markdshare, txtduck, pagelive, dochost, noterift, notesh, textlink, htmldrop, mdbin, htmlput]
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Publish ${{ matrix.platform }}
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 playwright
+          cat > /tmp/publish.py <<'PY'
+          import os,re,json,time,html,requests,random,string
+          from bs4 import BeautifulSoup
+          from playwright.sync_api import sync_playwright
+          P=os.environ['PLATFORM']
+          H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/6.0'}
+          cfg={
+            'markbin':('Markbin','markbin.net','https://markbin.net/',r'markbin\.net/(?!$)[A-Za-z0-9_/?=&-]+','md'),
+            'markdshare':('MarkDShare','markdshare.com','https://markdshare.com/',r'markdshare\.com/(?!$|pricing|login|signup)[A-Za-z0-9_/?=&-]+','md'),
+            'txtduck':('TxtDuck','txtduck.com','https://www.txtduck.com/',r'txtduck\.com/(?!$|about|faq)[A-Za-z0-9_/?=&-]+','md'),
+            'pagelive':('PageLive','pagelive.site','https://pagelive.io/tools/publish-html',r'[A-Za-z0-9_-]+\.pagelive\.site/?','html'),
+            'dochost':('dochost','dochost.co','https://dochost.io/publish-html-website-free',r'dochost\.co/d/[A-Za-z0-9_-]+','html'),
+            'noterift':('Noterift','noterift.com','https://noterift.com/',r'noterift\.com/(?!$)[A-Za-z0-9_/?=&-]+','md'),
+            'notesh':('Notesh','notesh.ink','https://notesh.ink/',r'notesh\.ink/s/[A-Za-z0-9_-]+','md'),
+            'textlink':('TextLink','textlinkshare.lovable.app','https://textlinkshare.lovable.app/',r'textlinkshare\.lovable\.app/(?:t/)?[A-Za-z0-9_/?=&-]+','md'),
+            'htmldrop':('htmldrop','htmldrop.app','https://htmldrop.app/',r'[A-Za-z0-9_-]+\.htmldrop\.app/?','html'),
+            'mdbin':('md-bin','md-bin.com','https://md-bin.com/',r'md-bin\.com/(?!$|mcp)[A-Za-z0-9_/?=&-]+','md'),
+            'htmlput':('HTMLPUT','htmlput.com','https://www.htmlput.com/',r'share\.htmlput\.com/p/[A-Za-z0-9_-]+(?:\?[^\s]*)?','html')}
+          name,domain,start,pat,typ=cfg[P]
+          title='A Practical Social Media Growth Strategy for Digital Businesses in 2026'
+          sections=[
+            ('Define a measurable objective','A useful social media program begins with a business outcome such as qualified traffic, leads, purchases, bookings, profile actions, or repeat engagement. A clear objective gives platform, content, distribution, and reporting decisions a common reference point.'),
+            ('Research audience intent','Search behavior, customer questions, comments, support conversations, sales objections, competitor communities, and analytics reveal what people actually want to understand or accomplish. Those signals help content match real demand.'),
+            ('Build repeatable content pillars','Education, demonstrations, comparisons, proof, frequently asked questions, process transparency, customer outcomes, and offer-focused posts give marketing teams a sustainable publishing structure while hooks and examples remain fresh.'),
+            ('Use distribution deliberately','Organic publishing can be supported by advertising, creators, communities, partnerships, and specialist promotion services when those methods fit platform policies and campaign goals. Distribution should amplify useful content rather than compensate for weak content.'),
+            ('Measure stronger intent signals','Views and impressions explain discovery, while saves, shares, profile visits, outbound clicks, landing-page engagement, leads, purchases, and repeat visits reveal progressively stronger intent. Connecting these stages improves channel evaluation.'),
+            ('Improve the post-click journey','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and provide an obvious next step. The destination should match the promise that generated the click.'),
+            ('Protect audience trust','Sustainable growth avoids deceptive endorsements, fake reviews, spam, misleading claims, compromised websites, and tactics that violate platform safeguards. Responsible promotion combines original content, transparent amplification, and useful measurement.'),
+            ('Document what works','Weekly reviews should record the audience, hypothesis, creative concept, distribution method, timing, traffic quality, conversion behavior, and next experiment. This turns individual campaigns into cumulative learning.')]
+          blocks=[f'<h1>{html.escape(title)}</h1><p>This guide explains how digital businesses can connect audience research, useful content, responsible distribution, measurement, and conversion into one repeatable growth system.</p>']
+          for i,(h,p) in enumerate(sections):
+              blocks.append(f'<h2>{html.escape(h)}</h2><p>{html.escape(p)}</p>')
+              if i==1:blocks.append('<p>Teams comparing promotion providers can review <a href="https://smmfansfaster.com/">SMM Fans Faster</a> alongside organic publishing, paid media, creator partnerships, and other distribution options.</p>')
+              if i==4:blocks.append('<p>Available multi-platform services can also be explored at <a href="https://smmfansfaster.com/">SMMFansFaster.com</a> while content quality and conversion measurement remain central to the strategy.</p>')
+              if i==6:blocks.append('<p>Marketers considering an SMM panel can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other acquisition channels based on fit, transparency, traffic quality, and measurable outcomes.</p>')
+          blocks.append('<h2>Conclusion</h2><p>Long-term social media growth comes from useful content, measured distribution, audience trust, and a process that turns each campaign into future learning.</p>')
+          HTML='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(blocks)+'</main></body></html>'
+          MD='# '+title+'\n\nThis guide explains how digital businesses can connect audience research, useful content, responsible distribution, measurement, and conversion into one repeatable growth system.\n\n'
+          for i,(h,p) in enumerate(sections):
+              MD+='## '+h+'\n\n'+p+'\n\n'
+              if i==1:MD+='Teams comparing promotion providers can review [SMM Fans Faster](https://smmfansfaster.com/) alongside organic publishing, paid media, creator partnerships, and other distribution options.\n\n'
+              if i==4:MD+='Available multi-platform services can also be explored at [SMMFansFaster.com](https://smmfansfaster.com/) while content quality and conversion measurement remain central to the strategy.\n\n'
+              if i==6:MD+='Marketers considering an SMM panel can compare [SMM Fans Faster](https://smmfansfaster.com/) with other acquisition channels based on fit, transparency, traffic quality, and measurable outcomes.\n\n'
+          MD+='## Conclusion\n\nLong-term social media growth comes from useful content, measured distribution, audience trust, and a process that turns each campaign into future learning.'
+          open('/tmp/article.html','w',encoding='utf8').write(HTML);open('/tmp/article.md','w',encoding='utf8').write(MD)
+          def raw_verify(u):
+              if not u:return None
+              try:
+                  r=requests.get(u,headers=H,timeout=15,allow_redirects=True)
+                  if r.ok:
+                      s=BeautifulSoup(r.text,'html.parser')
+                      if any('smmfansfaster.com' in (a.get('href') or '').lower() for a in s.find_all('a',href=True)):return r.url
+              except:pass
+              return None
+          with sync_playwright() as pw:
+              br=pw.chromium.launch(channel='chrome',headless=True,args=['--no-sandbox','--disable-dev-shm-usage']);ctx=br.new_context(user_agent=H['User-Agent'],viewport={'width':1440,'height':1000});pg=ctx.new_page();pg.set_default_timeout(9000);network=[]
+              def onresp(r):
+                  try:
+                      network.append(r.url)
+                      if 'json' in (r.headers.get('content-type') or '').lower():
+                          try:network.extend(re.findall(r'https?://[^\s"\']+',r.text()))
+                          except:pass
+                  except:pass
+              pg.on('response',onresp)
+              try:pg.goto(start,wait_until='domcontentloaded',timeout=25000);time.sleep(2)
+              except Exception as e:print('NAVERR',repr(e))
+              # Some landing pages require entering the editor first.
+              if not pg.locator('textarea,[contenteditable=true],input[type=file],.monaco-editor,.ace_editor,.CodeMirror').count():
+                  for rex in [r'Create a bin',r'Start writing',r'Create note',r'New note',r'Open Full Editor',r'Start publishing',r'Create a free link',r'Try.*free',r'Publish HTML now']:
+                      try:
+                          q=pg.get_by_role('button',name=re.compile(rex,re.I))
+                          if not q.count():q=pg.get_by_role('link',name=re.compile(rex,re.I))
+                          if q.count():q.first.click(force=True);time.sleep(2);break
+                      except:pass
+              # title / slug inputs
+              slug='smm-growth-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(8))
+              for sel,val in [('input[name*=title i]',title),('input[placeholder*=title i]',title),('input[name*=slug i]',slug),('input[placeholder*=custom i]',slug),('input[placeholder*=slug i]',slug)]:
+                  try:
+                      q=pg.locator(sel)
+                      if q.count() and q.first.is_visible():q.first.fill(val)
+                  except:pass
+              content=MD if typ=='md' else HTML;filled=False
+              if typ=='html':
+                  try:
+                      fs=pg.locator('input[type=file]')
+                      for i in range(fs.count()):
+                          try:fs.nth(i).set_input_files('/tmp/article.html');filled=True;break
+                          except:pass
+                  except:pass
+              if not filled:
+                  try:
+                      ts=pg.locator('textarea')
+                      # prefer largest visible textarea
+                      best=None;area=-1
+                      for i in range(ts.count()):
+                          try:
+                              if ts.nth(i).is_visible():
+                                  b=ts.nth(i).bounding_box();a=(b['width']*b['height']) if b else 0
+                                  if a>area:area=a;best=i
+                          except:pass
+                      if best is not None:ts.nth(best).fill(content);filled=True
+                  except:pass
+              if not filled:
+                  try:
+                      ce=pg.locator('[contenteditable=true]')
+                      for i in range(ce.count()):
+                          try:
+                              if ce.nth(i).is_visible():ce.nth(i).fill(content);filled=True;break
+                          except:pass
+                  except:pass
+              if not filled:
+                  for sel in ['.monaco-editor textarea','.ace_text-input','.CodeMirror textarea','[role=textbox]']:
+                      try:
+                          q=pg.locator(sel)
+                          if q.count():q.first.click(force=True);pg.keyboard.press('Control+A');pg.keyboard.type(content,delay=0);filled=True;break
+                      except:pass
+              print('FILLED',P,filled)
+              # choose public/discoverable where available
+              for label in [r'Public',r'Discoverable',r'Public on Explore']:
+                  try:
+                      q=pg.get_by_text(re.compile(label,re.I),exact=False)
+                      if q.count() and q.first.is_visible():q.first.click(force=True);break
+                  except:pass
+              clicked=False
+              for rex in [r'Get my link',r'Generate Link',r'Create paste',r'Create a bin',r'Share Note',r'Share',r'Generate.*link',r'Publish.*Share',r'Publish',r'Upload.*publish',r'Upload',r'Host Now',r'Deploy']:
+                  try:
+                      q=pg.get_by_role('button',name=re.compile(rex,re.I))
+                      for i in range(min(q.count(),6)):
+                          try:
+                              if q.nth(i).is_visible():q.nth(i).click(force=True,timeout=6000);clicked=True;break
+                          except:pass
+                      if clicked:break
+                  except:pass
+              if not clicked:
+                  try:
+                      q=pg.locator('button[type=submit],input[type=submit]')
+                      if q.count():q.first.click(force=True);clicked=True
+                  except:pass
+              time.sleep(7)
+              body='';hrefs=[]
+              try:body=pg.locator('body').inner_text(timeout=3000)
+              except:pass
+              try:hrefs=pg.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+              except:pass
+              cand=[pg.url]+hrefs+network+re.findall(r'https?://[^\s<>"\']+',body)
+              cand=[x.rstrip('.,);]') for x in cand if isinstance(x,str) and re.search(pat,x,re.I)]
+              # htmldrop may print hostname as text without scheme
+              if P=='htmldrop':
+                  for host in re.findall(r'\b[A-Za-z0-9_-]+\.htmldrop\.app\b',body):cand.append('https://'+host+'/')
+              final=None
+              for u in dict.fromkeys(cand):
+                  final=raw_verify(u)
+                  if final:break
+                  q=None
+                  try:
+                      q=ctx.new_page();q.set_default_timeout(7000);q.goto(u,wait_until='domcontentloaded',timeout=18000);time.sleep(3);found=False
+                      for fr in q.frames:
+                          try:
+                              hs=fr.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+                              if any('smmfansfaster.com' in (x or '').lower() for x in hs):found=True;break
+                          except:pass
+                      if found:final=q.url
+                  except:pass
+                  finally:
+                      try:q.close()
+                      except:pass
+                  if final:break
+              d={'site':name,'domain':domain,'url':final,'status':'verified' if final else 'failed','candidates':list(dict.fromkeys(cand))[:12],'page_url':pg.url};print('RESULT_JSON='+json.dumps(d));br.close()
+          PY
+          python /tmp/publish.py
