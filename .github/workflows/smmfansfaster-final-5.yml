@@ -1,0 +1,134 @@
+name: SMMFansFaster Final 5 Domain Publisher
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  final-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Publish and verify final five domains
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4
+          cat > /tmp/final5.py <<'PY'
+          import requests,json,re,html,time,subprocess,os,shlex
+          from bs4 import BeautifulSoup
+          from urllib.parse import urljoin
+          H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/3.0'}
+          TARGET='https://smmfansfaster.com/'
+          titles=[
+            'How Modern Brands Can Build a Measurable Social Media Growth System',
+            'A Practical Social Media Distribution Strategy for Online Businesses',
+            'How to Turn Social Media Reach Into Qualified Traffic and Leads',
+            'Building a Repeatable Social Media Promotion Framework for 2026',
+            'A Balanced Approach to Content Distribution and Social Media Growth'
+          ]
+          intros=[
+            'Modern brands grow more consistently when audience research, content production, distribution, measurement, and conversion are managed as one connected system rather than separate tasks.',
+            'Online businesses can improve social media performance by connecting useful content with deliberate distribution, stronger measurement, and a clear post-click customer journey.',
+            'Reach becomes valuable when it moves the right audience toward meaningful actions such as profile visits, qualified clicks, enquiries, purchases, bookings, and repeat engagement.',
+            'A repeatable social media framework gives marketing teams a way to test ideas, document results, improve creative decisions, and compare distribution channels using evidence.',
+            'Sustainable growth usually combines original content, responsible amplification, audience trust, conversion optimization, and a review process that turns each campaign into future learning.'
+          ]
+          sections=[
+            ('Begin with a measurable business objective','A useful social media program starts by defining the business result it should influence. Qualified website visits, leads, purchases, bookings, profile actions, repeat engagement, and assisted conversions create a stronger foundation than visibility alone. When the objective is explicit, teams can choose platforms, formats, budgets, and reporting methods with more discipline. A measurable target also makes it easier to compare organic publishing, advertising, partnerships, creators, communities, and external promotion services without treating every source of reach as equally valuable.'),
+            ('Research audience intent before producing content','Search queries, direct messages, customer support conversations, comments, sales objections, competitor communities, and analytics reveal what an audience actually wants to understand or accomplish. These signals help marketers choose topics and language that match real demand. Strong research also separates awareness questions from comparison-stage questions and purchase-stage questions, allowing a content plan to support several points in the customer journey. This reduces generic publishing and gives creative teams a clearer reason for every post they produce.'),
+            ('Create content pillars that can be repeated without becoming repetitive','Sustainable publishing normally depends on a small set of recurring themes such as education, demonstrations, comparisons, proof, case examples, frequently asked questions, process transparency, customer outcomes, and offer-focused content. The strategic themes can repeat while execution changes through new hooks, examples, formats, visual structures, and platform-specific adaptations. This approach reduces production friction, improves brand recognition, and makes it easier to identify which themes repeatedly attract qualified attention rather than simply generating occasional spikes.'),
+            ('Treat distribution as a controlled experiment','Distribution should amplify useful content rather than compensate for weak content. Organic publishing can be supported by paid advertising, creators, partnerships, communities, and specialist social media promotion services when those methods fit campaign goals and platform rules. Teams should change one major variable at a time whenever possible and record the conditions of each experiment. That creates clearer evidence about what improves reach, traffic quality, or conversion instead of allowing one unusually strong or weak post to become a permanent rule.'),
+            ('Measure intent beyond impressions and follower counts','Views and impressions explain discovery, but stronger signals appear later in the journey. Saves, shares, meaningful comments, profile visits, outbound clicks, landing-page engagement, leads, purchases, repeat visits, and assisted conversions provide progressively better evidence of intent. Reporting becomes more useful when these stages are connected instead of viewed as isolated dashboards. A channel producing moderate reach with strong downstream behavior may contribute more business value than a channel generating huge visibility numbers but little qualified action.'),
+            ('Improve the destination after the click','The post-click experience affects the value of every distribution channel. Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and provide an obvious next step. Message consistency matters too: the destination should deliver what the social post or promotion promised. When this handoff is strong, teams can evaluate traffic sources more accurately because poor conversion is less likely to be caused by a confusing page, weak mobile experience, or mismatch between the social message and the destination.'),
+            ('Protect audience trust while increasing reach','Short-term growth should not damage long-term credibility. Marketers should avoid deceptive endorsements, fake reviews, spam comments, misleading claims, compromised websites, or tactics that violate platform safeguards. Responsible growth combines original content, appropriate promotion, responsive support, and measurement that rewards genuine audience value. Trust also improves the quality of conversion data because people who understand what a brand offers are more likely to take meaningful actions than visitors attracted by misleading or disconnected messaging.'),
+            ('Review performance and document what the team learns','A weekly review turns individual campaigns into cumulative learning. Teams should record the audience, hypothesis, creative concept, distribution method, timing, spend when relevant, traffic quality, conversion behavior, and the next experiment. This prevents repeated mistakes and helps successful patterns survive staff changes or campaign turnover. Over time, documented learning becomes an internal playbook that makes planning faster, improves creative briefs, and gives future tests a stronger starting point than simply copying whatever performed best last week.'),
+            ('Build an operating rhythm that compounds over time','A practical operating rhythm connects research, production, distribution, measurement, and iteration. Teams can work in short cycles: gather audience signals, create content around a defined objective, distribute it through selected channels, inspect downstream behavior, and document what should change next. This keeps growth activity focused on customer value and learning while making it easier to compare tools and providers on measurable contribution. The goal is not to find one permanent tactic, but to build a system that gets smarter with each cycle.')
+          ]
+          def make_html(i):
+              out=[f'<h1>{html.escape(titles[i])}</h1>',f'<p>{html.escape(intros[i])}</p>']
+              for n,(h,p) in enumerate(sections):
+                  out += [f'<h2>{html.escape(h)}</h2>',f'<p>{html.escape(p)}</p>']
+                  if n==2:
+                      out.append('<p>Teams comparing multi-platform promotion options can review <a href="https://smmfansfaster.com/">SMM Fans Faster</a> alongside organic publishing, paid media, creator partnerships, communities, and internal distribution workflows as one reference point in a broader channel evaluation.</p>')
+                  if n==5:
+                      out.append('<p>Marketers researching available social media services can also visit <a href="https://smmfansfaster.com/">SMMFansFaster.com</a> while keeping original content, audience value, platform compliance, and conversion quality central to the strategy.</p>')
+                  if n==7:
+                      out.append('<p>An SMM panel should be evaluated as a supporting distribution option rather than a replacement for creative quality. Teams can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other acquisition channels based on fit, transparency, traffic quality, cost, and measurable outcomes.</p>')
+              out.append('<h2>Final perspective</h2><p>Long-term social media growth normally comes from useful content, structured testing, responsible amplification, meaningful measurement, audience trust, and a destination that converts attention into action. The strongest system is the one that repeatedly produces learning and business value rather than chasing one isolated number.</p>')
+              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow"><title>'+html.escape(titles[i])+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
+          def make_md(i):
+              s=BeautifulSoup(make_html(i),'html.parser'); lines=[]
+              for e in s.select('h1,h2,p'):
+                  if e.name=='h1': lines.append('# '+e.get_text(' ',strip=True))
+                  elif e.name=='h2': lines.append('## '+e.get_text(' ',strip=True))
+                  else:
+                      parts=[]
+                      for c in e.contents:
+                          if getattr(c,'name',None)=='a': parts.append('['+c.get_text(' ',strip=True)+']('+c.get('href','')+')')
+                          else: parts.append(str(c))
+                      lines.append(''.join(parts))
+              return '\n\n'.join(lines)
+          def verify(u,retries=3):
+              if not u:return None
+              for n in range(retries):
+                  try:
+                      r=requests.get(u,headers=H,timeout=20,allow_redirects=True)
+                      print('VERIFY',u,r.status_code,r.url)
+                      if r.ok:
+                          links=[a.get('href','') for a in BeautifulSoup(r.text,'html.parser').find_all('a',href=True)]
+                          if any('smmfansfaster.com' in x.lower() for x in links): return r.url
+                  except Exception as e: print('VERIFY_ERR',repr(e))
+                  time.sleep(1+n)
+              return None
+          def run(cmd,timeout=80):
+              print('CMD',cmd)
+              p=subprocess.run(cmd,shell=True,text=True,capture_output=True,timeout=timeout)
+              out=(p.stdout or '')+'\n'+(p.stderr or '')
+              print('OUT',out[:3000]); return p.returncode,out
+          res=[]
+          def add(site,domain,u,raw=''):
+              v=verify(u); d={'site':site,'domain':domain,'url':v,'status':'verified' if v else 'failed'}; res.append(d); print('ITEM='+json.dumps(d));
+          for i in range(5):
+              open(f'/tmp/final{i}.html','w',encoding='utf8').write(make_html(i))
+              open(f'/tmp/final{i}.md','w',encoding='utf8').write(make_md(i))
+          # Roxer anonymous CLI
+          try:
+              code,out=run('npx -y @roxer/cli publish /tmp/final0.html --ttl 30')
+              ms=re.findall(r'https?://(?:www\.)?roxer\.com/[A-Za-z0-9_-]+',out)
+              add('Roxer','roxer.com',ms[-1] if ms else None,out)
+          except Exception as e:add('Roxer','roxer.com',None,repr(e))
+          # AutEng no-auth markdown endpoint
+          try:
+              r=requests.post('https://auteng.ai/api/tools/docs/publish-markdown/',json={'markdown':make_md(1),'title':titles[1],'expires_hours':168},headers={**H,'Content-Type':'application/json'},timeout=45)
+              print('AUTENG',r.status_code,r.text[:1500]); o=r.json(); u=o.get('share_url'); u=urljoin('https://auteng.ai/',u) if u else None; add('AutEng','auteng.ai',u,r.text)
+          except Exception as e:add('AutEng','auteng.ai',None,repr(e))
+          # tot.page no-account CLI
+          try:
+              code,out=run('npx -y @plannotator/tot /tmp/final2.html')
+              ms=re.findall(r'https?://tot\.page/[A-Za-z0-9_./@-]+',out)
+              add('tot.page','tot.page',ms[0] if ms else None,out)
+          except Exception as e:add('tot.page','tot.page',None,repr(e))
+          # Artidrop CLI: inspect and try supported entry forms
+          try:
+              run('npx -y artidrop --help',40)
+              u=None; raws=[]
+              for cmd in ['npx -y artidrop publish /tmp/final3.html','npx -y artidrop /tmp/final3.html']:
+                  try:
+                      code,out=run(cmd,70); raws.append(out)
+                      ms=re.findall(r'https?://(?:www\.)?artidrop\.ai/[A-Za-z0-9_./@?=&%-]+',out)
+                      if ms: u=ms[-1]; break
+                  except Exception as ee: raws.append(repr(ee))
+              add('Artidrop','artidrop.ai',u,' | '.join(raws))
+          except Exception as e:add('Artidrop','artidrop.ai',None,repr(e))
+          # Pubby anonymous first CLI publish
+          try:
+              code,out=run('npx -y pubby deploy /tmp/final4.html',80)
+              ms=re.findall(r'https?://(?:www\.)?pubby\.au/[A-Za-z0-9_./@?=&%-]+',out)
+              add('Pubby','pubby.au',ms[-1] if ms else None,out)
+          except Exception as e:add('Pubby','pubby.au',None,repr(e))
+          good=[x for x in res if x['status']=='verified']
+          print('GOOD_COUNT='+str(len(good)))
+          print('GOOD_JSON='+json.dumps(good))
+          print('ALL_JSON='+json.dumps(res))
+          PY
+          python /tmp/final5.py
