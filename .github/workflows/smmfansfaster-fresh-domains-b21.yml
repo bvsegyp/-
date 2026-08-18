@@ -1,0 +1,273 @@
+name: SMMFansFaster Fresh Domains Batch 21
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'runs/smmfansfaster-b21-*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Publish fresh-domain backlink articles
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 playwright
+          cat > /tmp/b21.py <<'PY'
+          import requests,json,re,html,time,random,string,os,zipfile
+          from bs4 import BeautifulSoup
+          from urllib.parse import urljoin,urlparse
+          from playwright.sync_api import sync_playwright
+
+          TARGET='https://smmfansfaster.com/'
+          H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/4.0'}
+          used_domains={
+            'telegra.ph','rentry.co','markdown.page','ht-ml.app','yeet.md','quicky.page','shippage.ai','meethtml.com','brewpage.app','pitchey.app','dsp.so','aired.sh','output.pub','htmlshare.net','shipped.page','thethings.ai','mdlib.dev','here.now','shipsite.co','yourwebs.app','pagey.site','paste.page','sshgrid.com','pastehtml.dev','yeetit.site','draftlet.io','stacktr.ee','flexweg.com','resolved.sh','sharemyhtml.com','yapp.page','hdply.com','tinidrop.com','roxer.com','auteng.ai','artidrop.ai','tot.page'
+          }
+          titles=[
+            'Social Media Growth Strategy for Digital Businesses in 2026',
+            'How Brands Can Build a Reliable Social Media Distribution System',
+            'A Practical Guide to Social Media Reach Traffic and Conversion',
+            'How Small Businesses Can Improve Social Media Growth',
+            'A Measurable Social Media Promotion Framework for Modern Brands',
+            'How to Connect Content Distribution With Qualified Traffic',
+            'Building a Repeatable Social Media Marketing Engine',
+            'How Online Brands Can Improve Social Media Performance',
+            'A Sustainable Approach to Multi Platform Social Media Growth',
+            'How Marketing Teams Can Turn Reach Into Business Results',
+            'A Practical Social Media Acquisition Strategy for 2026',
+            'How to Scale Social Media Promotion Without Losing Quality'
+          ]
+          def article(i):
+              title=titles[i%len(titles)]
+              blocks=[
+                ('Start with a measurable objective','A useful social media program begins with a business outcome such as qualified traffic, enquiries, sales, bookings, profile actions, or repeat engagement. Clear objectives help teams select platforms, formats, budgets, and reporting methods without confusing visibility with commercial progress.'),
+                ('Research real audience intent','Search behavior, comments, customer questions, support conversations, sales objections, competitor communities, and analytics reveal what an audience actually wants to understand or accomplish. These signals make content more relevant and reduce generic publishing.'),
+                ('Create repeatable content pillars','Education, demonstrations, comparisons, proof, frequently asked questions, process transparency, customer outcomes, and offer-focused posts create a sustainable publishing structure. The strategic themes can repeat while examples, hooks, formats, and creative execution remain fresh.'),
+                ('Use distribution deliberately','Organic publishing can be supported by advertising, creators, communities, partnerships, and specialist promotion services when those methods fit platform policies and campaign goals. Distribution should amplify useful content rather than compensate for weak content.'),
+                ('Measure stronger intent signals','Views and impressions describe discovery, while saves, shares, profile visits, outbound clicks, landing-page engagement, leads, purchases, and repeat visits reveal progressively stronger intent. Connecting these stages makes channel comparisons more useful.'),
+                ('Improve the post-click journey','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and provide an obvious next step. The destination should match the promise that generated the click.'),
+                ('Protect trust while increasing reach','Sustainable growth avoids deceptive endorsements, fake reviews, spam, misleading claims, compromised websites, and tactics that violate platform safeguards. Responsible promotion combines original content, transparent amplification, responsive support, and useful measurement.'),
+                ('Turn results into future learning','Weekly reviews should record the audience, hypothesis, creative concept, distribution method, timing, traffic quality, conversion behavior, and next experiment. Over time this becomes an internal playbook that improves planning and reduces repeated mistakes.')
+              ]
+              out=[f'<h1>{html.escape(title)}</h1><p>This guide explains how businesses can connect audience research, useful content, responsible distribution, measurement, and conversion into one repeatable social media growth system.</p>']
+              for n,(h,p) in enumerate(blocks):
+                  out.append(f'<h2>{h}</h2><p>{p}</p>')
+                  if n==1: out.append('<p>Teams comparing promotion providers can review <a href="https://smmfansfaster.com/">SMM Fans Faster</a> alongside organic publishing, paid media, creator partnerships, and other distribution options.</p>')
+                  if n==4: out.append('<p>Available multi-platform services can also be explored at <a href="https://smmfansfaster.com/">SMMFansFaster.com</a> while content quality, audience value, and conversion measurement remain central to the strategy.</p>')
+                  if n==6: out.append('<p>Marketers considering an SMM panel can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other acquisition channels based on fit, transparency, traffic quality, and measurable outcomes.</p>')
+              out.append('<h2>Conclusion</h2><p>Long-term social media growth comes from useful content, measured distribution, audience trust, and a process that turns each campaign into learning for the next one.</p>')
+              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
+
+          def verify_requests(url):
+              if not url:return None
+              try:
+                  r=requests.get(url,headers=H,timeout=20,allow_redirects=True)
+                  if r.ok:
+                      s=BeautifulSoup(r.text,'html.parser')
+                      if any('smmfansfaster.com' in (a.get('href') or '').lower() for a in s.find_all('a',href=True)):
+                          return r.url
+              except:pass
+              return None
+
+          results=[]
+          def push(site,domain,url,status,extra=None):
+              d={'site':site,'domain':domain,'url':url,'status':status}
+              if extra:d['extra']=str(extra)[:800]
+              results.append(d);print('ITEM='+json.dumps(d))
+
+          # 1) Share HTML direct REST API
+          try:
+              r=requests.post('https://share-html.com/api/v1/pages',json={'html':article(0)},headers={**H,'Content-Type':'application/json'},timeout=45)
+              print('SHAREHTML_RAW',r.status_code,r.text[:1200])
+              o=r.json() if r.text else {};u=None
+              def walk(x):
+                  if isinstance(x,dict):
+                      for k,v in x.items():
+                          if isinstance(v,str) and v.startswith('http') and ('share-html.com' in v or 'pages.share-html.com' in v):return v
+                      for v in x.values():
+                          z=walk(v)
+                          if z:return z
+                  if isinstance(x,list):
+                      for v in x:
+                          z=walk(v)
+                          if z:return z
+                  return None
+              u=walk(o)
+              v=verify_requests(u)
+              push('Share HTML','share-html.com',v,'verified' if v else 'pending-render',r.text if not v else '')
+          except Exception as e:push('Share HTML','share-html.com',None,'failed',repr(e))
+
+          # prepare files / zip for browser publishers
+          for i in range(1,12):
+              open(f'/tmp/a{i}.html','w',encoding='utf8').write(article(i))
+          with zipfile.ZipFile('/tmp/netlify.zip','w',zipfile.ZIP_DEFLATED) as z:z.write('/tmp/a10.html','index.html')
+
+          def rendered_verify(ctx,url):
+              if not url:return None
+              pg=None
+              try:
+                  pg=ctx.new_page();pg.set_default_timeout(9000);pg.goto(url,wait_until='domcontentloaded',timeout=25000);time.sleep(3)
+                  for fr in pg.frames:
+                      try:
+                          hrefs=fr.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+                          if any('smmfansfaster.com' in (x or '').lower() for x in hrefs):return pg.url
+                      except:pass
+              except:pass
+              finally:
+                  try:pg.close()
+                  except:pass
+              return None
+
+          def candidate_urls(pg,body,network,pattern=None):
+              vals=[pg.url]+network
+              try: vals += pg.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+              except: pass
+              vals += re.findall(r'https?://[^\s<>"\']+',body or '')
+              out=[]
+              for x in vals:
+                  if not isinstance(x,str):continue
+                  x=x.rstrip('.,);]')
+                  if pattern and not re.search(pattern,x,re.I):continue
+                  if x not in out:out.append(x)
+              return out
+
+          def fill_best(pg,content,file_path=None,slug=None,title=None):
+              # Fill common title/slug fields first.
+              if title:
+                  for sel in ['input[name*=title i]','input[placeholder*=title i]']:
+                      try:
+                          loc=pg.locator(sel)
+                          if loc.count() and loc.first.is_visible():loc.first.fill(title);break
+                      except:pass
+              if slug:
+                  for sel in ['input[name*=slug i]','input[placeholder*=slug i]','input[aria-label*=slug i]']:
+                      try:
+                          loc=pg.locator(sel)
+                          if loc.count() and loc.first.is_visible():loc.first.fill(slug);break
+                      except:pass
+              if file_path:
+                  try:
+                      fis=pg.locator('input[type=file]')
+                      for j in range(fis.count()):
+                          try:fis.nth(j).set_input_files(file_path);return 'file'
+                          except:pass
+                  except:pass
+              # visible textareas
+              try:
+                  tas=pg.locator('textarea')
+                  for j in range(tas.count()):
+                      try:
+                          if tas.nth(j).is_visible():tas.nth(j).fill(content);return 'textarea'
+                      except:pass
+              except:pass
+              # contenteditable
+              try:
+                  ces=pg.locator('[contenteditable=true]')
+                  for j in range(ces.count()):
+                      try:
+                          if ces.nth(j).is_visible():ces.nth(j).fill(content);return 'contenteditable'
+                      except:pass
+              except:pass
+              # Monaco/Ace/CodeMirror fallbacks via keyboard/JS
+              for sel in ['.monaco-editor textarea','.ace_text-input','.CodeMirror textarea','[role=textbox]']:
+                  try:
+                      loc=pg.locator(sel)
+                      if loc.count():
+                          loc.first.click(force=True);pg.keyboard.press('Control+A');pg.keyboard.type(content,delay=0);return sel
+                  except:pass
+              try:
+                  ok=pg.evaluate("""(v)=>{const x=[...document.querySelectorAll('textarea,input')].find(e=>{const r=e.getBoundingClientRect();return r.width>10&&r.height>10&&!e.disabled});if(!x)return false;x.value=v;x.dispatchEvent(new Event('input',{bubbles:true}));x.dispatchEvent(new Event('change',{bubbles:true}));return true}""",content)
+                  if ok:return 'js'
+              except:pass
+              return None
+
+          targets=[
+            ('SlugPost','slugpost.com','https://slugpost.com/',1,r'slugpost\.com/(?!$|publish|login|signup|how|api)[A-Za-z0-9_-]+',False),
+            ('ShowYourCode','showyourcode.app','https://www.showyourcode.app/',2,r'showyourcode\.app/(?!$)[A-Za-z0-9_/?=-]+',False),
+            ('HTMLSpot','htmlspot.com','https://www.htmlspot.com/',3,r'htmlspot\.com/(?!$|features|pricing|upload)[A-Za-z0-9_/?=-]+',False),
+            ('Dropadraft','dropadraft.com','https://dropadraft.com/',4,r'dropadraft\.com/(?!$)[A-Za-z0-9_/?=-]+',False),
+            ('HTMLPeek','htmlpeek.com','https://htmlpeek.com/',5,r'htmlpeek\.com/(?!$)[A-Za-z0-9_/?=-]+',False),
+            ('OneClickLive','oneclicklive.app','https://oneclicklive.app/en',6,r'(?:[A-Za-z0-9_-]+\.)?oneclicklive\.app/(?!en(?:/|$)|login|privacy)[A-Za-z0-9_/?=-]*',False),
+            ('HostHTML','host-html.com','https://host-html.com/',7,r'host-html\.com/(?!$)[A-Za-z0-9_/?=-]+',False),
+            ('Miinideck','miinideck.com','https://www.miinideck.com/use-cases/free-html-hosting',8,r'miinideck\.com/(?!use-cases|pricing|login|$)[A-Za-z0-9_/?=-]+',True),
+            ('Supadrop','supadrop.host','https://supadrop.host/',9,r'(?:[A-Za-z0-9_-]+\.)?supadrop\.host/(?!$|blog)[A-Za-z0-9_/?=-]*',True),
+            ('NetlifyDrop','netlify.app','https://app.netlify.com/drop',10,r'[A-Za-z0-9_-]+\.netlify\.app/?',True)
+          ]
+
+          with sync_playwright() as pw:
+              browser=pw.chromium.launch(channel='chrome',headless=True,args=['--no-sandbox','--disable-dev-shm-usage'])
+              ctx=browser.new_context(user_agent=H['User-Agent'],viewport={'width':1440,'height':1000})
+              # rendered fallback for Share HTML if API URL was found but request verification missed iframe/client rendering
+              for d in results:
+                  if d['site']=='Share HTML' and d['status']=='pending-render' and d.get('extra'):
+                      pass
+              for idx,(site,domain,start,i,pattern,file_first) in enumerate(targets):
+                  pg=None;network=[]
+                  try:
+                      pg=ctx.new_page();pg.set_default_timeout(10000)
+                      def onresp(resp):
+                          try:
+                              u=resp.url
+                              if domain.split('.')[-2] in u or any(k in u.lower() for k in ['publish','share','deploy','upload','site']):
+                                  network.append(u)
+                                  ct=(resp.headers.get('content-type') or '').lower()
+                                  if 'json' in ct:
+                                      try:
+                                          txt=resp.text()
+                                          network.extend(re.findall(r'https?://[^\s"\']+',txt))
+                                      except:pass
+                          except:pass
+                      pg.on('response',onresp)
+                      pg.goto(start,wait_until='domcontentloaded',timeout=30000);time.sleep(2)
+                      slug='smm-growth-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(9))
+                      fp='/tmp/netlify.zip' if site=='NetlifyDrop' else f'/tmp/a{i}.html'
+                      mode=fill_best(pg,article(i),fp if file_first else None,slug,titles[i%len(titles)])
+                      if not mode and not file_first: mode=fill_best(pg,article(i),f'/tmp/a{i}.html',slug,titles[i%len(titles)])
+                      print('FILLED',site,mode)
+                      # Special known URL for SlugPost once slug is entered.
+                      known='https://slugpost.com/'+slug if site=='SlugPost' else None
+                      # click likely publish control
+                      clicked=False
+                      for rex in [r'Publish(?:\s*&\s*Share)?',r'Publish',r'Deploy Page',r'Deploy',r'Get my link',r'Get.*link',r'Share',r'Upload',r'Go Live',r'Host']:
+                          try:
+                              b=pg.get_by_role('button',name=re.compile(rex,re.I))
+                              for j in range(min(b.count(),4)):
+                                  try:
+                                      if b.nth(j).is_visible():b.nth(j).click(force=True,timeout=7000);clicked=True;break
+                                  except:pass
+                              if clicked:break
+                          except:pass
+                      if not clicked:
+                          try:
+                              sb=pg.locator('button[type=submit],input[type=submit]')
+                              if sb.count():sb.first.click(force=True);clicked=True
+                          except:pass
+                      time.sleep(6)
+                      body=''
+                      try:body=pg.locator('body').inner_text(timeout=4000)
+                      except:pass
+                      cand=[]
+                      if known:cand.append(known)
+                      cand += candidate_urls(pg,body,network,pattern)
+                      v=None
+                      for u in cand[:30]:
+                          v=verify_requests(u) or rendered_verify(ctx,u)
+                          if v:break
+                      push(site,domain,v,'verified' if v else 'failed',{'candidates':cand[:10],'network':network[:10],'url':pg.url})
+                  except Exception as e:push(site,domain,None,'failed',repr(e))
+                  finally:
+                      try:pg.close()
+                      except:pass
+              browser.close()
+          good=[];seen=set()
+          for x in results:
+              if x.get('status')=='verified' and x.get('url') and x['domain'] not in used_domains and x['domain'] not in seen:
+                  seen.add(x['domain']);good.append(x)
+          print('GOOD_COUNT='+str(len(good)))
+          print('GOOD_JSON='+json.dumps(good))
+          print('ALL_JSON='+json.dumps(results))
+          PY
+          python /tmp/b21.py
