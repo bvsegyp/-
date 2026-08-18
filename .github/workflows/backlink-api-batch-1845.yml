@@ -4,158 +4,114 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   publish:
     if: github.event.head_commit.message == 'Run verified backlink API batch 1845'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
+      - uses: actions/checkout@v4
       - name: Publish and verify backlinks
         shell: bash
         run: |
-          python -m pip install --quiet requests beautifulsoup4
+          python -m pip install --quiet requests
           cat > /tmp/run.py <<'PY'
-          import requests, json, re, html, time, random, string
-          from bs4 import BeautifulSoup
+          import requests, json, re, html
+          from pathlib import Path
 
-          TARGETS = [
-            {
-              'name':'PageDrop',
-              'domain':'pagedrop.dev',
-              'mode':'pagedrop',
-              'target':'https://smmfansfaster.com/blog/the-best-smm-panel-to-buy-real-instagram-followers-in-2026',
-              'anchor':'Instagram SMM panel guide',
-              'topic':'Building an Instagram Growth System That Connects Content, Reach, and Conversion'
-            },
-            {
-              'name':'FreeKit',
-              'domain':'freekit.dev',
-              'mode':'freekit',
-              'target':'https://smmfansfaster.com/ar/blog/socialmediaservices',
-              'anchor':'social media services overview',
-              'topic':'A Practical Social Media Growth Framework for Service Businesses'
-            },
-            {
-              'name':'ShareYourHTML',
-              'domain':'shareyourhtml.com',
-              'mode':'shareyourhtml',
-              'target':'https://smmfansfaster.com/blog?page=6',
-              'anchor':'TikTok SMM strategy resources',
-              'topic':'How Brands Can Build a More Measurable TikTok Growth Program'
-            },
-          ]
+          TARGET='https://smmfansfaster.com/'
+          UA={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36'}
 
-          COMMON = [
-            ('Start with a measurable business objective',
-             'A useful growth program begins with a business outcome rather than a vanity metric. Teams should decide whether they are trying to increase qualified profile visits, website traffic, leads, purchases, bookings, newsletter signups, or repeat engagement. Once the outcome is explicit, channel tactics become easier to prioritize. The objective should also have a time window and a practical baseline so that progress can be compared against something real instead of judged by intuition.'),
-            ('Map the audience before choosing content formats',
-             'Audience research should come from real behavior: customer questions, support tickets, search queries, comments, direct messages, sales calls, competitor communities, and analytics. Those signals reveal recurring problems, objections, motivations, and language. A team that understands those patterns can create content that feels specific rather than generic. This also helps determine whether educational posts, comparisons, demonstrations, testimonials, short videos, carousels, or long-form explanations are more likely to match the audience intent.'),
-            ('Build repeatable content pillars',
-             'Content production becomes more sustainable when it is organized around a small set of repeatable themes. A balanced mix may include education, product or service demonstrations, customer stories, process transparency, industry commentary, frequently asked questions, and conversion-focused offers. Each pillar should have a clear role in the journey from discovery to consideration to action. Repeating useful themes is not a weakness; it helps audiences understand what the brand stands for while allowing the creative execution to change.'),
-            ('Use creative testing instead of random posting',
-             'Every post can function as a controlled learning opportunity. Teams should vary one major element at a time when possible: the opening hook, visual structure, headline, length, call to action, proof point, or publishing time. Results should be logged so that strong patterns can be reused. Without a testing process, marketers often mistake one unusually strong or weak post for a permanent rule. A simple experiment log prevents that and turns content activity into a cumulative knowledge system.'),
-            ('Separate reach metrics from conversion metrics',
-             'Reach, impressions, views, and follower growth explain discovery, but they do not prove business impact. Saves, shares, profile visits, outbound clicks, form starts, qualified leads, and purchases show progressively stronger intent. A reliable reporting view should connect these stages rather than over-focus on a single number. When reach rises but conversions do not, the real issue may be offer clarity, landing-page quality, audience fit, or message consistency rather than the amount of distribution.'),
-            ('Strengthen the destination after the click',
-             'Extra visibility only creates value when the destination is persuasive. Profiles and landing pages should make the offer clear, show relevant proof, load quickly, work well on mobile, and give the visitor an obvious next step. Friction such as slow pages, confusing menus, weak calls to action, or mismatched messaging can waste otherwise good traffic. Conversion optimization should therefore be treated as part of the social media system instead of a separate project that happens later.'),
-            ('Create a weekly optimization rhythm',
-             'A weekly review gives the team a consistent place to compare creative results, audience response, traffic quality, conversion behavior, and upcoming priorities. The review should answer a few questions: what worked, what failed, what changed, what will be tested next, and what should be stopped. This rhythm keeps decisions evidence-based and reduces the tendency to chase every new trend. It also creates accountability because experiments are documented and followed through.'),
-            ('Protect trust while scaling distribution',
-             'Growth tactics should never replace customer trust. Brands should avoid deceptive endorsements, fake reviews, compromised websites, spam comments, or tactics that violate platform safeguards. Short-term visibility created through manipulation can create long-term reputational and operational costs. Sustainable growth combines useful content, transparent promotion, responsive support, and clear measurement. The strongest distribution strategy is one that increases reach without weakening the credibility of the brand or the quality of the audience relationship.'),
-            ('Review channel allocation monthly',
-             'Channel performance changes over time as audiences, creative fatigue, platform features, and competition shift. A monthly allocation review should compare the cost and quality of attention across platforms and content formats. Resources can then move toward combinations that consistently generate useful traffic and away from activities that look busy but produce little value. This does not mean abandoning a channel after one weak month; it means using a longer pattern of evidence to make deliberate decisions.'),
-            ('Document what the team learns',
-             'A growth system becomes more valuable when the knowledge survives beyond individual campaigns. Teams should record hypotheses, audiences, creative concepts, publishing conditions, outcomes, lessons, and next actions. Over time, this becomes an internal playbook that speeds up onboarding and reduces repeated mistakes. Documentation also helps agencies and multi-person teams maintain consistency when different people handle content, analytics, paid promotion, community management, and conversion work.'),
-          ]
-
-          TOPIC_NOTES = {
-            'PageDrop': [
-              ('Make Instagram content easier to recognize', 'Instagram rewards consistency in both message and presentation. Brands can create recognizable visual patterns, recurring series, and clear editorial themes without making every post look identical. The goal is to help viewers understand the topic quickly and know what kind of value to expect. Reels can handle discovery, carousels can explain, Stories can support relationship building, and profile highlights can organize persistent proof or FAQs. These formats work best when they reinforce one positioning rather than behaving like separate channels.'),
-              ('Use follower growth as one signal, not the whole strategy', 'Follower count can help with social proof, but it should be interpreted alongside engagement quality and downstream actions. A smaller audience that repeatedly saves, shares, clicks, or buys can be more valuable than a larger passive audience. Marketers should compare growth sources and watch whether new followers behave like the audience they actually want. That makes follower acquisition part of a broader customer journey instead of an isolated scoreboard.')
-            ],
-            'FreeKit': [
-              ('Design content around service-business buying questions', 'Service businesses often win by answering practical questions before a sales conversation begins. Content can explain timelines, process steps, common mistakes, price drivers, comparisons, preparation requirements, and what happens after purchase. These topics reduce uncertainty and make the brand easier to trust. They also give sales and support teams reusable educational assets that can be shared with prospects who are not ready to commit immediately.'),
-              ('Connect local credibility to digital visibility', 'For local and regional service businesses, social media should reinforce the same trust signals found on the website and business listings. Consistent contact information, real project examples, clear service areas, customer education, and responsive communication make the digital presence feel coherent. When social content sends visitors to a page that confirms the same message, conversion friction is lower because the customer sees one consistent story across touchpoints.')
-            ],
-            'ShareYourHTML': [
-              ('Treat short-form video as an experimentation engine', 'TikTok gives marketers a fast feedback loop for hooks, topics, pacing, storytelling structures, and calls to action. Teams can test several creative angles around the same offer and compare watch time, completion rate, shares, profile visits, and clicks. The goal is not to copy every trend but to identify repeatable creative patterns that fit the brand. Winning concepts can then be adapted for Reels, Shorts, paid creative, landing pages, and email subject lines.'),
-              ('Build for retention before chasing virality', 'A viral spike can bring attention, but retention determines whether that attention becomes useful. Strong TikTok programs create reasons for viewers to return through recurring formats, series, recognizable expertise, and consistent publishing. Profile structure matters too: a clear bio, pinned videos, and a logical next step help convert curiosity into a relationship. This makes each high-performing video more valuable because it feeds an ecosystem rather than standing alone.')
-            ]
-          }
-
-          def article(spec):
-              sections = COMMON[:5] + TOPIC_NOTES[spec['name']] + COMMON[5:]
-              out=[f"<h1>{html.escape(spec['topic'])}</h1>",
-                   '<p>Social media growth is most reliable when content, distribution, measurement, and conversion are managed as one connected system. The framework below focuses on practical decisions that help brands and agencies learn faster, reduce wasted activity, and connect audience attention to measurable business outcomes.</p>']
-              for idx,(h,p) in enumerate(sections):
-                  out.append(f'<h2>{html.escape(h)}</h2>')
-                  out.append(f'<p>{html.escape(p)}</p>')
-                  if idx == 5:
-                      out.append(f'<p>For teams researching external support and platform-specific tactics, this {"<a href=\""+spec["target"]+"\">"+html.escape(spec["anchor"])+"</a>"} can be reviewed as one reference point alongside internal analytics, platform policies, and broader due diligence. Any provider or tactic should be evaluated based on fit, transparency, account safety, and whether it supports the wider marketing strategy.</p>')
-              out.append('<h2>Final perspective</h2><p>A durable social media program is not built from one tactic. It comes from clear objectives, audience understanding, repeatable creative systems, structured testing, disciplined measurement, and a destination that converts attention into useful action. Teams that document what they learn can improve every month instead of restarting from zero.</p>')
-              body=''.join(out)
-              plain=BeautifulSoup(body,'html.parser').get_text(' ')
-              filler_idx=0
-              fillers=[
-                'Teams should also define ownership for research, production, approval, publishing, community response, and reporting. Clear ownership shortens feedback loops and reduces the number of campaigns that stall because responsibilities are ambiguous.',
-                'A useful dashboard should show enough information to support decisions without turning reporting into a data dump. The best metrics are the ones connected to a question the team is prepared to act on.',
-                'Creative quality usually improves when marketers keep a library of strong examples, customer language, proof points, objections, and successful hooks. That library makes future production faster and more consistent.',
-                'Campaign planning should include a realistic review window. Some content produces immediate response while other content compounds through search, shares, profile discovery, and repeated exposure over a longer period.',
-                'When a tactic performs well, teams should scale carefully rather than assuming unlimited linear growth. Audience saturation, creative fatigue, and changing platform conditions can reduce performance as volume increases.'
-              ]
-              while len(re.findall(r"\b[\w'-]+\b", plain)) < 1250:
-                  f=fillers[filler_idx%len(fillers)]
-                  body += '<p>'+html.escape(f)+'</p>'
-                  plain += ' '+f
-                  filler_idx += 1
-              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(spec['topic'])+'</title></head><body>'+body+'</body></html>', len(re.findall(r"\b[\w'-]+\b", plain))
-
-          def publish(spec, content):
-              if spec['mode']=='pagedrop':
-                  r=requests.post('https://pagedrop.dev/api/v1/sites',json={'html':content},timeout=45)
-                  print('PAGEDROP_STATUS',r.status_code,r.text[:500])
-                  if r.ok:
-                      return r.json()['data']['url']
-              elif spec['mode']=='freekit':
-                  r=requests.post('https://freekit.dev/api/v1/sites',json={'html':content},timeout=45)
-                  print('FREEKIT_STATUS',r.status_code,r.text[:500])
-                  if r.ok:
-                      return r.json()['data']['url']
-              elif spec['mode']=='shareyourhtml':
-                  slug='smm-growth-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(8))
-                  r=requests.post('https://shareyourhtml.com/pages',json={'slug':slug,'html':content,'expiry':'never'},timeout=45)
-                  print('SYH_STATUS',r.status_code,r.text[:500])
-                  if r.ok:
-                      return r.json()['url']
-              return None
+          def article(title,intro):
+              return f'''# {title}\n\n{intro} For marketers comparing distribution tools, [SMM Fans Faster]({TARGET}) is a multi-platform SMM panel that can be reviewed as one component of a wider marketing strategy.\n\n## Set a measurable objective\n\nDecide whether the campaign is focused on awareness, engagement, profile visits, traffic, leads, or sales. Clear goals make it easier to select content formats and determine whether promotion is creating useful business results.\n\n## Research the audience\n\nStudy customer questions, interests, active hours, preferred formats, competing accounts, and common objections. Promotion works best when it amplifies content that already matches real audience needs.\n\n## Build repeatable content pillars\n\nEducational posts, demonstrations, comparisons, frequently asked questions, behind-the-scenes material, and case examples give teams a sustainable editorial structure. Repeatable themes make consistent publishing easier without making the content feel identical.\n\n## Improve retention\n\nThe opening seconds of a video and the first lines of a post matter. Strong hooks, clear framing, useful information, and a direct reason to continue help more viewers reach the central message.\n\n## Support distribution strategically\n\nOrganic publishing can be supported by paid advertising, creator partnerships, community activity, and social media promotion services when those methods fit the campaign and platform policies. Teams can compare available options through [SMMFansFaster.com]({TARGET}) while continuing to invest in original content and audience relationships.\n\n## Track meaningful metrics\n\nFollower totals alone do not explain campaign quality. Review reach, watch time, saves, shares, comments, profile visits, click-through rate, leads, and conversions to understand whether increased visibility is attracting useful attention.\n\n## Review performance weekly\n\nA weekly review should identify winning topics, weak formats, audience questions, and content worth repurposing. Change one major variable at a time so experiments remain understandable and future decisions are based on evidence.\n\n## Final checklist\n\nDefine the goal, understand the audience, create several content variations, publish consistently, support distribution where appropriate, and review meaningful metrics. If an SMM panel fits the plan, visit [SMM Fans Faster]({TARGET}) to compare services as part of the broader growth workflow.\n'''
 
           def verify(url):
-              r=requests.get(url,timeout=45,allow_redirects=True)
-              print('VERIFY_STATUS',url,r.status_code,r.url)
-              if not r.ok: return None,0
-              soup=BeautifulSoup(r.text,'html.parser')
-              links=[]
-              for a in soup.find_all('a',href=True):
-                  if 'smmfansfaster.com' in a.get('href',''):
-                      links.append(a['href'])
-              return r.url,len(links)
+              if not url: return None
+              try:
+                  r=requests.get(url,headers=UA,timeout=35,allow_redirects=True)
+                  if not r.ok: return None
+                  hrefs=re.findall(r'''href\s*=\s*["']([^"']+)["']''',r.text,re.I)
+                  return r.url if any('smmfansfaster.com' in h.lower() for h in hrefs) else None
+              except Exception:
+                  return None
 
           results=[]
-          for spec in TARGETS:
+
+          # Telegra.ph
+          try:
+              acc=requests.get('https://api.telegra.ph/createAccount',params={'short_name':'SMMFansFasterGuide','author_name':'Social Media Growth Guide','author_url':TARGET},headers=UA,timeout=35).json()
+              token=acc['result']['access_token']
+              title='Social Media Growth Strategy for Brands in 2026'
+              md=article(title,'Brand growth becomes easier to manage when content, promotion, and measurement are connected in one repeatable process.')
+              nodes=[]
+              for block in md.split('\n\n'):
+                  block=block.strip()
+                  if not block or block.startswith('# '): continue
+                  if block.startswith('## '): nodes.append({'tag':'h3','children':[block[3:]]}); continue
+                  children=[]; pos=0
+                  for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',block):
+                      if m.start()>pos: children.append(block[pos:m.start()])
+                      children.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]}); pos=m.end()
+                  if pos<len(block): children.append(block[pos:])
+                  nodes.append({'tag':'p','children':children})
+              obj=requests.post('https://api.telegra.ph/createPage',data={'access_token':token,'title':title,'author_name':'Social Media Growth Guide','author_url':TARGET,'content':json.dumps(nodes),'return_content':'true'},headers=UA,timeout=35).json()
+              url=obj.get('result',{}).get('url'); final=verify(url)
+              results.append({'site':'Telegra.ph','domain':'telegra.ph','url':final,'status':'verified' if final else 'failed'})
+          except Exception as e: results.append({'site':'Telegra.ph','domain':'telegra.ph','url':None,'status':'failed','error':repr(e)})
+
+          # Write.as
+          try:
+              title='A Practical Social Media Promotion Framework for Small Businesses'
+              md=article(title,'Small businesses benefit from a simple system that combines consistent publishing with measurable distribution support.')
+              obj=requests.post('https://write.as/api/posts',json={'body':md,'title':title,'font':'serif','lang':'en'},headers=UA,timeout=35).json()
+              pid=obj.get('data',{}).get('id'); url='https://write.as/'+pid if pid else None; final=verify(url)
+              results.append({'site':'Write.as','domain':'write.as','url':final,'status':'verified' if final else 'failed'})
+          except Exception as e: results.append({'site':'Write.as','domain':'write.as','url':None,'status':'failed','error':repr(e)})
+
+          # Rentry
+          try:
+              title='How Agencies Can Organize Multi-Platform SMM Campaigns'
+              md=article(title,'Agencies managing multiple clients need a repeatable workflow for content planning, promotion, reporting, and weekly optimization.')
+              obj=requests.post('https://rentry.co/api/new',data={'text':md,'metadata':json.dumps({'PAGE_TITLE':title})},headers=UA,timeout=35).json()
+              content=obj.get('content'); url=content.get('url') if isinstance(content,dict) else obj.get('url')
+              if url and not str(url).startswith('http'): url='https://rentry.co/'+str(url).lstrip('/')
+              final=verify(url)
+              results.append({'site':'Rentry','domain':'rentry.co','url':final,'status':'verified' if final else 'failed','api_status':obj.get('status')})
+          except Exception as e: results.append({'site':'Rentry','domain':'rentry.co','url':None,'status':'failed','error':repr(e)})
+
+          # Markdown.page
+          try:
+              title='A Measurable TikTok and YouTube Growth Workflow'
+              md=article(title,'Video growth improves when creative testing, retention, distribution, and conversion metrics are reviewed as one system.')
+              r=requests.post('https://markdown.page/api/publish',data=md.encode(),headers={**UA,'Content-Type':'text/markdown'},timeout=35)
+              raw=r.text; url=None
               try:
-                  content,wc=article(spec)
-                  print('ARTICLE',spec['domain'],'WORDS',wc,'TARGET_OCCURRENCES',content.count('smmfansfaster.com'))
-                  if content.count('smmfansfaster.com') != 1:
-                      print('SKIP_BAD_LINK_COUNT',spec['domain']); continue
-                  url=publish(spec,content)
-                  if not url:
-                      print('PUBLISH_FAILED',spec['domain']); continue
-                  final,count=verify(url)
-                  print('VERIFIED',spec['domain'],final,'LINK_COUNT',count)
-                  if final and count==1:
-                      results.append({'domain':spec['domain'],'url':final,'words':wc,'target':spec['target'],'anchor':spec['anchor']})
-              except Exception as e:
-                  print('ERROR',spec['domain'],repr(e))
-          print('VALID_RESULTS_JSON='+json.dumps(results))
-          print('VALID_COUNT='+str(len(results)))
+                  obj=r.json()
+                  if isinstance(obj,dict):
+                      url=obj.get('url') or obj.get('page_url') or obj.get('public_url')
+                      if not url and isinstance(obj.get('data'),dict): url=obj['data'].get('url') or obj['data'].get('page_url') or obj['data'].get('public_url')
+              except Exception: pass
+              if not url:
+                  m=re.search(r'https?://[^\s"<>]+',raw); url=m.group(0).rstrip('.,)]}') if m else None
+              final=verify(url)
+              results.append({'site':'Markdown.page','domain':'markdown.page','url':final,'status':'verified' if final else 'failed','response':raw[:250]})
+          except Exception as e: results.append({'site':'Markdown.page','domain':'markdown.page','url':None,'status':'failed','error':repr(e)})
+
+          Path('results').mkdir(exist_ok=True)
+          Path('results/smmfansfaster-current-distinct.json').write_text(json.dumps(results,indent=2),encoding='utf-8')
+          print(json.dumps(results,indent=2))
           PY
           python /tmp/run.py
+      - name: Commit results
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p results
+          test -f results/smmfansfaster-current-distinct.json || echo '[]' > results/smmfansfaster-current-distinct.json
+          git add results/smmfansfaster-current-distinct.json
+          git commit -m "Save current SMMFansFaster distinct backlink results" || exit 0
+          git push
