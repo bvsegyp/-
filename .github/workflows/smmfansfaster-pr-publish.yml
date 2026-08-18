@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Publish and verify distinct-domain backlinks
+      - name: Publish and verify distinct-domain backlinks batch 2
         shell: bash
         run: |
           python -m pip install --quiet requests beautifulsoup4
@@ -17,26 +17,23 @@ jobs:
           import requests, json, re, html
           from bs4 import BeautifulSoup
           TARGET='https://smmfansfaster.com/'
-          H={'User-Agent':'Mozilla/5.0 backlink-verifier'}
-
+          H={'User-Agent':'SMMBacklinkPublisher/1.0'}
           paras=[
-          ('Start with clear business goals','A useful social media growth plan begins with a measurable business objective rather than a vanity metric. Teams should decide whether the priority is qualified profile visits, website traffic, leads, sales, bookings, newsletter signups, or repeat engagement. A clear goal makes it easier to select channels, content formats, distribution methods, and reporting metrics. It also gives marketers a baseline for evaluating progress instead of judging success from isolated posts or short-term spikes.'),
-          ('Understand audience intent','Audience research should use real behavior such as customer questions, support conversations, comments, search queries, direct messages, competitor communities, and analytics. These signals reveal recurring problems, objections, motivations, and language. When marketers understand those patterns, they can create content that feels specific rather than generic and choose whether demonstrations, education, comparisons, testimonials, short videos, carousels, or longer explanations are most likely to move people from discovery to consideration.'),
-          ('Build repeatable content pillars','A sustainable content system relies on recurring themes such as education, demonstrations, FAQs, process transparency, proof, comparisons, industry commentary, and conversion-focused offers. Repeating strong themes helps audiences understand what a brand represents while still allowing the creative execution to change. It also reduces production friction because writers, designers, and video teams can start from a known set of directions instead of inventing every piece of content from zero.'),
-          ('Test creative variables','Every post can become a learning opportunity when the team changes one major variable at a time. Hooks, headlines, editing pace, visual structure, content length, proof points, calls to action, and publishing times can be tested systematically. Results should be documented so successful patterns can be reused. A simple experiment log prevents marketers from treating one unusually strong or weak post as a permanent rule and turns content activity into cumulative knowledge.'),
-          ('Use distribution responsibly','Organic reach can be supported by advertising, creator partnerships, community activity, and social media promotion services when those approaches fit the campaign and platform rules. Distribution should amplify useful content rather than replace it. Any external provider should be evaluated for fit, transparency, account safety, and how well it supports the wider strategy. The best mix depends on the audience, objective, creative quality, risk tolerance, and the experience users find after clicking.'),
-          ('Connect reach to conversion','Views, impressions, reach, and follower growth explain discovery, but they do not prove business impact. Saves, shares, profile visits, outbound clicks, form starts, qualified leads, and purchases indicate progressively stronger intent. Reporting should connect these stages rather than over-focus on one number. When reach increases but conversion stays flat, the issue may be audience fit, message clarity, offer strength, landing-page quality, or the next step rather than distribution volume.'),
-          ('Improve the destination','Extra visibility creates value only when the destination is persuasive. Profiles and landing pages should make the offer clear, show relevant proof, load quickly, work well on mobile, and give visitors an obvious next step. Slow pages, weak calls to action, confusing navigation, or mismatched messaging can waste otherwise useful traffic. Conversion optimization therefore belongs inside the social media system instead of being treated as a separate project.'),
-          ('Review results every week','A weekly review gives the team a consistent place to compare creative performance, audience response, traffic quality, conversion behavior, and upcoming priorities. The review should identify what worked, what failed, what changed, what should be tested next, and what should stop. Over time this documentation becomes an internal playbook that speeds up onboarding, reduces repeated mistakes, and makes multi-person marketing teams more consistent.')]
-
+          ('Set a measurable objective','Effective social media planning starts with a business outcome. Teams should define whether they want qualified profile visits, traffic, leads, sales, bookings, or repeat engagement. A measurable objective makes channel and content decisions easier and provides a baseline for judging progress instead of relying on isolated reach or follower numbers.'),
+          ('Study real audience behavior','Customer questions, support conversations, comments, search queries, direct messages, competitor communities, and analytics reveal the language and problems that matter to an audience. These signals help marketers choose useful topics and formats and reduce the risk of publishing generic content that attracts attention without meaningful intent.'),
+          ('Build repeatable content themes','Strong content systems usually rely on recurring themes such as education, demonstrations, proof, comparisons, frequently asked questions, process transparency, industry commentary, and conversion-focused offers. Repetition of useful themes improves consistency while different hooks, examples, visual structures, and formats keep the execution fresh.'),
+          ('Test one major variable at a time','Hooks, headlines, editing pace, content length, visual structure, proof points, calls to action, and publishing times can be tested systematically. Recording the result of each experiment turns content production into a learning system and prevents teams from making permanent decisions based on a single unusually strong or weak post.'),
+          ('Use distribution to amplify useful content','Organic publishing can be supported by advertising, creator partnerships, communities, and social media promotion services when those approaches match the campaign and platform rules. External distribution should amplify content that already serves an audience rather than substitute for quality, trust, or a clear offer.'),
+          ('Connect reach to business actions','Views and reach explain discovery, while saves, shares, profile visits, clicks, leads, and purchases reveal progressively stronger intent. Reporting should connect these stages. When visibility increases without conversions, the issue may be audience fit, offer clarity, message consistency, or landing-page quality rather than the volume of distribution.'),
+          ('Improve the post-click experience','Profiles and landing pages should load quickly, work well on mobile, communicate the offer clearly, provide relevant proof, and give visitors an obvious next step. A strong distribution plan can still underperform when the destination is slow, confusing, or inconsistent with the message that generated the click.'),
+          ('Review and document results','A weekly review helps teams identify what worked, what failed, what changed, and what should be tested next. Documenting experiments, audience response, traffic quality, and conversion behavior creates an internal playbook that reduces repeated mistakes and makes future campaigns easier to plan.')]
           def md(title,intro):
               out=[f'# {title}',intro]
               for i,(h,p) in enumerate(paras):
                   out += [f'## {h}',p]
-                  if i==3: out.append(f'Teams comparing external tools can review [SMM Fans Faster]({TARGET}) as one option alongside organic content, paid media, creator partnerships, and internal analytics. The service should be assessed in the context of platform rules, campaign objectives, and account safety.')
-              out += ['## Final perspective',f'A durable growth system combines useful content, structured testing, responsible distribution, meaningful measurement, and a destination that converts attention into action. Marketers exploring an SMM panel can compare [SMMFansFaster.com]({TARGET}) with other channels while keeping audience value and original content at the center of the plan.']
+                  if i==3: out.append(f'Teams researching multi-platform promotion can review [SMM Fans Faster]({TARGET}) as one reference point alongside organic content, paid media, creator partnerships, and internal analytics. Any provider should be evaluated for fit, transparency, platform compliance, and account safety.')
+              out += ['## Final perspective',f'Long-term growth comes from useful content, structured testing, responsible distribution, clear measurement, and a destination that converts attention into action. Marketers considering an SMM panel can compare [SMMFansFaster.com]({TARGET}) with other channels while keeping audience value at the center of the plan.']
               return '\n\n'.join(out)
-
           def htm(title,intro):
               text=md(title,intro); out=[]
               for b in text.split('\n\n'):
@@ -47,66 +44,44 @@ jobs:
                       parts.append(html.escape(b[pos:m.start()])); parts.append('<a href="'+html.escape(m.group(2),quote=True)+'">'+html.escape(m.group(1))+'</a>'); pos=m.end()
                   parts.append(html.escape(b[pos:])); out.append('<p>'+''.join(parts)+'</p>')
               return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
-
           def verify(u):
               if not u:return None
               try:
-                  r=requests.get(u,headers=H,timeout=30,allow_redirects=True)
+                  r=requests.get(u,headers=H,timeout=35,allow_redirects=True)
                   if not r.ok:return None
                   s=BeautifulSoup(r.text,'html.parser')
                   return r.url if any('smmfansfaster.com' in a.get('href','').lower() for a in s.find_all('a',href=True)) else None
               except:return None
-
           res=[]
           def add(site,domain,url,status,error=None):
-              x={'site':site,'domain':domain,'url':url,'status':status}
-              if error:x['error']=error
-              res.append(x)
+              d={'site':site,'domain':domain,'url':url,'status':status}
+              if error:d['error']=error
+              res.append(d)
 
-          # Quicky.Page
           try:
-              t='A Practical Social Media Growth Framework for Online Brands'
-              r=requests.post('https://quicky.page/api/v1/publish',json={'title':t,'content':md(t,'Online brands can make growth more predictable by connecting content, audience research, distribution, measurement, and conversion in one repeatable system.')},headers=H,timeout=30)
-              u=r.json().get('url'); v=verify(u); add('Quicky.Page','quicky.page',v,'verified' if v else 'failed')
-          except Exception as e:add('Quicky.Page','quicky.page',None,'failed',repr(e))
+              t='A Practical Guide to Social Media Growth for Online Businesses'; p=htm(t,'Online businesses can improve social media performance by connecting audience research, content planning, distribution, measurement, and conversion in one system.')
+              r=requests.post('https://api.meethtml.com/api/v1/publish',json={'html':p},headers=H,timeout=35); o=r.json(); u=o.get('url') or o.get('link'); v=verify(u); add('MeetHTML','meethtml.com',v,'verified' if v else 'failed')
+          except Exception as e:add('MeetHTML','meethtml.com',None,'failed',repr(e))
 
-          # Pastepile
           try:
-              t='Social Media Promotion Planning for Small Businesses'
-              p={'title':t,'content':md(t,'Small businesses can improve social media performance by using a structured process for content, distribution, testing, and conversion.'),'language':'markdown','expiry':'1mo','visibility':'public'}
-              r=requests.post('https://www.pastepile.com/api/public/pastes',json=p,headers=H,timeout=30); u=r.json().get('url'); v=verify(u); add('Pastepile','pastepile.com',v,'verified' if v else 'failed')
-          except Exception as e:add('Pastepile','pastepile.com',None,'failed',repr(e))
+              t='Social Media Marketing Framework for Growing Digital Brands'; p=htm(t,'Digital brands get more useful results when content and distribution are managed as part of the same measurable customer journey.')
+              r=requests.post('https://brewpage.app/api/html?ns=public&ttl=30d',json={'content':p},headers={**H,'Content-Type':'application/json'},timeout=35); o=r.json(); u=o.get('link') or o.get('url') or o.get('shortUrl'); v=verify(u); add('BrewPage','brewpage.app',v,'verified' if v else 'failed')
+          except Exception as e:add('BrewPage','brewpage.app',None,'failed',repr(e))
 
-          # dpaste
           try:
-              t='A Social Media Growth Guide for Creators and Digital Businesses'; body=md(t,'Creators and digital businesses benefit from separating content quality, distribution, audience response, and business outcomes while connecting them through one plan.')
-              r=requests.post('https://dpaste.org/api/',data={'format':'json','content':body,'lexer':'markdown','expires':'never'},headers=H,timeout=30); u=r.json().get('url'); v=verify(u)
-              if not v and u:
-                  page=requests.get(u,headers=H,timeout=30); s=BeautifulSoup(page.text,'html.parser')
-                  for a in s.find_all('a',href=True):
-                      if 'preview' in (a.get_text(' ',strip=True)+' '+a['href']).lower():
-                          v=verify(requests.compat.urljoin(u,a['href']))
-                          if v:break
-              add('dpaste','dpaste.org',v,'verified' if v else 'failed')
-          except Exception as e:add('dpaste','dpaste.org',None,'failed',repr(e))
+              t='How Brands Can Build a Stronger Social Media Promotion System'; p=htm(t,'Brands can create more predictable growth by coordinating content quality, responsible promotion, audience response, and conversion tracking.')
+              r=requests.post('https://pitchey.app/api/pages',json={'html':p,'ttl':'30d'},headers=H,timeout=35); o=r.json(); u=o.get('url'); v=verify(u); add('Pitchey','pitchey.app',v,'verified' if v else 'failed')
+          except Exception as e:add('Pitchey','pitchey.app',None,'failed',repr(e))
 
-          # ShipPage
           try:
-              t='Conversion Focused Social Media Growth Strategy for 2026'; page=htm(t,'A conversion-focused strategy connects useful content, responsible promotion, clear landing pages, and disciplined reporting.')
-              r=requests.post('https://shippage.ai/v1/publish',json={'html':page,'title':t,'public':True},headers=H,timeout=30); u=r.json().get('url'); v=verify(u); add('ShipPage','shippage.ai',v,'verified' if v else 'failed')
-          except Exception as e:add('ShipPage','shippage.ai',None,'failed',repr(e))
+              t='A Conversion Focused Social Media Strategy for Service Businesses'; p=htm(t,'Service businesses can connect educational content, social distribution, proof, and a clear post-click path to improve the quality of social media traffic.')
+              r=requests.post('https://gatedpage.com/api/v1/upload',files={'file':('social-media-growth.html',p.encode('utf-8'),'text/html')},headers=H,timeout=35); o=r.json(); u=o.get('url'); v=verify(u); add('GatedPage','gated.page',v,'verified' if v else 'failed')
+          except Exception as e:add('GatedPage','gated.page',None,'failed',repr(e))
 
-          # Botsite
           try:
-              t='How Online Businesses Can Improve Social Media Distribution'; page=htm(t,'Online businesses get better results when distribution supports useful content and sends visitors to a clear conversion path.')
-              r=requests.post('https://botsite.dev/api/v1/sites',data=page.encode(),headers={**H,'Content-Type':'text/html'},timeout=30); u=r.json().get('url'); v=verify(u); add('Botsite','botsite.dev',v,'verified' if v else 'failed')
-          except Exception as e:add('Botsite','botsite.dev',None,'failed',repr(e))
-
-          # PageDrop
-          try:
-              t='How to Combine Content and Distribution for Sustainable Growth'; page=htm(t,'Sustainable social media growth depends on the relationship between content, distribution, measurement, and the post-click experience.')
-              r=requests.post('https://pagedrop.dev/api/v1/sites',json={'html':page},headers=H,timeout=30); o=r.json(); u=(o.get('data') or {}).get('url') or o.get('url'); v=verify(u); add('PageDrop','pagedrop.dev',v,'verified' if v else 'failed')
-          except Exception as e:add('PageDrop','pagedrop.dev',None,'failed',repr(e))
+              t='Social Media Distribution and Conversion Planning for 2026'; p=htm(t,'A balanced growth plan combines original content, distribution, testing, measurement, and conversion optimization rather than relying on a single tactic.')
+              r=requests.post('https://api.display.dev/v1/public/artifacts',files={'file':('social-media-distribution.html',p.encode('utf-8'),'text/html')},data={'name':t},headers=H,timeout=35); o=r.json(); u=o.get('previewUrl') or o.get('url'); v=verify(u); add('Display.dev','public.dsp.so',v,'verified' if v else 'failed')
+          except Exception as e:add('Display.dev','public.dsp.so',None,'failed',repr(e))
 
           print('RESULT_JSON='+json.dumps(res))
           PY
