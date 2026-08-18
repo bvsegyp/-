@@ -1,0 +1,131 @@
+name: SMMFansFaster Distinct Domain Results
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: "github.event.head_commit.message == 'Run SMMFansFaster distinct domain results'"
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish and verify backlink articles
+        shell: bash
+        run: |
+          python - <<'PY'
+          import html, json, re, time, urllib.parse, urllib.request
+          from pathlib import Path
+
+          TARGET = "https://smmfansfaster.com/"
+          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36"
+          hosts = [
+              {"name":"PageDrop","domain":"pagedrop.dev","endpoint":"https://pagedrop.dev/api/new","ctype":"application/x-www-form-urlencoded","payload":lambda title,page: urllib.parse.urlencode({"title":title,"html":page}).encode()},
+              {"name":"FreeKit","domain":"freekit.dev","endpoint":"https://freekit.dev/api/v1/pages","ctype":"application/json","payload":lambda title,page: json.dumps({"title":title,"content":page}).encode()},
+              {"name":"ShareYourHTML","domain":"shareyourhtml.com","endpoint":"https://shareyourhtml.com/api/pages","ctype":"application/json","payload":lambda title,page: json.dumps({"title":title,"html":page}).encode()},
+          ]
+          topics = [
+              ("How to Build a Practical Instagram Growth Strategy in 2026", "Instagram growth works best when content quality, distribution, audience research, and measurement are managed together."),
+              ("A Practical SMM Panel Guide for Agencies and Creators", "Agencies and creators often need a repeatable system for managing promotion across several social platforms without losing focus on content quality."),
+              ("How to Improve TikTok and YouTube Reach With a Balanced Growth Plan", "Short-form and video growth become more measurable when creative testing, distribution support, and performance review are combined in one process."),
+          ]
+          sections = [
+              ("Define the campaign goal", "Start by deciding whether the priority is awareness, engagement, website traffic, leads, or sales. A clear goal makes every later decision easier to measure."),
+              ("Research the audience", "Study audience interests, problems, active hours, preferred content formats, competing accounts, and common questions. Good distribution cannot compensate for content that is irrelevant to the people you want to reach."),
+              ("Create repeatable content pillars", "Build several recurring themes such as educational posts, comparisons, demonstrations, customer questions, behind-the-scenes material, and proof-driven examples. This helps maintain consistency without making the feed repetitive."),
+              ("Strengthen early retention", "The opening seconds of a video or the first lines of a post determine whether people continue. Clear framing, useful hooks, and direct value improve the chance that viewers stay long enough to understand the message."),
+              ("Support distribution carefully", "Organic publishing can be supported by paid ads, creator partnerships, community activity, and social media promotion tools when those methods fit the campaign and the rules of each platform."),
+              ("Track meaningful metrics", "Follower totals alone are not enough. Review reach, watch time, saves, shares, profile visits, comments, click-through rate, and conversions to understand whether increased visibility is attracting useful attention."),
+              ("Review results every week", "A simple weekly review helps identify winning topics, weak formats, content worth repurposing, and experiments that should be repeated. Decisions should be based on patterns rather than one unusually strong or weak post."),
+          ]
+
+          def article(title, intro):
+              out=[f"<h1>{html.escape(title)}</h1>", f"<p>{html.escape(intro)} For marketers comparing multi-platform promotion options, <a href='{TARGET}'>SMM Fans Faster</a> is an SMM panel that can be reviewed alongside organic content, paid media, and community-building efforts.</p>"]
+              for i,(h,b) in enumerate(sections):
+                  if i==4:
+                      b += f" Teams can also compare services available through <a href='{TARGET}'>SMMFansFaster.com</a> while keeping original content and audience value at the center of the strategy."
+                  out.append(f"<h2>{html.escape(h)}</h2><p>{b} Document what you test so later decisions are based on repeatable evidence rather than assumptions.</p>")
+              out.append(f"<h2>Final checklist</h2><p>Define the goal, research the audience, prepare creative variations, publish consistently, monitor useful metrics, and review performance. When an SMM panel fits the plan, visit <a href='{TARGET}'>SMM Fans Faster</a> to compare available social media services.</p>")
+              return "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>"+html.escape(title)+"</title></head><body><main>"+''.join(out)+"</main></body></html>"
+
+          def post(url,data,ctype):
+              req=urllib.request.Request(url,data=data,headers={"User-Agent":UA,"Accept":"application/json,text/plain,*/*","Content-Type":ctype},method="POST")
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  return r.read().decode("utf-8","ignore")
+
+          def collect_urls(obj):
+              out=[]
+              if isinstance(obj,dict):
+                  for k,v in obj.items():
+                      if isinstance(v,str) and (v.startswith("http") or "url" in k.lower()): out.append(v)
+                      out += collect_urls(v)
+              elif isinstance(obj,list):
+                  for v in obj: out += collect_urls(v)
+              elif isinstance(obj,str) and obj.startswith("http"):
+                  out.append(obj)
+              return out
+
+          def verify(url):
+              if not isinstance(url,str) or not url.startswith("http"): return None
+              try:
+                  req=urllib.request.Request(url,headers={"User-Agent":UA,"Accept":"text/html,*/*"})
+                  with urllib.request.urlopen(req,timeout=30) as r:
+                      final=r.geturl(); text=r.read().decode("utf-8","ignore")
+                  hrefs=re.findall(r'''href\s*=\s*["']([^"']+)["']''',text,re.I)
+                  return final if any("smmfansfaster.com" in x.lower() for x in hrefs) else None
+              except Exception:
+                  return None
+
+          results=[]
+          for cfg,(title,intro) in zip(hosts,topics):
+              page=article(title,intro)
+              rec={"site":cfg["name"],"domain":cfg["domain"],"url":None,"status":"failed"}
+              try:
+                  body=post(cfg["endpoint"],cfg["payload"](title,page),cfg["ctype"])
+                  objs=[]
+                  try: objs.append(json.loads(body))
+                  except Exception: pass
+                  urls=[]
+                  for o in objs: urls += collect_urls(o)
+                  urls += re.findall(r'https?://[^\s"<>]+',body)
+                  for o in objs:
+                      if isinstance(o,dict):
+                          vals=[o]
+                          if isinstance(o.get("data"),dict): vals.append(o["data"])
+                          for d in vals:
+                              for key in ("id","slug","uuid","key"):
+                                  if d.get(key):
+                                      v=str(d[key])
+                                      if cfg["name"]=="PageDrop": urls += [f"https://pagedrop.dev/{v}",f"https://pagedrop.dev/p/{v}"]
+                                      elif cfg["name"]=="FreeKit": urls += [f"https://freekit.dev/{v}",f"https://freekit.dev/p/{v}",f"https://freekit.dev/pages/{v}"]
+                                      else: urls += [f"https://shareyourhtml.com/{v}",f"https://shareyourhtml.com/p/{v}",f"https://shareyourhtml.com/pages/{v}"]
+                  seen=set()
+                  for u in urls:
+                      u=u.rstrip(".,)]}'")
+                      if u in seen or cfg["endpoint"] in u: continue
+                      seen.add(u)
+                      final=verify(u)
+                      if final:
+                          rec.update({"url":final,"status":"verified"}); break
+              except Exception as e:
+                  rec["error"]=repr(e)
+              results.append(rec)
+              time.sleep(2)
+
+          Path("results").mkdir(exist_ok=True)
+          Path("results/smmfansfaster-distinct-domains-20260818.json").write_text(json.dumps(results,indent=2),encoding="utf-8")
+          print(json.dumps(results,indent=2))
+          PY
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/smmfansfaster-distinct-domains-20260818.json
+          git commit -m "Save SMMFansFaster distinct backlink results" || exit 0
+          git push
