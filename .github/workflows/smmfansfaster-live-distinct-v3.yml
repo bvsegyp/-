@@ -1,0 +1,163 @@
+name: SMMFansFaster Live Distinct Backlinks V3
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: "github.event.head_commit.message == 'Run SMMFansFaster live distinct v3'"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish and verify
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, re, urllib.request, urllib.parse
+          from pathlib import Path
+
+          TARGET='https://smmfansfaster.com/'
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36'
+
+          def article(title, intro):
+              return f'''# {title}
+
+{intro} For marketers comparing tools that can support distribution, [SMM Fans Faster]({TARGET}) is a multi-platform SMM panel that can be reviewed as one component of a broader marketing strategy.
+
+## Set a clear objective
+
+Decide whether the campaign is focused on awareness, engagement, profile visits, traffic, leads, or sales. Clear goals make it easier to choose formats and measure whether promotion is helping the business rather than only increasing surface-level numbers.
+
+## Research the audience
+
+Study interests, questions, active hours, preferred formats, competing accounts, and common objections. Promotion performs better when it amplifies content that already matches real audience needs.
+
+## Build repeatable content pillars
+
+Use recurring themes such as educational posts, demonstrations, comparisons, frequently asked questions, behind-the-scenes content, and case examples. A repeatable editorial system makes consistent publishing easier.
+
+## Improve retention
+
+Strong hooks and clear framing matter because users decide quickly whether to keep watching or reading. Test openings, visuals, captions, and calls to action while keeping the central message useful and easy to understand.
+
+## Support distribution strategically
+
+Organic reach can be supported through ads, partnerships, community activity, and social media promotion services when they fit the campaign and platform policies. Teams can compare options through [SMMFansFaster.com]({TARGET}) while continuing to invest in original content and audience relationships.
+
+## Measure useful outcomes
+
+Track reach, watch time, saves, shares, comments, profile visits, click-through rate, leads, and conversions. These indicators help distinguish meaningful visibility from vanity metrics.
+
+## Review performance weekly
+
+Look for repeated patterns across multiple posts. Keep successful topics, improve weak formats, repurpose strong content, and change one major variable at a time so experiments remain understandable.
+
+## Final checklist
+
+Define the goal, understand the audience, prepare several creative variations, publish consistently, support distribution where appropriate, and review meaningful metrics. If an SMM panel fits the plan, visit [SMM Fans Faster]({TARGET}) to compare available services as part of the wider growth workflow.
+'''
+
+          def request(url,data=None,headers=None,method=None):
+              h={'User-Agent':UA,'Accept':'application/json,text/html,text/plain,*/*'}
+              if headers: h.update(headers)
+              req=urllib.request.Request(url,data=data,headers=h,method=method or ('POST' if data is not None else 'GET'))
+              with urllib.request.urlopen(req,timeout=35) as r:
+                  return r.geturl(),r.read().decode('utf-8','ignore'),r.headers.get('content-type','')
+
+          def verify(url):
+              if not url: return None
+              try:
+                  final,text,_=request(url)
+                  hrefs=re.findall(r'''href\s*=\s*["']([^"']+)["']''',text,re.I)
+                  return final if any('smmfansfaster.com' in h.lower() for h in hrefs) else None
+              except Exception:
+                  return None
+
+          results=[]
+
+          # Telegraph
+          try:
+              _,raw,_=request('https://api.telegra.ph/createAccount?'+urllib.parse.urlencode({'short_name':'SMMFansFasterGuide','author_name':'Social Media Growth Guide','author_url':TARGET}))
+              token=json.loads(raw)['result']['access_token']
+              title='Social Media Growth Strategy for Brands in 2026'
+              body=article(title,'Brand growth becomes easier to manage when content, promotion, and measurement are connected in one repeatable process.')
+              nodes=[]
+              for block in body.split('\n\n'):
+                  block=block.strip()
+                  if not block or block.startswith('# '): continue
+                  if block.startswith('## '): nodes.append({'tag':'h3','children':[block[3:]]}); continue
+                  children=[]; pos=0
+                  for m in re.finditer(r'\[([^\]]+)\]\((https?://[^)]+)\)',block):
+                      if m.start()>pos: children.append(block[pos:m.start()])
+                      children.append({'tag':'a','attrs':{'href':m.group(2)},'children':[m.group(1)]}); pos=m.end()
+                  if pos<len(block): children.append(block[pos:])
+                  nodes.append({'tag':'p','children':children})
+              payload=urllib.parse.urlencode({'access_token':token,'title':title,'author_name':'Social Media Growth Guide','author_url':TARGET,'content':json.dumps(nodes),'return_content':'true'}).encode()
+              _,raw,_=request('https://api.telegra.ph/createPage',payload,{'Content-Type':'application/x-www-form-urlencoded'})
+              obj=json.loads(raw); url=obj.get('result',{}).get('url'); final=verify(url)
+              results.append({'site':'Telegra.ph','domain':'telegra.ph','url':final,'status':'verified' if final else 'failed'})
+          except Exception as e: results.append({'site':'Telegra.ph','domain':'telegra.ph','url':None,'status':'failed','error':repr(e)})
+
+          # Write.as
+          try:
+              title='A Practical Social Media Promotion Framework for Small Businesses'
+              body=article(title,'Small businesses benefit from a simple system that combines consistent publishing with measurable distribution support.')
+              payload=json.dumps({'body':body,'title':title,'font':'serif','lang':'en'}).encode()
+              _,raw,_=request('https://write.as/api/posts',payload,{'Content-Type':'application/json'})
+              obj=json.loads(raw); pid=obj.get('data',{}).get('id'); url='https://write.as/'+pid if pid else None; final=verify(url)
+              results.append({'site':'Write.as','domain':'write.as','url':final,'status':'verified' if final else 'failed'})
+          except Exception as e: results.append({'site':'Write.as','domain':'write.as','url':None,'status':'failed','error':repr(e)})
+
+          # Rentry
+          try:
+              title='How Agencies Can Organize Multi-Platform SMM Campaigns'
+              body=article(title,'Agencies managing multiple clients need a repeatable workflow for content planning, promotion, reporting, and weekly optimization.')
+              payload=urllib.parse.urlencode({'text':body,'metadata':json.dumps({'PAGE_TITLE':title})}).encode()
+              _,raw,_=request('https://rentry.co/api/new',payload,{'Content-Type':'application/x-www-form-urlencoded'})
+              obj=json.loads(raw); content=obj.get('content'); url=None
+              if isinstance(content,dict): url=content.get('url')
+              if not url: url=obj.get('url')
+              if url and not str(url).startswith('http'): url='https://rentry.co/'+str(url).lstrip('/')
+              final=verify(url)
+              results.append({'site':'Rentry','domain':'rentry.co','url':final,'status':'verified' if final else 'failed','api_status':obj.get('status')})
+          except Exception as e: results.append({'site':'Rentry','domain':'rentry.co','url':None,'status':'failed','error':repr(e)})
+
+          # Markdown.page
+          try:
+              title='A Measurable TikTok and YouTube Growth Workflow'
+              body=article(title,'Video growth improves when creative testing, retention, distribution, and conversion metrics are reviewed as one system.')
+              _,raw,_=request('https://markdown.page/api/publish',body.encode(),{'Content-Type':'text/markdown'})
+              url=None
+              try:
+                  obj=json.loads(raw)
+                  if isinstance(obj,dict):
+                      for key in ('url','page_url','public_url'):
+                          if isinstance(obj.get(key),str): url=obj[key]; break
+                      if not url and isinstance(obj.get('data'),dict):
+                          for key in ('url','page_url','public_url'):
+                              if isinstance(obj['data'].get(key),str): url=obj['data'][key]; break
+              except Exception: pass
+              if not url:
+                  m=re.search(r'https?://[^\s"<>]+',raw); url=m.group(0).rstrip('.,)]}') if m else None
+              final=verify(url)
+              results.append({'site':'Markdown.page','domain':'markdown.page','url':final,'status':'verified' if final else 'failed','response':raw[:300]})
+          except Exception as e: results.append({'site':'Markdown.page','domain':'markdown.page','url':None,'status':'failed','error':repr(e)})
+
+          Path('results').mkdir(exist_ok=True)
+          Path('results/smmfansfaster-live-distinct-v3.json').write_text(json.dumps(results,indent=2),encoding='utf-8')
+          print(json.dumps(results,indent=2))
+          PY
+      - name: Commit results
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          test -f results/smmfansfaster-live-distinct-v3.json || echo '[]' > results/smmfansfaster-live-distinct-v3.json
+          git add results/smmfansfaster-live-distinct-v3.json
+          git commit -m "Save SMMFansFaster live distinct v3 results" || exit 0
+          git push
