@@ -1,0 +1,95 @@
+name: SMMFansFaster Backup 6 Domain Publisher
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  backup-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Publish six extra distinct-domain articles
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 playwright
+          cat > /tmp/backup.py <<'PY'
+          import requests,json,re,html,time,os
+          from bs4 import BeautifulSoup
+          H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/2.2'}
+          TARGET='https://smmfansfaster.com/'
+          names=['PagedNet','Miinideck','NudgeHost','Supadrop','HostHTML','TiniDrop']
+          domains=['paged.net','miinideck.com','nudgehost.com','supadrop.host','host-html.com','tinidrop.com']
+          urls=['https://paged.net/','https://www.miinideck.com/','https://www.nudgehost.com/host/html','https://supadrop.host/','https://host-html.com/','https://tinidrop.com/']
+          patterns=[r'paged\.net',r'miinideck\.com',r'nudgehost\.com',r'supadrop\.host',r'host-html\.com',r'tinidrop\.com']
+          def article(i):
+              title=[
+              'Social Media Growth Strategy for Modern Online Brands',
+              'A Practical Multi-Platform Social Media Promotion Guide',
+              'How to Connect Social Media Reach With Business Results',
+              'Building a Repeatable Social Media Distribution System',
+              'A Measurable Framework for Social Media Growth in 2026',
+              'How Digital Businesses Can Improve Social Media Conversion'][i]
+              blocks=[
+              ('Define a business outcome','A social media program becomes easier to evaluate when it begins with a measurable business outcome. Qualified traffic, leads, sales, bookings, profile actions, and repeat engagement provide stronger direction than visibility alone. Clear objectives help teams choose platforms, formats, budgets, and reporting methods without confusing activity with progress.'),
+              ('Research audience intent','Search queries, customer questions, support conversations, direct messages, comments, competitor communities, and analytics reveal what an audience actually wants to understand or accomplish. These signals help marketers build content around real language and real problems instead of generic publishing calendars.'),
+              ('Create repeatable content pillars','Education, demonstrations, comparisons, proof, frequently asked questions, process transparency, customer outcomes, and offer-focused posts give teams a repeatable structure. Fresh hooks, examples, visual treatments, and platform-specific formats keep the execution varied while preserving a consistent strategic foundation.'),
+              ('Use distribution as amplification','Organic publishing can be supported by advertising, creators, communities, partnerships, and specialist social media promotion services when those methods fit campaign goals and platform policies. Distribution works best when it amplifies useful content rather than trying to compensate for weak content or an unclear offer.'),
+              ('Measure stronger intent signals','Views and impressions describe discovery, while saves, shares, profile visits, outbound clicks, landing-page engagement, leads, purchases, and repeat visits reveal progressively stronger intent. Connecting these stages helps teams compare traffic quality and understand where attention turns into meaningful business action.'),
+              ('Improve the post-click experience','Profiles and landing pages should load quickly, work well on mobile, explain the offer clearly, show relevant proof, and provide an obvious next step. The destination should match the promise that generated the click so distribution performance is not undermined by a confusing or inconsistent customer journey.'),
+              ('Protect trust while scaling','Sustainable growth avoids deceptive endorsements, fake reviews, spam, misleading claims, compromised websites, and tactics that violate platform safeguards. Responsible promotion combines original content, transparent amplification, responsive support, and measurement that rewards genuine audience value.'),
+              ('Turn results into learning','A weekly review should record the audience, hypothesis, creative concept, distribution method, timing, traffic quality, conversion behavior, and next test. Over time this becomes an internal playbook that reduces repeated mistakes and gives future campaigns a stronger starting point.')]
+              out=[f'<h1>{html.escape(title)}</h1><p>This guide explains how businesses can connect audience research, useful content, responsible distribution, measurement, and conversion into one practical social media growth system.</p>']
+              for n,(h,p) in enumerate(blocks):
+                  out.append(f'<h2>{h}</h2><p>{p}</p>')
+                  if n==1:out.append('<p>Teams comparing promotion providers can review <a href="https://smmfansfaster.com/">SMM Fans Faster</a> alongside organic publishing, paid media, creator partnerships, and other distribution options.</p>')
+                  if n==4:out.append('<p>Available social media services can also be explored at <a href="https://smmfansfaster.com/">SMMFansFaster.com</a> while content quality, platform compliance, and downstream conversion remain central to the strategy.</p>')
+                  if n==6:out.append('<p>Marketers considering an SMM panel can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other acquisition channels based on fit, transparency, traffic quality, and measurable outcomes.</p>')
+              out.append('<h2>Conclusion</h2><p>Long-term social media growth comes from useful content, measured distribution, audience trust, and a process that turns every campaign into learning for the next one.</p>')
+              return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
+          def verify(u):
+              if not u:return None
+              try:
+                  r=requests.get(u,headers=H,timeout=15,allow_redirects=True)
+                  if r.ok and any('smmfansfaster.com' in a.get('href','').lower() for a in BeautifulSoup(r.text,'html.parser').find_all('a',href=True)):return r.url
+              except:pass
+              return None
+          for i in range(6):open(f'/tmp/b{i}.html','w',encoding='utf8').write(article(i))
+          res=[]
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              br=p.chromium.launch(channel='chrome',headless=True,args=['--no-sandbox','--disable-dev-shm-usage']);ctx=br.new_context(user_agent=H['User-Agent'],viewport={'width':1365,'height':900})
+              for i in range(6):
+                  pg=None
+                  try:
+                      pg=ctx.new_page();pg.set_default_timeout(7000);pg.goto(urls[i],wait_until='domcontentloaded',timeout=18000);time.sleep(1)
+                      fis=pg.locator('input[type=file]');tas=pg.locator('textarea');ces=pg.locator('[contenteditable=true]')
+                      if fis.count():fis.first.set_input_files(f'/tmp/b{i}.html');time.sleep(1)
+                      elif tas.count():tas.first.fill(article(i));time.sleep(1)
+                      elif ces.count():ces.first.fill(article(i));time.sleep(1)
+                      btn=pg.get_by_role('button',name=re.compile(r'Get my link|Deploy Site|Deploy|Publish|Upload|Host|Go Live|Create|Share',re.I))
+                      if btn.count():btn.first.click(force=True,timeout=7000)
+                      elif pg.locator('button[type=submit],input[type=submit]').count():pg.locator('button[type=submit],input[type=submit]').first.click(force=True)
+                      time.sleep(5)
+                      body='';hrefs=[]
+                      try:body=pg.locator('body').inner_text(timeout=3000)
+                      except:pass
+                      try:hrefs=pg.locator('a').evaluate_all('(els)=>els.map(e=>e.href)')
+                      except:pass
+                      candidates=[pg.url]+hrefs+re.findall(r'https?://[^\s<>"\']+',body)
+                      candidates=[x.rstrip('.,);]') for x in candidates if isinstance(x,str) and re.search(patterns[i],x,re.I)]
+                      v=None
+                      for c in dict.fromkeys(candidates):
+                          v=verify(c)
+                          if v:break
+                      d={'site':names[i],'domain':domains[i],'url':v,'status':'verified' if v else 'failed'};res.append(d);print('ITEM='+json.dumps(d))
+                  except Exception as e:
+                      d={'site':names[i],'domain':domains[i],'url':None,'status':'failed'};res.append(d);print('FAIL',names[i],repr(e))
+                  finally:
+                      try:pg.close()
+                      except:pass
+              br.close()
+          print('GOOD_JSON='+json.dumps([x for x in res if x['status']=='verified']))
+          print('ALL_JSON='+json.dumps(res))
+          PY
+          python /tmp/backup.py
