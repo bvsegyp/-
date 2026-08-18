@@ -1,0 +1,149 @@
+name: SMMFansFaster Fast 10 Domain Publisher
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  fast-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Fast publish new-domain articles
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 playwright
+          cat > /tmp/fast.py <<'PY'
+          import requests,json,re,html,time,random,string,os
+          from bs4 import BeautifulSoup
+          from urllib.parse import urlparse
+          TARGET='https://smmfansfaster.com/'
+          H={'User-Agent':'Mozilla/5.0 SMMBacklinkPublisher/2.1'}
+          titles=[
+          'Social Media Growth Planning for Modern Businesses',
+          'How to Build a Multi-Platform Social Media Growth System',
+          'Practical Social Media Distribution Strategy for 2026',
+          'How Brands Can Improve Social Media Reach and Conversion',
+          'A Measurable Social Media Promotion Framework',
+          'Social Media Growth Strategy for Small Businesses and Agencies',
+          'How to Connect Content Distribution and Conversion',
+          'A Better Social Media Acquisition Strategy for Digital Brands',
+          'How to Scale Social Media Promotion Responsibly',
+          'Social Media Marketing Experiments That Produce Useful Learning',
+          'A Practical Framework for Social Media Traffic and Leads',
+          'How Online Brands Can Improve Social Media Performance',
+          'A Balanced Social Media Growth Strategy for 2026',
+          'From Social Reach to Business Results A Practical Guide']
+          def page(i):
+              title=titles[i%len(titles)]
+              paras=[
+              'A useful social media strategy starts with a measurable business outcome. Teams should decide whether the priority is qualified traffic, leads, purchases, bookings, profile actions, or repeat engagement before choosing platforms and formats. This creates a baseline for comparing channels and prevents large visibility numbers from being mistaken for commercial progress.',
+              'Audience research should combine search behavior, customer questions, comments, support conversations, sales objections, competitor communities, and analytics. These signals reveal the language people use and the problems they are trying to solve. Content built from real intent is more likely to support awareness, consideration, and conversion than generic publishing calendars.',
+              'Repeatable content pillars reduce production friction. Education, demonstrations, comparisons, proof, frequently asked questions, process transparency, customer outcomes, and offer-focused posts provide structure while new hooks and examples keep execution fresh. The goal is not to repeat the same post, but to build recognizable themes that can be tested consistently.',
+              'Distribution should amplify useful content rather than replace it. Organic publishing can be supported by paid advertising, creators, partnerships, communities, and specialist social media promotion services when those methods match campaign goals and platform rules. Testing one important variable at a time produces clearer evidence about what actually improves performance.',
+              'Views and impressions describe discovery, while saves, shares, profile visits, outbound clicks, landing-page engagement, leads, purchases, and repeat visits reveal stronger intent. Reporting becomes more useful when those stages are connected. A source with moderate reach and strong downstream actions can be more valuable than a source with large reach and weak traffic quality.',
+              'The post-click experience affects the value of every distribution channel. Profiles and landing pages should load quickly, work on mobile, explain the offer clearly, show relevant proof, and provide an obvious next step. The destination should also match the promise that generated the click so visitors do not encounter a disconnect between the social message and the page.',
+              'Responsible growth protects long-term trust. Teams should avoid deceptive endorsements, fake reviews, spam, misleading claims, compromised sites, or tactics that violate platform safeguards. Sustainable promotion combines original content, transparent amplification, useful support, and measurement that rewards genuine audience and business value.',
+              'Weekly reviews turn individual campaigns into cumulative learning. Document the audience, hypothesis, creative concept, distribution method, timing, traffic quality, conversion behavior, and next test. Over time this becomes an internal playbook that reduces repeated mistakes and gives future campaigns a stronger starting point.'
+              ]
+              out=[f'<h1>{html.escape(title)}</h1><p>This practical guide explains how brands can connect audience research, content, responsible distribution, measurement, and conversion into one repeatable social media growth system.</p>']
+              hs=['Define the outcome','Research audience intent','Create repeatable content pillars','Test distribution deliberately','Measure stronger intent','Improve the post-click experience','Protect audience trust','Document what works']
+              for n,(h,p) in enumerate(zip(hs,paras)):
+                  out.append(f'<h2>{h}</h2><p>{p}</p>')
+                  if n==1:out.append('<p>Teams comparing promotion providers can review <a href="https://smmfansfaster.com/">SMM Fans Faster</a> alongside organic content, advertising, creator partnerships, and other distribution options.</p>')
+                  if n==4:out.append('<p>Available services can also be explored at <a href="https://smmfansfaster.com/">SMMFansFaster.com</a> while keeping content quality and conversion measurement central to the plan.</p>')
+                  if n==6:out.append('<p>Marketers considering an SMM panel can compare <a href="https://smmfansfaster.com/">SMM Fans Faster</a> with other acquisition channels based on fit, transparency, traffic quality, and measurable outcomes.</p>')
+              out.append('<h2>Conclusion</h2><p>The strongest social media system connects useful content, measured distribution, audience trust, and conversion learning instead of relying on one isolated growth tactic.</p>')
+              return '<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="index,follow"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+html.escape(title)+'</title></head><body><main>'+''.join(out)+'</main></body></html>'
+          def md(i):
+              s=BeautifulSoup(page(i),'html.parser'); out=[]
+              for e in s.select('h1,h2,p'):
+                  if e.name=='h1':out.append('# '+e.get_text(' ',strip=True))
+                  elif e.name=='h2':out.append('## '+e.get_text(' ',strip=True))
+                  else:
+                      t=''.join('['+c.get_text(strip=True)+']('+c.get('href')+')' if getattr(c,'name',None)=='a' else str(c) for c in e.contents)
+                      out.append(t)
+              return '\n\n'.join(out)
+          def verify(u):
+              if not u:return None
+              for _ in range(2):
+                  try:
+                      r=requests.get(u,headers=H,timeout=12,allow_redirects=True)
+                      if r.ok and any('smmfansfaster.com' in a.get('href','').lower() for a in BeautifulSoup(r.text,'html.parser').find_all('a',href=True)):return r.url
+                  except:pass
+                  time.sleep(1)
+              return None
+          res=[]
+          def add(site,domain,u,raw=''):
+              v=verify(u); d={'site':site,'domain':domain,'url':v,'status':'verified' if v else 'failed'}; res.append(d); print('ITEM='+json.dumps(d))
+          def jurl(o):
+              if isinstance(o,dict):
+                  for k in ['url','live_url','liveUrl','share_url','shareUrl','site_url','siteUrl']:
+                      if isinstance(o.get(k),str) and o[k].startswith('http'):return o[k]
+                  for k in ['data','site','result']:
+                      v=jurl(o.get(k));
+                      if v:return v
+              return None
+          # direct no-auth publishers
+          direct=[('PageDrop','pagedrop.dev','https://pagedrop.dev/api/v1/sites',0),('FreeKit','freekit.dev','https://freekit.dev/api/v1/sites',1)]
+          for name,dom,ep,i in direct:
+              try:
+                  r=requests.post(ep,json={'html':page(i),'title':titles[i]},headers={**H,'Content-Type':'application/json'},timeout=18); add(name,dom,jurl(r.json()),r.text)
+              except Exception as e:add(name,dom,None,repr(e))
+          try:
+              r=requests.post('https://hurl.page/deploy',data=page(2).encode(),headers={**H,'Content-Type':'text/html'},timeout=18); m=re.search(r'https://[^\s"\']+\.hurled\.page/?',r.text); add('Hurl','hurled.page',m.group(0) if m else None,r.text)
+          except Exception as e:add('Hurl','hurled.page',None,repr(e))
+          try:
+              r=requests.post('https://www.flexweg.com/ai/publish',json={'html':page(3)},headers={**H,'Content-Type':'application/json'},timeout=18); add('Flexweg','flexweg.com',jurl(r.json()),r.text)
+          except Exception as e:add('Flexweg','flexweg.com',None,repr(e))
+          try:
+              slug='smm-'+''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(8)); r=requests.post('https://resolved.sh/publish',json={'subdomain':slug,'display_name':titles[4],'description':'Social media growth guide','md_content':md(4)},headers={**H,'Content-Type':'application/json'},timeout=18); u=jurl(r.json()) or 'https://'+slug+'.resolved.sh/'; add('Resolved','resolved.sh',u,r.text)
+          except Exception as e:add('Resolved','resolved.sh',None,repr(e))
+          # browser targets ordered by likelihood
+          for i in range(5,14):open(f'/tmp/a{i}.html','w',encoding='utf8').write(page(i))
+          try:
+              from playwright.sync_api import sync_playwright
+              def bp(name,dom,url,i,button,pattern,filemode=True):
+                  try:
+                      pg=ctx.new_page(); pg.set_default_timeout(5000); pg.goto(url,wait_until='domcontentloaded',timeout=15000); time.sleep(.5)
+                      if filemode and pg.locator('input[type=file]').count():pg.locator('input[type=file]').first.set_input_files(f'/tmp/a{i}.html')
+                      elif pg.locator('textarea').count():pg.locator('textarea').first.fill(page(i))
+                      elif pg.locator('[contenteditable=true]').count():pg.locator('[contenteditable=true]').first.fill(page(i))
+                      time.sleep(.5); b=pg.get_by_role('button',name=re.compile(button,re.I));
+                      if b.count():b.first.click(force=True,timeout=5000)
+                      elif pg.locator('button[type=submit],input[type=submit]').count():pg.locator('button[type=submit],input[type=submit]').first.click(force=True)
+                      time.sleep(3)
+                      txt='';
+                      try:txt=pg.locator('body').inner_text(timeout=3000)
+                      except:pass
+                      hs=[]
+                      try:hs=pg.locator('a').evaluate_all('(e)=>e.map(x=>x.href)')
+                      except:pass
+                      c=[pg.url]+hs+re.findall(r'https?://[^\s<>"\']+',txt); c=[x.rstrip('.,);]') for x in c if re.search(pattern,x,re.I)]
+                      v=None
+                      for x in dict.fromkeys(c):
+                          v=verify(x)
+                          if v:break
+                      res.append({'site':name,'domain':dom,'url':v,'status':'verified' if v else 'failed'});print('ITEM='+json.dumps(res[-1]));pg.close()
+                  except Exception as e:res.append({'site':name,'domain':dom,'url':None,'status':'failed'});print('BROWSER_FAIL',name,repr(e))
+              with sync_playwright() as p:
+                  br=p.chromium.launch(channel='chrome',headless=True,args=['--no-sandbox']);ctx=br.new_context(user_agent=H['User-Agent'])
+                  bp('htmlhost','htmlhost.co','https://htmlhost.co/',5,r'Deploy|Publish|Host',r'htmlhost\.co',True)
+                  bp('ShareMyHTML','sharemyhtml.com','https://sharemyhtml.com/',6,r'Give It a URL|Publish|Upload',r'sharemyhtml\.com',True)
+                  bp('HTMLSave','htmlsave.com','https://htmlsave.com/',7,r'SUBMIT TO SAVE|Submit|Save',r'htmlsave\.com',False)
+                  bp('HTMLPUT','htmlput.com','https://www.htmlput.com/',8,r'Host Now|Host|Publish',r'htmlput\.com',False)
+                  bp('OneClickLive','oneclicklive.app','https://oneclicklive.app/',9,r'Deploy|Publish',r'oneclicklive\.app|netlify\.app|vercel\.app',False)
+                  bp('Yapp','yapp.page','https://yapp.page/',10,r'Publish my page|Publish',r'\.yapp\.page',True)
+                  bp('Hdply','hdply.com','https://hdply.com/',11,r'Deploy now|Deploy|Publish',r'\.hdply\.com',True)
+                  bp('Sharable','sharable.link','https://sharable.link/free-html-hosting',12,r'Upload|Publish|Share|Host',r'sharable\.link',True)
+                  bp('StaticRun','staticrun.app','https://static.run/',13,r'Upload|Publish|Deploy|Host',r'staticrun\.app|static\.run',True)
+                  br.close()
+          except Exception as e:print('BROWSER_ERROR',repr(e))
+          good=[];seen=set()
+          for x in res:
+              if x['status']=='verified' and x['domain'] not in seen:seen.add(x['domain']);good.append(x)
+          print('GOOD_COUNT='+str(len(good)))
+          print('GOOD_JSON='+json.dumps(good))
+          print('ALL_JSON='+json.dumps(res))
+          PY
+          python /tmp/fast.py
